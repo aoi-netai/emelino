@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/emelino-compiler"]
+members = ["crates/emelino-compiler", "crates/emelino-cli"]
 
 [workspace.package]
 version = "0.1.0"
@@ -8,5 +8,13 @@ edition = "2024"
 publish = false
 
 [workspace.dependencies]
+emelino-compiler = { path = "crates/emelino-compiler" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+la-arena = "0.3"
+# All frontend crates come from one immutable upstream revision.
+emela-syntax = { git = "https://github.com/emela-lang/emela.git", rev = "ec1031cb0b98386baf0e9b0ced67e8829bb2c529" }
+emela-resolve = { git = "https://github.com/emela-lang/emela.git", rev = "ec1031cb0b98386baf0e9b0ced67e8829bb2c529" }
+emela-types = { git = "https://github.com/emela-lang/emela.git", rev = "ec1031cb0b98386baf0e9b0ced67e8829bb2c529" }
+emela-core = { git = "https://github.com/emela-lang/emela.git", rev = "ec1031cb0b98386baf0e9b0ced67e8829bb2c529" }
+emela-lir = { git = "https://github.com/emela-lang/emela.git", rev = "ec1031cb0b98386baf0e9b0ced67e8829bb2c529" }

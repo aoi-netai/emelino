@@ -1,0 +1,18 @@
+[package]
+name = "emelino-cli"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "emelino"
+path = "src/main.rs"
+
+[dependencies]
+emelino-compiler.workspace = true
+emela-syntax.workspace = true
+emela-resolve.workspace = true
+emela-types.workspace = true
+emela-core.workspace = true
+emela-lir.workspace = true
+la-arena.workspace = true
