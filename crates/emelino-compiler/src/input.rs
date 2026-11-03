@@ -2,7 +2,7 @@
 pub(crate) mod codec;
 mod validate;
 
-use crate::{Error, ErrorKind, UPSTREAM_REVISION, ir::Program};
+use crate::{Error, ErrorKind, Options, Output, UPSTREAM_REVISION, ir::Program};
 use serde::{Deserialize, Serialize};
 
 pub const FORMAT: &str = "emelino.backend-input";
@@ -71,5 +71,9 @@ impl BackendInput {
 
     pub fn program(&self) -> &Program {
         &self.envelope.program
+    }
+
+    pub fn compile(&self, options: &Options) -> Result<Output, Vec<Error>> {
+        crate::backend::compile_program(self.envelope.program.clone(), options)
     }
 }
