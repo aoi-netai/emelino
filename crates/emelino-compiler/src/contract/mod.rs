@@ -10,3 +10,5 @@ pub use derived::DerivedOperation;
 pub use error::{Error, ErrorKind};
 pub use options::{ExternalAdapter, ExternalResult, Options};
 pub use output::{ExportedFunction, GeneratedFile, Output};
+
+pub(crate) mod artifact;

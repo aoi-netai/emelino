@@ -1,4 +1,5 @@
 //! Board-independent C generation over validated, owned Flow input.
+pub mod artifact;
 mod contract;
 mod input;
 mod minimal;
