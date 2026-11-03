@@ -156,7 +156,7 @@ GPIOのISR直接呼び出しを理由に、常駐イベントループを必須�
 | 項目 | 状態 |
 | --- | --- |
 | SPIのHz指定 | STM32F4 BSPで上限以下の最速分周を選択。Renodeで設定値を検証 |
-| I2Cの`write_read`・`recover` | HAL sequential転送とバス復旧を実装。Repeated START・全体timeoutをRenodeで検証。1バイト受信の成功はモデル制限により未検証 |
+| I2Cの`write_read`・`recover` | HAL sequential転送とバス復旧を実装。Repeated START・全体timeoutをRenodeで検証。1バイト受信は修正版コントローラーモデル＋標準BMP180でpolling/IRQとも成功 |
 | GPIOのピン別ハンドラー引数 | C bridge・登録表・所有権管理を実装。Renodeでcapture寿命・置換・解除を検証 |
 | GPIOのISR直接呼び出し | 宣言コメントも同期し、HALのEXTI callbackからの直接呼び出しを実装・検証 |
 | 登録先すべてへのISR検査 | 候補追跡と既存検査への接続を実装。未知候補やunsafe候補の拒否を回帰試験 |
@@ -171,8 +171,37 @@ SPI複合エラーはC structの `primary_spi` / `primary_gpio` / `cleanup_gpio`
 STM32F4のpin所有権をdriver間で共有し、同期通信はmain context・IRQ有効時に限定する。
 UART・I2Cの割り込み設定は内部処理を切り替え、公開宣言にないユーザーイベント配送は追加しない。
 SPI SlaveとUART RTS/CTSは初期board配線に含めず `Unsupported` を返す。
-実装・実行手順は [ボード向けfirmware](../boards/README.md) を参照する。
+実装・実行手順は [ボード向けfirmware](embedded/README.md) を参照する。
 UARTの送信完了条件など、候補として挙げただけの追加変更を決定済みとして扱わない。
+
+2026-11-04追記：相手デバイスを含むRenode試験として、標準BMP180とMicron MT25Qを接続した。
+BMP180は旧STM32モデルのADDR/AF/受信FIFO動作を修正したモデルを使用し、HAL/BSPは変更していない。
+標準モデルでの制約、修正版モデルでの結果、実機の電気的検証を区別して記録する。
+詳しくは[BMP180試験](embedded/stm32f4/bmp180-test.md)と
+[SPI flash試験](embedded/stm32f4/spi-device-test.md)を参照する。
+
+## ボード追加に向けた構成の分離（2026-11-04）
+
+ボードごとにdriver・ビルド・通信試験一式を複製しない構成を採用する。
+
+- `firmware/boards/<board>/board.json` はMCU・接続portの参照、配線、クロック方針を持つ。
+  基板固有の初期化がある場合だけ `init.c` を置く。
+- `firmware/chips/` はCPU/FPU、メモリ容量・アドレス、CMSIS define、package pin、IRQ表を持つ。
+- `firmware/ports/<port>/` はSDKとのC ABI接続と起動・時刻・排他・SDK固有ビルドを持つ。
+  同じ接続実装を複数基板から共有する。未実装controllerは定義の追加だけで対応済みにはしない。
+- `firmware/build/` と `tools/build_firmware.py` はmanifest検証・実行・成果物記録と共通入口を担う。
+  各SDKのビルド方式をportへ委ねる。
+- `firmware/common/` はSDK非依存の処理を持つ。SPIのdevice管理・操作列・CS cleanup・複合エラーを
+  ここへ抽出する。割り込み・pin所有権・時刻取得は当面port側に残す。
+- `tests/embedded/scenarios/` は通信手順と期待値、`targets/` は試験配線と適用シナリオ、
+  `support/` は実行基盤、`ports/` はSDK固有の検査・注入を持つ。Renodeモデルは `tests/renode/` に置く。
+- 接続仕様・実行手順・結果は `docs/embedded/` にまとめる。
+
+BMP180・MT25Qの試験はtargetからバス番号・CS設定を受け取り、ボード追加でアプリを複製しない。
+共通入口は `tools/test_embedded.py --board <board> --scenario <scenario>` とする。
+STM32F4固有のレジスタ・HAL検査と、別MCUへ流用できる通信手順の適用範囲を区別する。
+
+実行手順と配置は [組み込みfirmware](embedded/README.md) を参照する。
 
 ## 過去実装の参照先
 

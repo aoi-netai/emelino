@@ -67,7 +67,7 @@ ring が満杯の場合は新しい word を破棄し、すでに入っている
 ## Renode 試験
 
 ```sh
-python3 tools/test_stm32f4_uart.py \
+python3 tools/test_embedded.py --board nucleo-f446re --scenario uart \
   --renode /path/to/renode \
   --cc /path/to/arm-none-eabi-gcc \
   --sdk-dir /path/to/STM32CubeF4-1.28.3

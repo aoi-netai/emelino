@@ -2,7 +2,7 @@
 
 最初の実機対象は **NUCLEO-F446RE / STM32F446RE**。生成された
 `emela_gpio.h` / `emela_uart.h` / `emela_spi.h` / `emela_i2c.h` のABIを、
-このディレクトリのdriverが **STM32CubeF4 の HAL / CMSIS** へ接続する。
+[STM32F4 port](../../../firmware/ports/stm32f4/)のdriverが **STM32CubeF4 の HAL / CMSIS** へ接続する。
 SDK は同梱せず、build の `--sdk-dir` または `STM32CUBE_F4` にそのルートを指定する。
 確認した SDK は STM32CubeF4 **1.28.3**。
 SDK sourceは使用サービスに応じてGPIO・UART・SPI・I2CとHAL内部依存のDMAをlinkする。
@@ -11,11 +11,14 @@ GPIOのみならSysTickは起動しない。UART・SPI・I2Cでは1 msのSysTick
 全操作の期限とSPIのµs単位CS待ち時間を管理する。`HAL_Init()`は呼ばない。
 
 ```text
-boards/
-├── common/                    # ボードに依存しない生成 artifact の読み取り
-└── stm32/stm32f4/
+firmware/
+├── boards/nucleo-f446re/board.json # 基板の配線と MCU・port 選択
+├── chips/stm32f446re.json       # MCU の CPU・容量・package pin・IRQ vector
+├── build/                     # 共通の manifest・profile・ビルド処理
+├── common/                    # SDK 非依存の SPI 状態・複合操作
+└── ports/stm32f4/
     ├── gpio.c                 # GPIO と EXTI
-    ├── uart.c / spi.c / i2c.c # 同期操作、内部 IRQ 処理、復旧
+    ├── uart.c / spi.c / i2c.c  # SDK による転送、内部 IRQ 処理、復旧
     ├── pins.c / bsp.h         # driver 間で共有する pin 所有権
     ├── time.c                 # SysTick と転送全体の deadline
     ├── platform.c             # Emela の起動、待機、critical section
@@ -23,14 +26,13 @@ boards/
     ├── stm32f4xx_hal_conf.h    # 使用する HAL module の設定
     ├── startup.S              # vector table、FPU、data/bss 初期化
     ├── firmware.ld.in         # Flash / SRAM / stack 配置
-    ├── build.py               # artifact から ELF/BIN を作る
-    ├── boards/*.json          # 基板の配線と MCU 選択
-    └── chips/*.json           # MCU の容量、package pin、IRQ vector
+    └── build.py               # STM32 固有のコンパイル・リンク・起動検証
 ```
 
-別 family / ESP32 / Pico / Arduino は `boards/` 以下に並列の package を追加する。
+別 SDK との接続実装は `firmware/ports/` 以下へ追加する。
 配線はboard JSONに記録する。初期対応はUSART2（PA2/PA3・AF7）、SPI1（PA5/PA6/PA7・AF5）、
-I2C1（PB8/PB9・AF4）。別controllerや別portを増やす際はdriverのclock / GPIO設定も追加する。
+I2C1（PB8/PB9・AF4）。GPIO portは指定ピンから選択する。別controllerを増やす際は
+driverのinstance / IRQ / clock対応も追加する。board定義だけで対応controllerを拡張することはできない。
 Console / Clock effectのdriverはまだ提供しない。
 
 ## UART・SPI・I2C
@@ -96,14 +98,23 @@ GPIO / EXTI / NVIC / reset の検証結果と、実機の electrical timing や 
 2026-11-03の検証では、UART 33項目、SPI 32項目、I2C 19項目と既知モデル制約1項目、
 4 driver同時使用9項目が `-Os` / `-O0` の両方で成功した。
 GPIOの16項目・7回のISR callbackも回帰確認した。
-I2Cの1バイト受信はgenericモデルにADDR/BTF遷移が不足しており、Timeoutへ終了することだけを
-別項目で検査する。成功はhost側の生成C bridgeで検査し、HAL・実機を通した成功とは区別する。
+標準Renode 1.16.1のI2CモデルにはADDR解除・BTF遷移の問題があり、旧試験では1バイト受信が
+Timeoutへ終了することを別項目で検査した。
 UARTの9 bit、SPIの16 bit、I2CのNACKなど、模型で再現できない部分は各driverの説明に
 注入・register観測の範囲を記録する。
 
-再実行は [boards/README.md](../../README.md#renode試験) の各スクリプトを使う。
-共通待ち時間の期限超過は `python3 tests/boards/stm32f4/test_time.py` でも検査する。
-各 `out/stm32f4-*/report.json` は判定・使用SDK・実行log・容量情報を持ち、
+2026-11-04には、相手デバイスを含めた試験を追加した。
+[BMP180](bmp180-test.md)は19項目・30 transaction、[Micron MT25Q](spi-device-test.md)は
+14項目・19 CS区間が `-Os` / `-O0` の両方で成功した。
+BMP180は修正版I2Cコントローラーモデルを明示して使用し、1バイト受信のpolling/IRQ、
+温度24.0℃→32.0℃、校正データ、NACKを確認した。旧モデルと同じfirmware BINで比較している。
+修正版はfirmwareを使わない122項目のレジスター・IRQ試験も通した。
+SPI側は標準のコントローラーとデバイスモデルで書込み・読み戻し・消去を確認している。
+HAL/BSPへの試験分岐や返却値の注入は追加していない。
+
+再実行は [共通手順](../README.md#renode試験) のコマンドを使う。
+共通待ち時間の期限超過は `python3 tests/embedded/ports/stm32f4/test_time.py` でも検査する。
+各 `out/embedded/<board>/<optimization>/<scenario>/report.json` は判定・使用SDK・実行log・容量情報を持ち、
 ELF/BINとともにローカルへ出力される。
 
 register / IRQ 定義の参照元:

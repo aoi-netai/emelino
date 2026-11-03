@@ -1,7 +1,7 @@
 # STM32F4 SPI
 
 NUCLEO-F446RE の SPI1 を STM32CubeF4 HAL の同期 polling API に接続する。
-SPI1 は PA5=SCK、PA6=MISO、PA7=MOSI、AF5 に固定する。
+基板定義の初期配線は SPI1 の PA5=SCK、PA6=MISO、PA7=MOSI、AF5。
 SPI2–SPI6 は `Unsupported`。SPI1 のピンは共通の所有権管理で予約し、GPIO や
 別の peripheral が使用中なら `ResourceConflict` を返す。
 
@@ -24,6 +24,10 @@ SPI2–SPI6 は `Unsupported`。SPI1 のピンは共通の所有権管理で予�
 - 同期転送を ISR または割り込み禁止中に呼ぶと `InvalidState`、再入は `Busy`。
 
 ## Device と transaction
+
+この処理は [共通SPI実装](../../../firmware/common/spi.c) が所有する。
+STM32F4 portは設定・転送・復旧・排他・時刻・CS操作をhookで接続し、busの状態を保持する。
+共通実装はHAL、NVIC、STM32のピン番号体系に依存しない。
 
 `create_device` は最大 8 個の slot を確保する。device は自身の bus 設定、CS pin、
 active level、setup/hold microseconds を保持する。CS の初期値は inactive。
@@ -52,7 +56,7 @@ recover は SPI を停止・reset し、設定を再適用して、全 device �
 各 field の 0 は失敗なし、それ以外は対応する error kind の index + 1。
 入力と出力 buffer は呼出し中だけ借用し、保持しない。
 
-`tools/test_stm32f4_spi.py` は Emela → 生成 C → HAL → firmware を build し、raw BIN を
+`tools/test_embedded.py --board nucleo-f446re --scenario spi` は Emela → 生成 C → HAL → firmware を build し、raw BIN を
 Renode の Flash に置いて reset vector から起動する。SPI slave peer の実際の byte 往復、
 混合 transaction、複数 device 設定、CS 遷移、setup/hold、引数・容量・状態エラーを調べる。
 timeout と CS 解除の同時失敗は、試験 ELF にだけ適用する linker wrapper で注入する。

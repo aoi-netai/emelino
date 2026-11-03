@@ -62,7 +62,7 @@ controller を reset し、保存している設定を再適用する。外部 d
 
 ## Renode で確認する範囲
 
-`tools/test_stm32f4_i2c.py` は Emela → 生成 C → SDK → firmware を build し、
+`tools/test_embedded.py --board nucleo-f446re --scenario i2c` は Emela → 生成 C → SDK → firmware を build し、
 raw BIN を Flash に置いて reset vector から起動する。標準 `STM32F4_I2C` controller と
 試験用 I2C target を接続し、2 / 3 byte の読み取り、任意 prefix、memory address の
 8 / 16 bit、polling / IRQ、pin conflict、Timeout、recover 後の再通信を確認する。
@@ -74,9 +74,10 @@ Renode 1.16.1 の generic F4 model は STM32F446 silicon の完全なモデル�
 
 - target に `Read(1)` を一度だけ呼ぶため、試験 target は register window を返す。
   ACK による実際の受信長制御、POS、電気的な open drain / pull-up は検証しない。
-- **1 byte 受信の正常完了はこのモデルでは検証できない。** 観測した SR1 は address
-  書込み後に ADDR (0x02) を経由せず RXNE|BTF (0x44) になる。1 byte だけを返す target
-  でも同じ挙動だった。HAL の `I2C_Master_ADDR` は `XferCount == 1` / `I2C_LAST_FRAME`
+- **標準1.16.1モデルでは1 byte受信が完了しない。** モデルはADDRを立てるが、
+  SR2だけを読むと解除してしまう。HALのSR2→SR1読み取りではADDRを観測できず、
+  受信長によらず立つBTFが残る。1 byteだけを返すtargetでも同じ問題がある。
+  HAL の `I2C_Master_ADDR` は `XferCount == 1` / `I2C_LAST_FRAME`
   で ACK を解除し、ADDR clear 後に STOP を出す。その後 `I2C_MasterReceive_RXNE`
   が最後の byte を取り出して完了する。model はこの ADDR 経路を飛ばして BTF handler
   へ入るため完了しない。通常成功の 19 項目とは別の 1 項目で、この既知制約が Timeout
@@ -84,8 +85,9 @@ Renode 1.16.1 の generic F4 model は STM32F446 silicon の完全なモデル�
   根拠となる SDK は STM32CubeF4 1.28.3 の
   `Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c`、
   `HAL_I2C_EV_IRQHandler` / `I2C_Master_ADDR` / `I2C_MasterReceive_RXNE`。
-- 未接続 address も AF を発生させない。NACK と trials は試験 ELF の linker wrapper
-  から HAL error callback(AF) を注入して確認する。実際の wire NACK 試験ではない。
+- 未接続addressではAFを立てるが、元モデルはSR1 readでAFを解除するため、HALの
+  エラー処理へ正しく届かない。旧試験のNACKとtrialsは試験ELFのlinker wrapperから
+  HAL error callback(AF)を注入して確認する。実際のbus NACK試験ではない。
 - target が空データを返す fault で受信を止め、実際の HAL 待機と SysTick deadline が
   Timeout に達することを確認する。この際の empty FIFO warning と GPIO OTYPER の
   未実装 warning は限定して許可・記録し、それ以外の warning は失敗とする。
@@ -99,3 +101,12 @@ single-byte model 制約は、それぞれ異なる検証範囲として扱う�
 結果は `out/stm32f4-i2c/report.json` / `out/stm32f4-i2c-o0/report.json` に保存する。
 試験 firmware の Flash 使用量は 15,636 / 41,868 bytes、静的 RAM は 9,064 / 9,072 bytes。
 別に stack 16 KiB と guard 256 bytes を予約し、system allocator は link していない。
+
+## BMP180を接続した試験
+
+2026-11-04に[標準BMP180モデルを相手とする試験](bmp180-test.md)を追加した。
+こちらは[修正版コントローラーモデル](../../../tests/renode/models/README.md)を明示して実行し、
+1 byteを含む受信、校正データ、温度・圧力のコマンド、polling/IRQ、未登録addressのNACKを検査する。
+HAL/BSPの変更や返却値の注入は行わない。コントローラーのレジスター・IRQは
+[独立したMMIO試験](../../../tests/renode/i2c/README.md)でも検査する。
+標準モデルでの既知制約と、修正版モデルでの成功を分けて結果へ記録する。

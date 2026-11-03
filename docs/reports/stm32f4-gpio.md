@@ -2,11 +2,11 @@
 
 この文書はGPIO単独実装を完了した時点の履歴記録であり、容量値・試験件数も当時の値を記す。
 その後UART・SPI・I2Cと共通pin管理を追加した。現在の対応範囲・検証結果は
-[STM32F4 BSP](../../boards/stm32/stm32f4/README.md)を参照する。
+[STM32F4 BSP](../embedded/stm32f4/README.md)を参照する。
 
 2026-11-03。NUCLEO-F446RE向けのGPIOを、Emelaの新しい宣言から生成C、
 STM32CubeF4 HAL/CMSIS、firmwareまで接続した。実行手順は
-[boards/README.md](../../boards/README.md)に記載する。
+[組み込みfirmwareの共通手順](../embedded/README.md)に記載する。
 
 ## 実装範囲
 
