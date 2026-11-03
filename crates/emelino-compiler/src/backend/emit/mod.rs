@@ -35,7 +35,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let heap_required = !heap_functions.is_empty();
     let main_entry = plan.main_entry.map(|id| (id, &flow.functions[id]));
     let target_headers: Vec<GeneratedFile> = Vec::new();
-    let _function_ref_adapters = &plan.function_ref_adapters;
+    let function_ref_adapters = &plan.function_ref_adapters;
     let header = header::emit(header::Context {
         flow,
         layouts,
@@ -68,6 +68,8 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     c::emit_unused_attribute(&mut source);
     source.blank();
 
+    error_runtime::emit_types(layouts, &mut source);
+    emit_closure_environment_declarations(layouts, closures, &mut source);
     layouts.emit_runtime_value_declarations(&mut source);
     if heap_required {
         layouts.emit_list_node_declarations(&mut source);
@@ -76,14 +78,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
             options.heap_bytes(),
             layouts.has_cell_cycles(),
         );
-
         emit_closure_string_copy_helper(layouts, &mut source);
         bytes_runtime::emit(layouts, &mut source);
-
+        error_runtime::emit_ownership_declarations(layouts, &mut source);
         emit_any_ownership_declarations(layouts, &mut source);
         layouts.emit_heap_ownership_helpers(&mut source);
         owned::emit_helpers(layouts, &mut source);
-
+        error_runtime::emit_ownership(layouts, true, &mut source);
         emit_any_ownership(layouts, true, &mut source);
 
         layouts.emit_heap_destroy_switch(&closures.environments, &mut source);
@@ -99,7 +100,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         source.line(
             "static inline EMELA_UNUSED void emela_heap_release(void *value) { (void)value; }",
         );
-
+        error_runtime::emit_ownership(layouts, false, &mut source);
         emit_any_ownership(layouts, false, &mut source);
         layouts.emit_noheap_ownership_stubs(&mut source);
         source.blank();
@@ -135,19 +136,52 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         } else if !function.exported || function.fails {
             source.line(&format!(
                 "{};",
-                signature(
-                    layouts,
-                    function,
-                    name,
-                    true,
-                    function.fails,
-                    takes_string_output,
-                )
+                if closures.functions.contains_key(&id) {
+                    closure_signature(layouts, function, name, true)
+                } else {
+                    signature(
+                        layouts,
+                        function,
+                        name,
+                        true,
+                        function.fails,
+                        takes_string_output,
+                    )
+                }
             ));
         }
     }
-
+    for adapter in function_ref_adapters {
+        let target = adapter.target;
+        let function_type = adapter.function_type;
+        source.line(&format!(
+            "{};",
+            function_ref_adapter_signature(
+                layouts,
+                function_type,
+                &function_ref_adapter_name(target, function_type),
+            )
+        ));
+    }
+    for (index, adapter) in layouts.shapes.function_adapters.iter().enumerate() {
+        source.line(&format!(
+            "{};",
+            function_ref_adapter_signature(
+                layouts,
+                adapter.destination,
+                &function_coerce_adapter_name(index),
+            )
+        ));
+    }
     source.blank();
+
+    error_runtime::emit_display(
+        layouts,
+        names,
+        string_output_functions,
+        options.string_capacity(),
+        &mut source,
+    )?;
 
     for (id, function) in flow
         .functions
@@ -181,14 +215,18 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         let name = &names[&id];
         let is_static = is_runtime_const || !function.exported || function.fails;
         let takes_string_output = string_output_functions.contains(&id);
-        let function_signature = signature(
-            layouts,
-            function,
-            name,
-            is_static,
-            function.fails,
-            takes_string_output,
-        );
+        let function_signature = if closures.functions.contains_key(&id) {
+            closure_signature(layouts, function, name, is_static)
+        } else {
+            signature(
+                layouts,
+                function,
+                name,
+                is_static,
+                function.fails,
+                takes_string_output,
+            )
+        };
         source.begin_block(&function_signature);
 
         if layouts.runtime.has_cause_raise && layouts.runtime.has_unwind {
@@ -214,7 +252,9 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         }
         let string_buffers = &plan.strings[&id];
         emit_local_declarations(layouts, function, string_buffers, &mut source);
-        if let Some(&_environment) = layouts.functions.closure_functions.get(&id) {}
+        if let Some(&environment) = layouts.functions.closure_functions.get(&id) {
+            emit_closure_capture_loads(layouts, function, environment, &mut source);
+        }
         let mut loops = Vec::new();
         let mut blocks = Vec::new();
         let mut protects = Vec::new();
@@ -245,7 +285,41 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         source.end_block();
         source.blank();
     }
-
+    for adapter in function_ref_adapters {
+        let target = adapter.target;
+        let function_type = adapter.function_type;
+        let takes_output = adapter.takes_output;
+        let adapter_capacity = adapter.capacity;
+        emit_function_ref_adapter(
+            layouts,
+            function_type,
+            &names[&target],
+            &function_ref_adapter_name(target, function_type),
+            takes_output,
+            adapter_capacity,
+            &mut source,
+        );
+        source.blank();
+    }
+    for (index, adapter) in layouts.shapes.function_adapters.iter().enumerate() {
+        emit_function_coerce_adapter(layouts, adapter, index, &mut source);
+        source.blank();
+    }
+    for (id, function) in flow
+        .functions
+        .iter()
+        .filter(|(id, f)| emitted_functions.contains(id) && f.exported && f.fails && !f.suspends)
+    {
+        emit_fallible_wrapper(
+            layouts,
+            function,
+            &public_names[&id],
+            &names[&id],
+            string_output_functions.contains(&id),
+            &mut source,
+        );
+        source.blank();
+    }
     if let Some((id, _)) = main_entry {
         entry::emit(plan, id, &mut source);
     }
@@ -313,12 +387,16 @@ mod values;
 use control::{
     BlockTarget, ProtectTarget, emit_call_failure_edge, emit_compound_sequence,
     emit_error_assignment, emit_failure_return, emit_pending_cleanups, emit_return, emit_statement,
+    emit_sync_interrupt_exit,
 };
 use functions::signature;
 use functions::{
-    emit_any_ownership, emit_any_ownership_declarations, emit_closure_string_copy_helper,
-    emit_local_declarations, emit_owned_cleanup, emit_public_string_ownership,
-    emit_release_if_owned, emit_retain_operand,
+    closure_signature, emit_any_ownership, emit_any_ownership_declarations,
+    emit_closure_capture_loads, emit_closure_environment_declarations,
+    emit_closure_string_copy_helper, emit_fallible_wrapper, emit_function_coerce_adapter,
+    emit_function_ref_adapter, emit_local_declarations, emit_owned_cleanup,
+    emit_public_string_ownership, emit_release_if_owned, emit_retain_operand,
+    function_ref_adapter_signature,
 };
 use values::{
     constant_expression, emit_aggregate_field_store, emit_builtin, emit_runtime,
@@ -341,6 +419,8 @@ use crate::writer::Writer;
 use crate::{GeneratedFile, Output};
 use features::builtins::string_split::emit_string_split_push;
 mod c;
+
+mod error_runtime;
 mod numeric_runtime;
 mod owned;
 mod platform;
