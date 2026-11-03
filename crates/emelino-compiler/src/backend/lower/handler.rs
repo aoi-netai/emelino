@@ -268,7 +268,7 @@ fn function_uses(function: &Function, needle: VarId) -> bool {
             .any(|(_, sequence)| term_uses(&sequence.term, needle))
 }
 
-fn statement_uses(statement: &Stmt, needle: VarId) -> bool {
+pub(super) fn statement_uses(statement: &Stmt, needle: VarId) -> bool {
     match statement {
         Stmt::Let {
             value, on_suspend, ..
@@ -290,7 +290,7 @@ fn statement_uses(statement: &Stmt, needle: VarId) -> bool {
     }
 }
 
-fn term_uses(term: &Term, needle: VarId) -> bool {
+pub(super) fn term_uses(term: &Term, needle: VarId) -> bool {
     match term {
         Term::Yield(value) | Term::Return(value) => value
             .as_ref()

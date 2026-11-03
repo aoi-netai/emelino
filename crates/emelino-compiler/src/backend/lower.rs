@@ -134,6 +134,7 @@ pub(crate) fn lower_program(
             .iter()
             .flat_map(|group| group.specializations.iter().copied()),
     );
+    discard_unused_bindings(&mut program, &closures);
     failures::normalize(&mut program);
     // Calls and checked values retain allocation and validation behavior when unused.
     // Temporary destinations release returned data, handlers and evidence immediately.
@@ -259,6 +260,56 @@ pub(crate) fn lower_program(
         discarded_results,
         const_outcomes,
     })
+}
+
+// Raw Flow retains destinations for source expression statements. They must
+// release owned results before the next statement, including across suspension,
+// so discarded child handles do not keep completed children alive until return.
+fn discard_unused_bindings(
+    program: &mut Program,
+    closures: &crate::contract::lowered::ClosureMetadata,
+) {
+    for (function_id, function) in program.functions.iter_mut() {
+        // Closure lifting moves capture uses out of the statement operands.
+        // They remain owning uses even when the resulting FnRef has no args.
+        let captures: HashSet<_> = closures
+            .environments
+            .iter()
+            .filter(|environment| environment.parent == function_id)
+            .flat_map(|environment| environment.captures.iter().map(|capture| capture.source))
+            .collect();
+        let (active, sequences) = positions(function);
+        let mut unused: Vec<_> = active
+            .keys()
+            .filter_map(|&id| {
+                let Stmt::Let { dst: Some(dst), .. } = &function.stmts[id] else {
+                    return None;
+                };
+                if function.vars[*dst].repr != Repr::Ref || captures.contains(dst) {
+                    return None;
+                }
+                let used = active
+                    .keys()
+                    .any(|id| handler::statement_uses(&function.stmts[*id], *dst))
+                    || sequences
+                        .keys()
+                        .any(|id| handler::term_uses(&function.seqs[*id].term, *dst));
+                (!used).then_some((id, *dst))
+            })
+            .collect();
+        unused.sort_by_key(|(id, _)| id.into_raw());
+        let after: HashMap<_, _> = unused
+            .into_iter()
+            .map(|(id, dst)| (id, function.stmts.alloc(Stmt::Drop(dst))))
+            .collect();
+        for (_, sequence) in function.seqs.iter_mut() {
+            sequence.stmts = sequence
+                .stmts
+                .iter()
+                .flat_map(|id| std::iter::once(*id).chain(after.get(id).copied()))
+                .collect();
+        }
+    }
 }
 
 fn validate_function(program: &Program, f: &Function) -> Result<()> {

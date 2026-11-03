@@ -2,15 +2,11 @@ use super::super::*;
 
 pub(in crate::backend::plan) fn lower(
     context: &mut LoweringContext<'_>,
-    _id: StmtId,
+    id: StmtId,
     _statement: &Stmt,
     next: usize,
 ) -> Result<usize, Vec<Error>> {
-    let _graph = &mut *context.graph;
-    let function = context.function;
-    let _entry = next;
-    Err(unsupported(
-        &function.name,
-        "unsupported Stmt at Flow stage",
-    ))
+    // Raw Flow Drop is rejected before this point. Lowering introduces this
+    // ownership action after an unused binding, including a suspending call.
+    Ok(context.graph.add(Node::Statement(id, next)))
 }
