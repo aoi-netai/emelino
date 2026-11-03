@@ -13,3 +13,5 @@ macro_rules! fixture_test {
 }
 
 fixture_test!(numeric_boundaries_and_float_bits, "p1-numeric", false);
+
+fixture_test!(bytes_ownership_and_wide_lengths, "p3-bytes-owned", true);

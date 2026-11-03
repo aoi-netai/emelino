@@ -116,7 +116,15 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                         Value::Builtin { op, .. }
                             if !matches!(
                                 op,
-                                Builtin::FloatCeil
+                                Builtin::BytesConcat
+                                    | Builtin::BytesDecodeValidUtf8
+                                    | Builtin::BytesEncodeUtf8
+                                    | Builtin::BytesFromList
+                                    | Builtin::BytesGet
+                                    | Builtin::BytesSize
+                                    | Builtin::BytesSlice
+                                    | Builtin::BytesToList
+                                    | Builtin::FloatCeil
                                     | Builtin::FloatFloor
                                     | Builtin::FloatFromInt
                                     | Builtin::FloatParse
