@@ -69,9 +69,7 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         if f.external.is_some() && f.suspends {
             require(&f.name, "external C bindings")?;
         }
-        if f.derivation.is_some() {
-            require(&f.name, "derived operations")?;
-        }
+
         let mut seen = HashSet::new();
         ty(program, &f.name, f.ret, &mut seen)?;
         for (id, var) in f.vars.iter() {
@@ -112,8 +110,15 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                         | Value::IsError { .. }
                         | Value::AsError { .. } => require(&f.name, "closure and effect values")?,
                         Value::Fiber { .. } => require(&f.name, "fiber operations")?,
-                        Value::Builtin { .. } => require(&f.name, "builtin operations")?,
-                        Value::Runtime { .. } => require(&f.name, "runtime operations")?,
+                        Value::Builtin {
+                            op: Builtin::CellNew | Builtin::CellGet | Builtin::CellSet,
+                            ..
+                        } => require(&f.name, "builtin operations")?,
+                        Value::Runtime { op, .. }
+                            if !matches!(op, RuntimeOp::ShowString | RuntimeOp::DebugPrint) =>
+                        {
+                            require(&f.name, "runtime operations")?
+                        }
                         Value::Coerce(source)
                             if dst.is_some_and(|dst| {
                                 f.vars[dst].ty == TypeId::ANY && f.vars[*source].ty == TypeId::UNIT

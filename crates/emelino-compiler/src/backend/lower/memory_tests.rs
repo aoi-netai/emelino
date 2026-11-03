@@ -11,6 +11,16 @@ fn assign(f: &mut Function, statements: &mut Vec<StmtId>, ty: TypeId, value: Val
     var
 }
 
+fn builtin(
+    f: &mut Function,
+    statements: &mut Vec<StmtId>,
+    ty: TypeId,
+    op: Builtin,
+    args: Vec<Operand>,
+) -> VarId {
+    assign(f, statements, ty, Value::Builtin { op, args })
+}
+
 fn execute_repeatedly(mut output: Output, calls: &str) {
     let source = &mut output
         .files
@@ -50,6 +60,112 @@ int main(void) {{ {calls} return 0; }}
 "#
         ),
         0,
+    );
+}
+
+#[test]
+fn list_string_bytes_and_any_release_owned_values_after_repeated_calls() {
+    let mut p = program(vec![]);
+    let strings = p.core.types.intern(Type::List(TypeId::STRING));
+    let integers = p.core.types.intern(Type::List(TypeId::INT));
+    let mut f = simple();
+    let input = aggregate_variable(&mut f, TypeId::STRING);
+    f.params.push(input);
+    let mut statements = vec![];
+    let boxed = assign(&mut f, &mut statements, TypeId::ANY, Value::Coerce(input));
+    let unboxed = assign(
+        &mut f,
+        &mut statements,
+        TypeId::STRING,
+        Value::Coerce(boxed),
+    );
+    let chars = builtin(
+        &mut f,
+        &mut statements,
+        strings,
+        Builtin::StringChars,
+        vec![unboxed.into()],
+    );
+    let joined = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::STRING,
+        Builtin::StringJoin,
+        vec![chars.into(), Const::String(String::new()).into()],
+    );
+    let bytes = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::BYTES,
+        Builtin::BytesEncodeUtf8,
+        vec![joined.into()],
+    );
+    let list = builtin(
+        &mut f,
+        &mut statements,
+        integers,
+        Builtin::BytesToList,
+        vec![bytes.into()],
+    );
+    let tail = assign(&mut f, &mut statements, integers, Value::ListTail(list));
+    let byte = assign(&mut f, &mut statements, TypeId::INT, Value::ListHead(tail));
+    let slice = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::BYTES,
+        Builtin::BytesSlice,
+        vec![bytes.into(), Const::Int(1).into(), Const::Int(2).into()],
+    );
+    let decoded = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::STRING,
+        Builtin::BytesDecodeValidUtf8,
+        vec![slice.into()],
+    );
+    let length = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::INT,
+        Builtin::StringByteSize,
+        vec![decoded.into()],
+    );
+    let result = assign(
+        &mut f,
+        &mut statements,
+        TypeId::INT,
+        Value::Prim {
+            op: PrimOp::Add,
+            ty: PrimTy::I32,
+            args: vec![byte.into(), length.into()],
+        },
+    );
+    // Even discarded allocation must execute, then release its managed String elements.
+    statements.push(binding(
+        &mut f,
+        None,
+        Value::List {
+            elems: vec![input.into()],
+            tail: None,
+        },
+    ));
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: statements,
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(f);
+    let output =
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
+    execute_repeatedly(
+        output,
+        r#"
+char text[] = {'A', 0, (char)0xf0, (char)0x9f, (char)0x98, (char)0x80};
+for (int i = 0; i < 10000; ++i) {
+  assert(answer((EmelaString){text, sizeof(text), NULL}) == 1);
+  assert(test_heap_empty());
+}
+"#,
     );
 }
 
@@ -261,6 +377,223 @@ fn rejects_mismatched_list_elements_and_unrelated_data_coercions() {
         lower_program(program(vec![f])).unwrap_err()[0]
             .message
             .contains("coercion")
+    );
+}
+
+fn assert_int(f: &mut Function, statements: &mut Vec<StmtId>, value: VarId, expected: i32) {
+    let condition = assign(
+        f,
+        statements,
+        TypeId::BOOL,
+        Value::Prim {
+            op: PrimOp::Eq,
+            ty: PrimTy::I32,
+            args: vec![value.into(), Const::Int(expected).into()],
+        },
+    );
+    let yes = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(None),
+    });
+    let no = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Defect(Const::String("memory result mismatch".into()).into()),
+    });
+    statements.push(f.stmts.alloc(Stmt::If {
+        dst: None,
+        cond: condition.into(),
+        then: yes,
+        else_: no,
+    }));
+}
+
+#[test]
+fn bytes_optional_results_concat_and_unicode_lists_preserve_contents() {
+    let mut p = program(vec![]);
+    let parameter = p.core.types.intern(Type::Param(0));
+    let option = p.core.enums.alloc(EnumDef {
+        name: "Option".into(),
+        params: 1,
+        error: false,
+        external: false,
+        variants: vec![
+            VariantDef {
+                name: "Some".into(),
+                fields: VariantFields::Positional(1),
+                tys: vec![parameter],
+            },
+            VariantDef {
+                name: "None".into(),
+                fields: VariantFields::Unit,
+                tys: vec![],
+            },
+        ],
+    });
+    let optional_bytes = p.core.types.intern(Type::Enum(option, vec![TypeId::BYTES]));
+    let optional_int = p.core.types.intern(Type::Enum(option, vec![TypeId::INT]));
+    let integers = p.core.types.intern(Type::List(TypeId::INT));
+    let strings = p.core.types.intern(Type::List(TypeId::STRING));
+    let byte_lists = p.core.types.intern(Type::List(TypeId::BYTES));
+    let some = CtorRef {
+        enum_id: option,
+        variant: 0,
+    };
+    let mut f = simple();
+    let mut statements = vec![];
+    let input = assign(
+        &mut f,
+        &mut statements,
+        integers,
+        Value::List {
+            elems: vec![
+                Const::Int(0).into(),
+                Const::Int(255).into(),
+                Const::Int(65).into(),
+            ],
+            tail: None,
+        },
+    );
+    let wrapped = builtin(
+        &mut f,
+        &mut statements,
+        optional_bytes,
+        Builtin::BytesFromList,
+        vec![input.into()],
+    );
+    let bytes = assign(
+        &mut f,
+        &mut statements,
+        TypeId::BYTES,
+        Value::Field {
+            base: wrapped,
+            ctor: some,
+            index: 0,
+        },
+    );
+    let length = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::INT,
+        Builtin::BytesSize,
+        vec![bytes.into()],
+    );
+    assert_int(&mut f, &mut statements, length, 3);
+    let wrapped = builtin(
+        &mut f,
+        &mut statements,
+        optional_int,
+        Builtin::BytesGet,
+        vec![bytes.into(), Const::Int(1).into()],
+    );
+    let byte = assign(
+        &mut f,
+        &mut statements,
+        TypeId::INT,
+        Value::Field {
+            base: wrapped,
+            ctor: some,
+            index: 0,
+        },
+    );
+    assert_int(&mut f, &mut statements, byte, 255);
+    let pair = assign(
+        &mut f,
+        &mut statements,
+        byte_lists,
+        Value::List {
+            elems: vec![bytes.into(), bytes.into()],
+            tail: None,
+        },
+    );
+    let concat = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::BYTES,
+        Builtin::BytesConcat,
+        vec![pair.into()],
+    );
+    let size = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::INT,
+        Builtin::BytesSize,
+        vec![concat.into()],
+    );
+    assert_int(&mut f, &mut statements, size, 6);
+    let input = assign(
+        &mut f,
+        &mut statements,
+        integers,
+        Value::List {
+            elems: vec![Const::Int(-1).into()],
+            tail: None,
+        },
+    );
+    let invalid = builtin(
+        &mut f,
+        &mut statements,
+        optional_bytes,
+        Builtin::BytesFromList,
+        vec![input.into()],
+    );
+    let tag = assign(&mut f, &mut statements, TypeId::INT, Value::Tag(invalid));
+    assert_int(&mut f, &mut statements, tag, 1);
+    let invalid = builtin(
+        &mut f,
+        &mut statements,
+        optional_int,
+        Builtin::BytesGet,
+        vec![bytes.into(), Const::Int(3).into()],
+    );
+    let tag = assign(&mut f, &mut statements, TypeId::INT, Value::Tag(invalid));
+    assert_int(&mut f, &mut statements, tag, 1);
+    let parts = builtin(
+        &mut f,
+        &mut statements,
+        strings,
+        Builtin::StringSplit,
+        vec![
+            Const::String("a::b".into()).into(),
+            Const::String("::".into()).into(),
+        ],
+    );
+    let joined = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::STRING,
+        Builtin::StringJoin,
+        vec![parts.into(), Const::String(":".into()).into()],
+    );
+    let size = builtin(
+        &mut f,
+        &mut statements,
+        TypeId::INT,
+        Builtin::StringByteSize,
+        vec![joined.into()],
+    );
+    assert_int(&mut f, &mut statements, size, 3);
+    let points = builtin(
+        &mut f,
+        &mut statements,
+        integers,
+        Builtin::StringCodePoints,
+        vec![Const::String("é".into()).into()],
+    );
+    let first = assign(
+        &mut f,
+        &mut statements,
+        TypeId::INT,
+        Value::ListHead(points),
+    );
+    assert_int(&mut f, &mut statements, first, 233);
+    f.seqs[f.body.unwrap()].stmts = statements;
+    p.functions.alloc(f);
+    let output =
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
+    execute_repeatedly(
+        output,
+        "for(int i=0;i<1000;++i) { assert(answer()==42); assert(test_heap_empty()); }",
     );
 }
 

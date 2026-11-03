@@ -2,12 +2,12 @@
 use crate::contract::abi::{AggregateKind, CLayoutPlan as TypeLayouts};
 use crate::contract::ir::*;
 use crate::contract::strings::StringBuffers as StringBufferPlan;
-use crate::semantics::abi::LayoutRead;
+use crate::semantics::abi::{LayoutRead, option_payload_type};
 use crate::semantics::c::variable_name;
 use crate::semantics::diagnostics::{
     self, invalid_flow_ir, statement_name, term_name, unsupported, value_name,
 };
-use crate::{Error, ErrorKind};
+use crate::{Error, ErrorKind, Options};
 use std::collections::{HashMap, HashSet};
 
 use crate::contract::planned::PlannedModule;
@@ -21,7 +21,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let layouts = &plan.layouts;
     let external_bindings = &plan.external_bindings;
     let _const_bridges = &plan.const_bridges;
-    let _derived_plan = &plan.derived_plan;
+    let derived_plan = &plan.derived_plan;
     let emitted_functions = &plan.emitted_functions;
     let heap_functions = &plan.heap_functions;
     let string_output_functions = &plan.string_output_functions;
@@ -105,7 +105,8 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         source.blank();
     }
 
-    runtime.emit_helpers(&mut source)?;
+    runtime.emit_helpers(&mut source);
+    derived_plan.emit(layouts, &mut source);
 
     for (id, function) in flow
         .functions
@@ -162,6 +163,10 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
                         function.name
                     ),
                 }]);
+            }
+            if function.derivation.is_some() {
+                derive_runtime::emit_adapter(layouts, function, &names[&id], &mut source);
+                continue;
             }
 
             continue;
@@ -317,12 +322,16 @@ use functions::{
 };
 use values::{
     constant_expression, emit_aggregate_field_store, emit_builtin, emit_runtime,
-    operand_expression, operand_is_string, primitive_expression,
+    operand_expression, operand_is_float, operand_is_int, operand_is_int64, operand_is_string,
+    operand_is_string_list, option_variant_expression, primitive_expression,
 };
 
 pub(super) mod layouts;
 
 pub(super) mod string_buffers;
+
+pub(super) mod derive_runtime;
+use derive_runtime::Emission as DerivationPlanEmission;
 
 pub(super) mod runtime_helpers;
 use runtime_helpers::RuntimeEmission;
@@ -330,10 +339,12 @@ use runtime_helpers::RuntimeEmission;
 mod features;
 use crate::writer::Writer;
 use crate::{GeneratedFile, Output};
+use features::builtins::string_split::emit_string_split_push;
 mod c;
 mod numeric_runtime;
 mod owned;
 mod platform;
+mod string_runtime;
 use crate::contract::operations as analysis;
 use c::*;
 use layouts::LayoutEmission;
@@ -346,7 +357,13 @@ mod entry;
 mod bytes_runtime;
 mod heap;
 
+mod float_parse;
+
+mod float_to_string;
+
 use crate::semantics::operands::operand_type;
+
+mod unicode_grapheme;
 
 #[cfg(test)]
 mod tests {

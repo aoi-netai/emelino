@@ -6,6 +6,10 @@ mod p7_binding;
 mod p7_data;
 #[path = "p7_list_alias_tests.rs"]
 mod p7_list_alias;
+#[path = "p7_misc_value_tests.rs"]
+mod p7_misc_value;
+#[path = "source_builtin_tests.rs"]
+mod source_builtin;
 use super::*;
 use crate::{Options, Output};
 use std::path::PathBuf;
@@ -302,6 +306,27 @@ fn tail_recursion_uses_parallel_parameter_assignment_and_scalar_external_calls()
     );
 }
 
+#[test]
+fn unused_checked_builtin_still_reports_a_defect() {
+    let mut f = simple();
+    let shift = binding(
+        &mut f,
+        None,
+        Value::Builtin {
+            op: Builtin::IntShiftLeft,
+            args: vec![Const::Int(1).into(), Const::Int(-1).into()],
+        },
+    );
+    f.seqs[f.body.unwrap()].stmts.push(shift);
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k, const char *m, uint16_t n) { (void)m; (void)n; exit(k == EMELA_DEFECT_NEGATIVE_SHIFT ? 7 : 8); }\nint main(void) { return answer(); }\n",
+        7,
+    );
+}
+
 const DEFECT_HARNESS: &str = "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k, const char *m, uint16_t n) { (void)k; (void)m; (void)n; exit(9); }\nint main(void) { return answer() == INT32_C(42) ? 0 : 1; }\n";
 
 #[test]
@@ -552,6 +577,118 @@ fn float_constant_bits_and_non_finite_values_execute() {
     );
 }
 
+#[test]
+fn strings_unicode_comparisons_and_float_rounding_execute() {
+    let mut f = simple();
+    let joined = f.vars.alloc(VarData {
+        hint: "joined".into(),
+        ty: TypeId::STRING,
+        repr: Repr::Ref,
+    });
+    let count = variable(&mut f, TypeId::INT);
+    let rounded = variable(&mut f, TypeId::INT);
+    let result = variable(&mut f, TypeId::INT);
+    let text = binding(
+        &mut f,
+        Some(joined),
+        Value::Builtin {
+            op: Builtin::StringAppend,
+            args: vec![
+                Const::String("a\u{0301}".into()).into(),
+                Const::String("Z".into()).into(),
+            ],
+        },
+    );
+    let length = binding(
+        &mut f,
+        Some(count),
+        Value::Builtin {
+            op: Builtin::StringLength,
+            args: vec![joined.into()],
+        },
+    );
+    let floor = binding(
+        &mut f,
+        Some(rounded),
+        Value::Builtin {
+            op: Builtin::FloatFloor,
+            args: vec![Const::Float(40.9).into()],
+        },
+    );
+    let add = binding(
+        &mut f,
+        Some(result),
+        Value::Prim {
+            op: PrimOp::Add,
+            ty: PrimTy::I32,
+            args: vec![count.into(), rounded.into()],
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![text, length, floor, add],
+        term: Term::Return(Some(result.into())),
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(&output, DEFECT_HARNESS, 0);
+    let mut f = simple();
+    f.ret = TypeId::BOOL;
+    let result = variable(&mut f, TypeId::BOOL);
+    let compare = binding(
+        &mut f,
+        Some(result),
+        Value::Prim {
+            op: PrimOp::Lt,
+            ty: PrimTy::String,
+            args: vec![
+                Const::String("a\0x".into()).into(),
+                Const::String("a\0y".into()).into(),
+            ],
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![compare],
+        term: Term::Return(Some(result.into())),
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(
+        &output,
+        &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_C(1)"),
+        0,
+    );
+}
+
+#[test]
+fn discarded_string_results_keep_capacity_checks() {
+    let mut f = simple();
+    let input = f.vars.alloc(VarData {
+        hint: "input".into(),
+        ty: TypeId::STRING,
+        repr: Repr::Ref,
+    });
+    f.params.push(input);
+    let append = binding(
+        &mut f,
+        None,
+        Value::Builtin {
+            op: Builtin::StringAppend,
+            args: vec![input.into(), Const::String("bb".into()).into()],
+        },
+    );
+    f.seqs[f.body.unwrap()].stmts.push(append);
+    let output = crate::backend::compile_saved_program(
+        program(vec![f]),
+        &Options::default().with_string_capacity(3),
+    )
+    .unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k, const char *m, uint16_t n) { (void)m; (void)n; exit(k == EMELA_DEFECT_STRING_CAPACITY ? 7 : 8); }\nint main(void) { return answer((EmelaString){ \"aa\", UINT16_C(2), NULL }); }\n",
+        7,
+    );
+}
+
 fn aggregate_variable(f: &mut Function, ty: TypeId) -> VarId {
     f.vars.alloc(VarData {
         hint: String::new(),
@@ -657,6 +794,159 @@ fn tuple_constructor_projection_and_enum_switch_execute() {
     p.functions.alloc(f);
     let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
+}
+
+#[test]
+fn string_parameter_tail_recursion_tracks_loop_ownership() {
+    let mut f = simple();
+    f.ret = TypeId::BOOL;
+    let left = aggregate_variable(&mut f, TypeId::STRING);
+    let right = aggregate_variable(&mut f, TypeId::STRING);
+    let count = variable(&mut f, TypeId::INT);
+    f.params = vec![left, right, count];
+    let done = variable(&mut f, TypeId::BOOL);
+    let equal = variable(&mut f, TypeId::BOOL);
+    let next = variable(&mut f, TypeId::INT);
+    let condition = binding(
+        &mut f,
+        Some(done),
+        Value::Prim {
+            op: PrimOp::Eq,
+            ty: PrimTy::I32,
+            args: vec![count.into(), Const::Int(0).into()],
+        },
+    );
+    let compare = binding(
+        &mut f,
+        Some(equal),
+        Value::Prim {
+            op: PrimOp::Eq,
+            ty: PrimTy::String,
+            args: vec![left.into(), right.into()],
+        },
+    );
+    let decrement = binding(
+        &mut f,
+        Some(next),
+        Value::Prim {
+            op: PrimOp::Sub,
+            ty: PrimTy::I32,
+            args: vec![count.into(), Const::Int(1).into()],
+        },
+    );
+    let yes = f.seqs.alloc(Seq {
+        stmts: vec![compare],
+        term: Term::Return(Some(equal.into())),
+    });
+    let no = f.seqs.alloc(Seq {
+        stmts: vec![decrement],
+        term: Term::Recur(vec![right.into(), left.into(), next.into()]),
+    });
+    let branch = f.stmts.alloc(Stmt::If {
+        dst: None,
+        cond: done.into(),
+        then: yes,
+        else_: no,
+    });
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![condition, branch],
+        term: Term::Unreachable,
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { (void)k;(void)m;(void)n;exit(9); }\nint main(void) { EmelaString a={\"same\",UINT16_C(4),NULL}; EmelaString b={\"other\",UINT16_C(5),NULL}; if (!answer(a,a,100000)) return 1; return answer(a,b,100001) ? 2 : 0; }\n",
+        0,
+    );
+}
+
+#[test]
+fn structural_equality_and_show_use_materialized_tuple_layouts() {
+    let mut p = program(vec![]);
+    let tuple_ty = p
+        .core
+        .types
+        .intern(Type::Tuple(vec![TypeId::INT, TypeId::BOOL]));
+    let mut eq = Function::new("tuple_eq");
+    eq.ret = TypeId::BOOL;
+    eq.derivation = Some(crate::DerivedOperation::Eq);
+    eq.external = Some(External { bindings: vec![] });
+    let a = aggregate_variable(&mut eq, tuple_ty);
+    let b = aggregate_variable(&mut eq, tuple_ty);
+    eq.params = vec![a, b];
+    let eq_id = p.functions.alloc(eq);
+    let mut show = Function::new("tuple_show");
+    show.ret = TypeId::STRING;
+    show.derivation = Some(crate::DerivedOperation::Show);
+    show.external = Some(External { bindings: vec![] });
+    let value = aggregate_variable(&mut show, tuple_ty);
+    show.params.push(value);
+    let show_id = p.functions.alloc(show);
+    let mut answer = simple();
+    let tuple = aggregate_variable(&mut answer, tuple_ty);
+    let equals = variable(&mut answer, TypeId::BOOL);
+    let displayed = aggregate_variable(&mut answer, TypeId::STRING);
+    let length = variable(&mut answer, TypeId::INT);
+    let result = variable(&mut answer, TypeId::INT);
+    let make = binding(
+        &mut answer,
+        Some(tuple),
+        Value::Tuple(vec![Const::Int(42).into(), Const::Bool(true).into()]),
+    );
+    let compare = binding(
+        &mut answer,
+        Some(equals),
+        Value::Call {
+            callee: Callee::Direct(eq_id),
+            args: vec![tuple.into(), tuple.into()],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let display = binding(
+        &mut answer,
+        Some(displayed),
+        Value::Call {
+            callee: Callee::Direct(show_id),
+            args: vec![tuple.into()],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let size = binding(
+        &mut answer,
+        Some(length),
+        Value::Builtin {
+            op: Builtin::StringByteSize,
+            args: vec![displayed.into()],
+        },
+    );
+    let yes = answer.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(Some(length.into())),
+    });
+    let no = answer.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(Some(Const::Int(0).into())),
+    });
+    let branch = answer.stmts.alloc(Stmt::If {
+        dst: Some(result),
+        cond: equals.into(),
+        then: yes,
+        else_: no,
+    });
+    answer.seqs[answer.body.unwrap()] = Seq {
+        stmts: vec![make, compare, display, size, branch],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(answer);
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    execute(
+        &output,
+        &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_C(10)"),
+        0,
+    );
 }
 
 #[test]

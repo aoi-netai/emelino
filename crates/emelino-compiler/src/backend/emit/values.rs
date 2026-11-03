@@ -2,11 +2,12 @@
 use super::functions::emit_retain_operand;
 use super::{
     StringBufferPlan, TypeLayouts,
+    c::int32_literal,
     diagnostics::{invalid_flow_ir, unsupported},
     features,
 };
 use crate::contract::ir::{Builtin, Type, TypeId};
-use crate::contract::ir::{Const, Function, Operand, PrimOp, PrimTy, RuntimeOp, VarId};
+use crate::contract::ir::{Const, Function, Operand, PrimOp, PrimTy, Repr, RuntimeOp, VarId};
 use crate::semantics::abi::LayoutRead;
 use crate::{Error, writer::Writer};
 
@@ -25,6 +26,138 @@ pub(in crate::backend::emit) fn operand_is_string(
         }
         _ => false,
     }
+}
+
+pub(in crate::backend::emit) fn operand_is_string_list(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    operand: &Operand,
+) -> bool {
+    match operand {
+        Operand::Var(variable) => {
+            matches!(
+                layouts.shapes.types[function.vars[*variable].ty],
+                Type::List(TypeId::STRING)
+            )
+        }
+        _ => false,
+    }
+}
+
+pub(in crate::backend::emit) fn operand_is_int(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    operand: &Operand,
+) -> bool {
+    match operand {
+        Operand::Const(Const::Int(_)) => true,
+        Operand::Var(variable) => {
+            matches!(layouts.shapes.types[function.vars[*variable].ty], Type::Int)
+        }
+        _ => false,
+    }
+}
+
+pub(in crate::backend::emit) fn operand_is_int64(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    operand: &Operand,
+) -> bool {
+    match operand {
+        Operand::Const(Const::Int64(_)) => true,
+        Operand::Var(variable) => {
+            matches!(
+                layouts.shapes.types[function.vars[*variable].ty],
+                Type::Int64
+            )
+        }
+        _ => false,
+    }
+}
+
+pub(in crate::backend::emit) fn operand_is_float(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    operand: &Operand,
+) -> bool {
+    match operand {
+        Operand::Const(Const::Float(_)) => true,
+        Operand::Var(variable) => matches!(
+            layouts.shapes.types[function.vars[*variable].ty],
+            Type::Float
+        ),
+        _ => false,
+    }
+}
+
+pub(in crate::backend::emit) fn option_variant_expression(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    ty: TypeId,
+    variant_name: &str,
+    value: Option<&str>,
+) -> Result<String, Vec<Error>> {
+    let Type::Enum(enum_id, _) = layouts.shapes.types[ty] else {
+        return Err(invalid_flow_ir(
+            &function.name,
+            "Option builtin result is not an enum",
+        ));
+    };
+    let definition = &layouts.shapes.core.enums[enum_id];
+    if definition.name != "Option" {
+        return Err(invalid_flow_ir(
+            &function.name,
+            "Option builtin result has the wrong enum type",
+        ));
+    }
+    let Some(variant_index) = definition
+        .variants
+        .iter()
+        .position(|variant| variant.name == variant_name)
+    else {
+        return Err(invalid_flow_ir(
+            &function.name,
+            "Option enum is missing a required variant",
+        ));
+    };
+    let Some(fields) = layouts
+        .enum_fields(ty)
+        .and_then(|variants| variants.get(variant_index))
+    else {
+        return Err(invalid_flow_ir(
+            &function.name,
+            "Option result has no inline enum layout",
+        ));
+    };
+    let mut initializers = vec![format!(".tag = {}", int32_literal(variant_index as i32))];
+    match value {
+        Some(value) if fields.len() == 1 && layouts.type_repr(fields[0]) != Repr::Void => {
+            initializers.push(format!(".payload.v{variant_index}.f0 = {value}"));
+        }
+        Some(_) => {
+            return Err(invalid_flow_ir(
+                &function.name,
+                "Option Some payload does not match its runtime representation",
+            ));
+        }
+        None if fields
+            .iter()
+            .all(|field| layouts.type_repr(*field) == Repr::Void) =>
+        {
+            initializers.push(format!(".payload.v{variant_index}._unit = UINT8_C(0)"));
+        }
+        None => {
+            return Err(invalid_flow_ir(
+                &function.name,
+                "Option None variant unexpectedly carries a runtime payload",
+            ));
+        }
+    }
+    Ok(format!(
+        "({}){{ {} }}",
+        layouts.c_type(ty),
+        initializers.join(", ")
+    ))
 }
 
 pub(in crate::backend::emit) fn emit_builtin(

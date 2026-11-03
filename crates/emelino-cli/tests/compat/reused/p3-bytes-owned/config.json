@@ -1,0 +1,38 @@
+{
+  "exports": [
+    {
+      "function": "make",
+      "symbol": "bytes_make"
+    },
+    {
+      "function": "copy",
+      "symbol": "bytes_copy"
+    },
+    {
+      "function": "part",
+      "symbol": "bytes_part"
+    },
+    {
+      "function": "joined",
+      "symbol": "bytes_joined"
+    },
+    {
+      "function": "listed",
+      "symbol": "bytes_listed"
+    },
+    {
+      "function": "first",
+      "symbol": "bytes_first"
+    },
+    {
+      "function": "round_trip",
+      "symbol": "bytes_round_trip"
+    },
+    {
+      "function": "discard",
+      "symbol": "bytes_discard"
+    }
+  ],
+  "heap_bytes": 262144,
+  "string_capacity": 1
+}

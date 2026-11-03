@@ -1,6 +1,28 @@
 // Keep analysis dispatch exhaustive: every new variant needs an explicit planning decision.
 use super::*;
+pub(in crate::backend::emit) mod bytes;
+pub(in crate::backend::emit) mod float;
+pub(in crate::backend::emit) mod float_parse;
+pub(in crate::backend::emit) mod float_to_string;
+pub(in crate::backend::emit) mod int64_to_string;
+pub(in crate::backend::emit) mod int_checked_add;
+pub(in crate::backend::emit) mod int_parse;
+pub(in crate::backend::emit) mod int_to_string;
+pub(in crate::backend::emit) mod integer;
+pub(in crate::backend::emit) mod integer64;
 pub(in crate::backend::emit) mod rejected;
+pub(in crate::backend::emit) mod string_append;
+pub(in crate::backend::emit) mod string_byte_size;
+pub(in crate::backend::emit) mod string_chars;
+pub(in crate::backend::emit) mod string_code_points;
+pub(in crate::backend::emit) mod string_contains;
+pub(in crate::backend::emit) mod string_ends_with;
+pub(in crate::backend::emit) mod string_from_code_point;
+pub(in crate::backend::emit) mod string_join;
+pub(in crate::backend::emit) mod string_length;
+pub(in crate::backend::emit) mod string_split;
+pub(in crate::backend::emit) mod string_starts_with;
+pub(in crate::backend::emit) mod string_trim;
 pub(in crate::backend::emit) fn emit(
     context: &mut BuiltinContext<'_, '_>,
     dst: Option<VarId>,
@@ -8,57 +30,58 @@ pub(in crate::backend::emit) fn emit(
     args: &[Operand],
 ) -> Result<(), Vec<Error>> {
     match op {
-        Builtin::StringLength => Err(unsupported(&context.function.name, "string_length")),
-        Builtin::StringByteSize => Err(unsupported(&context.function.name, "string_byte_size")),
-        Builtin::StringAppend => Err(unsupported(&context.function.name, "string_append")),
-        Builtin::StringContains => Err(unsupported(&context.function.name, "string_contains")),
-        Builtin::StringStartsWith => Err(unsupported(&context.function.name, "string_starts_with")),
-        Builtin::StringEndsWith => Err(unsupported(&context.function.name, "string_ends_with")),
-        Builtin::StringSplit => Err(unsupported(&context.function.name, "string_split")),
-        Builtin::StringChars => Err(unsupported(&context.function.name, "string_chars")),
-        Builtin::StringJoin => Err(unsupported(&context.function.name, "string_join")),
-        Builtin::StringTrim => Err(unsupported(&context.function.name, "string_trim")),
-        Builtin::StringCodePoints => Err(unsupported(&context.function.name, "string_code_points")),
-        Builtin::StringFromCodePoint => Err(unsupported(
-            &context.function.name,
-            "string_from_code_point",
-        )),
+        Builtin::StringLength => string_length::string_length(context, dst, args),
+        Builtin::StringByteSize => string_byte_size::string_byte_size(context, dst, args),
+        Builtin::StringAppend => string_append::string_append(context, dst, args),
+        Builtin::StringContains => string_contains::string_contains(context, dst, args),
+        Builtin::StringStartsWith => string_starts_with::string_starts_with(context, dst, args),
+        Builtin::StringEndsWith => string_ends_with::string_ends_with(context, dst, args),
+        Builtin::StringSplit => string_split::string_split(context, dst, args),
+        Builtin::StringChars => string_chars::string_chars(context, dst, args),
+        Builtin::StringJoin => string_join::string_join(context, dst, args),
+        Builtin::StringTrim => string_trim::string_trim(context, dst, args),
+        Builtin::StringCodePoints => string_code_points::string_code_points(context, dst, args),
+        Builtin::StringFromCodePoint => {
+            string_from_code_point::string_from_code_point(context, dst, args)
+        }
         Builtin::ShowNested => rejected::show_nested(context, dst, args),
-        Builtin::IntToString => Err(unsupported(&context.function.name, "int_to_string")),
-        Builtin::IntParse => Err(unsupported(&context.function.name, "int_parse")),
-        Builtin::IntCheckedAdd => Err(unsupported(&context.function.name, "int_checked_add")),
-        Builtin::IntBitAnd => Err(unsupported(&context.function.name, "integer")),
-        Builtin::IntBitOr => Err(unsupported(&context.function.name, "integer")),
-        Builtin::IntBitXor => Err(unsupported(&context.function.name, "integer")),
-        Builtin::IntBitNot => Err(unsupported(&context.function.name, "integer")),
-        Builtin::IntShiftLeft => Err(unsupported(&context.function.name, "integer")),
-        Builtin::IntShiftRight => Err(unsupported(&context.function.name, "integer")),
-        Builtin::IntShiftRightUnsigned => Err(unsupported(&context.function.name, "integer")),
-        Builtin::Int64FromInt => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64ToString => Err(unsupported(&context.function.name, "int64_to_string")),
-        Builtin::Int64ToInt => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64BitAnd => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64BitOr => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64BitXor => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64BitNot => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64ShiftLeft => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64ShiftRight => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::Int64ShiftRightUnsigned => Err(unsupported(&context.function.name, "integer64")),
-        Builtin::FloatToString => Err(unsupported(&context.function.name, "float_to_string")),
-        Builtin::FloatFromInt => Err(unsupported(&context.function.name, "float")),
-        Builtin::FloatParse => Err(unsupported(&context.function.name, "float_parse")),
-        Builtin::FloatFloor => Err(unsupported(&context.function.name, "float")),
-        Builtin::FloatCeil => Err(unsupported(&context.function.name, "float")),
-        Builtin::FloatRound => Err(unsupported(&context.function.name, "float")),
-        Builtin::FloatTruncate => Err(unsupported(&context.function.name, "float")),
-        Builtin::BytesFromList => Err(unsupported(&context.function.name, "bytes")),
-        Builtin::BytesToList => Err(unsupported(&context.function.name, "bytes")),
-        Builtin::BytesSize => Err(unsupported(&context.function.name, "bytes")),
-        Builtin::BytesGet => Err(unsupported(&context.function.name, "bytes")),
-        Builtin::BytesSlice => Err(unsupported(&context.function.name, "bytes")),
-        Builtin::BytesConcat => Err(unsupported(&context.function.name, "bytes")),
-        Builtin::BytesEncodeUtf8 => Err(unsupported(&context.function.name, "bytes")),
-        Builtin::BytesDecodeValidUtf8 => Err(unsupported(&context.function.name, "bytes")),
+        Builtin::IntToString => int_to_string::int_to_string(context, dst, args),
+        Builtin::IntParse => int_parse::int_parse(context, dst, args),
+        Builtin::IntCheckedAdd => int_checked_add::int_checked_add(context, dst, args),
+        Builtin::IntBitAnd => integer::int_bit_and(context, dst, args),
+        Builtin::IntBitOr => integer::int_bit_or(context, dst, args),
+        Builtin::IntBitXor => integer::int_bit_xor(context, dst, args),
+        Builtin::IntBitNot => integer::int_bit_not(context, dst, args),
+        Builtin::IntShiftLeft => integer::int_shift_left(context, dst, args),
+        Builtin::IntShiftRight => integer::int_shift_right(context, dst, args),
+        Builtin::IntShiftRightUnsigned => integer::int_shift_right_unsigned(context, dst, args),
+        Builtin::Int64FromInt => integer64::int64_from_int(context, dst, args),
+        Builtin::Int64ToString => int64_to_string::int64_to_string(context, dst, args),
+        Builtin::Int64ToInt => integer64::int64_to_int(context, dst, args),
+        Builtin::Int64BitAnd => integer64::int64_bit_and(context, dst, args),
+        Builtin::Int64BitOr => integer64::int64_bit_or(context, dst, args),
+        Builtin::Int64BitXor => integer64::int64_bit_xor(context, dst, args),
+        Builtin::Int64BitNot => integer64::int64_bit_not(context, dst, args),
+        Builtin::Int64ShiftLeft => integer64::int64_shift_left(context, dst, args),
+        Builtin::Int64ShiftRight => integer64::int64_shift_right(context, dst, args),
+        Builtin::Int64ShiftRightUnsigned => {
+            integer64::int64_shift_right_unsigned(context, dst, args)
+        }
+        Builtin::FloatToString => float_to_string::float_to_string(context, dst, args),
+        Builtin::FloatFromInt => float::float_from_int(context, dst, args),
+        Builtin::FloatParse => float_parse::float_parse(context, dst, args),
+        Builtin::FloatFloor => float::float_floor(context, dst, args),
+        Builtin::FloatCeil => float::float_ceil(context, dst, args),
+        Builtin::FloatRound => float::float_round(context, dst, args),
+        Builtin::FloatTruncate => float::float_truncate(context, dst, args),
+        Builtin::BytesFromList => bytes::bytes_from_list(context, dst, args),
+        Builtin::BytesToList => bytes::bytes_to_list(context, dst, args),
+        Builtin::BytesSize => bytes::bytes_size(context, dst, args),
+        Builtin::BytesGet => bytes::bytes_get(context, dst, args),
+        Builtin::BytesSlice => bytes::bytes_slice(context, dst, args),
+        Builtin::BytesConcat => bytes::bytes_concat(context, dst, args),
+        Builtin::BytesEncodeUtf8 => bytes::bytes_encode_utf8(context, dst, args),
+        Builtin::BytesDecodeValidUtf8 => bytes::bytes_decode_valid_utf8(context, dst, args),
         Builtin::AssertFail => rejected::assert_fail(context, dst, args),
         Builtin::Panic => rejected::panic(context, dst, args),
         Builtin::Todo => rejected::todo(context, dst, args),

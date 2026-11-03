@@ -100,6 +100,10 @@ fn upstream_calls_branches_and_composite_type_ids_execute() {
             "pub fn answer(n: Int) -> Int { List.length([n, 1, 2]) + 39 }",
             "answer(5)",
         ),
+        (
+            "type Row(value: Int, text: String)\npub fn answer(n: Int) -> Int { row = Row(value: n, text: \"ok\")\nrow.value + String.length(row.text) + 35 }",
+            "answer(5)",
+        ),
     ] {
         execute(source, invocation);
     }
@@ -163,6 +167,37 @@ fn later_ir_stages_are_rejected_before_backend_lowering() {
         adapt(&generated.module, &[("answer".into(), "answer".into())])
             .unwrap_err()
             .contains("raw Stage::Flow")
+    );
+}
+
+#[test]
+fn standard_bytes_preserve_canonical_ids_and_project_intrinsics() {
+    let generated = crate::frontend::generate(
+        "import Std.Bytes\npub fn answer() -> Int { Bytes.size(Bytes.encode_utf8(\"abc\")) + 39 }",
+        Path::new("main.emel"),
+    )
+    .unwrap();
+    let program = adapt(&generated.module, &[("answer".into(), "answer".into())]).unwrap();
+    assert_eq!(type_id(emela_core::TypeId::BYTES), d::TypeId::BYTES);
+    assert_eq!(program.core.ty(d::TypeId::BYTES), &d::Type::Bytes);
+    for (index, source_type) in generated.module.core.types.iter().enumerate() {
+        assert_eq!(
+            program.core.ty(d::TypeId::from_index(index)),
+            &adapt_type(source_type),
+        );
+    }
+    for expected in [d::Builtin::BytesEncodeUtf8, d::Builtin::BytesSize] {
+        assert!(program.functions.iter().any(|(_, function)| {
+            function.stmts.iter().any(|(_, statement)| {
+                matches!(statement, d::Stmt::Let { value: d::Value::Builtin { op, .. }, .. } if *op == expected)
+            })
+        }));
+    }
+    assert!(
+        program
+            .functions
+            .iter()
+            .all(|(_, function)| function.external.is_none())
     );
 }
 
