@@ -342,3 +342,56 @@ fn unknown_config_and_duplicate_symbols_are_diagnosed() {
         assert!(!scratch.0.join("out").exists());
     }
 }
+
+#[test]
+fn saved_raw_evidence_input_cannot_bypass_the_cli_entry_contract() {
+    use emelino_compiler::ir::{Repr, TypeId};
+    let generated = emelino_cli::frontend::generate(
+        "pub fn passthrough(value: Int) -> Int { value }",
+        Path::new("main.emel"),
+    )
+    .unwrap();
+    let mut program = emelino_cli::upstream_adapter::adapt(
+        &generated.module,
+        &[("passthrough".into(), "passthrough".into())],
+    )
+    .unwrap();
+    let function = program
+        .functions
+        .iter_mut()
+        .find(|(_, f)| f.exported)
+        .unwrap()
+        .1;
+    function.ret = TypeId::EVIDENCE;
+    for (_, variable) in function.vars.iter_mut() {
+        variable.ty = TypeId::EVIDENCE;
+        variable.repr = Repr::Ref;
+    }
+    let input = emelino_compiler::BackendInput::new(program).unwrap();
+    // Explicit raw IR remains usable by the low-level backend contract.
+    input
+        .compile(&emelino_compiler::Options::default().with_heap_bytes(4096))
+        .unwrap();
+    let scratch = Scratch::new();
+    std::fs::write(scratch.0.join("input.json"), input.to_json().unwrap()).unwrap();
+    std::fs::write(scratch.0.join("config.json"), "{}").unwrap();
+    let output = cli(
+        &scratch.0,
+        &[
+            "build",
+            "--input",
+            "input.json",
+            "--config",
+            "config.json",
+            "--out-dir",
+            "out",
+        ],
+    );
+    assert!(!output.status.success());
+    let diagnostic = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        diagnostic.contains("cannot expose effect evidence"),
+        "{diagnostic}"
+    );
+    assert!(!scratch.0.join("out").exists());
+}

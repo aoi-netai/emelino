@@ -61,3 +61,8 @@ fn legacy_recursive_4bd3bbef2dbb773478d2() {
 fn legacy_recursive_8f6003cb6b231900471a() {
     support::run_fixture("legacy-recursive-8f6003cb6b231900471a", true);
 }
+
+#[test]
+fn legacy_recursive_3e99d1b04faf8e90bba0() {
+    support::run_fixture("legacy-recursive-3e99d1b04faf8e90bba0", true);
+}
