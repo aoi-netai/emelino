@@ -101,3 +101,15 @@ S5で `upstream_known_issues::upstream_001_specialized_consts_keep_two_initializ
 ないことを `-O0` / `-O2` で確認する。保存後の再生成でも同じ結果になる。
 この成功は既知問題の再現確認であり、汎化constの単一初期化仕様への対応済みを意味しない。
 修正版へ追従するときに期待値と閉じる条件を更新する。
+
+
+## S6で照合した旧観測
+
+[旧source観測の対応表](reports/reuse-source-coverage.json) の174件中8件で、
+この問題による初期化回数・cache名などの差分を個別に記録した。
+[const・cleanup等の移行記録](reports/reuse-source-seams.json) に、元の期待値と今回の観測を保持する。
+値・所有権・解放など影響を受けない観測は引き続き検証し、const全体を除外しない。
+
+これらの回帰テストが成功しても、単一初期化の仕様が修正されたことを意味しない。
+評価回数だけを測るC側instrumentationは試験専用であり、通常のEmela sourceの副作用契約とは分ける。
+本体の修正版に更新するときは、この8件を含めて仕様の期待値へ戻せることを確認する。

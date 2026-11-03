@@ -57,15 +57,24 @@ S0の `emelino.flow.minimal` は `build --flow` による旧成果物の読込�
 `heap_bytes`、`string_capacity`、`entry`、`isr_entries`、各adapterも設定から渡します。
 設定のunknown fieldや重複公開名は拒否します。
 
+旧forkのBytes拡張は `Emelino.Bytes` からimportします。
+旧 `Embedded.*` は、固定版本体の `Std.Embedded.*` から供給する互換モジュールです。
+標準ライブラリーのソースは本体へ集約し、emelino側に同じ宣言のコピーを置きません。
+公開入口には具体型のwrapperを用意し、残るeffectをhandlerで処理してください。
+
 Pome/project loader、`@test` / `@internal` のdriver処理はまだ提供していません。
 物理BSP・firmware build・flashは後続です。生成headerがC側のABIの正本になります。
 
-[実装計画](docs/implementation-plan.md)のS1〜S6で、固定旧fork相当を全面的にサポートする作業を進めます。
-コードの移入だけで対応済みにはせず、[対応表](docs/compiler-coverage.md)の各項目に新経路の検証を記録します。
+[実装計画](docs/implementation-plan.md)のS1〜S6は、合意した固定旧fork相当の範囲で完了しました。
+[対応表](docs/compiler-coverage.md)の各項目に新経路の証拠を記録し、377試験と別ディレクトリでの再実行を確認しました。
+公開入口・容量の条件と結果の内訳は[S6報告](docs/reports/compiler-s6.md)を参照してください。
 本体由来の汎化constの共有問題は[既知問題](docs/upstream-known-issues.md)として追跡します。
 現在の境界は[構成](docs/architecture.md)、移入元は[再利用記録](docs/reports/reuse-provenance.md)を参照してください。
 
 ## 検証
+
+検証にはC11コンパイラーと `sha256sum` が必要です。後者は固定版本体から供給する
+互換モジュールが旧ソースと一致することを確認します。
 
 ```sh
 cargo fmt --all -- --check

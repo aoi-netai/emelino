@@ -21,7 +21,7 @@
 S0で完了した最小実験は、`answer() -> Int { 42 }` の本体Flow生成、実験用JSONの保存、
 ソース削除後のC再生成、ホストCからの呼出しである。全14テスト、fmt、strict clippy、
 生成Cの `-O0` / `-O2` 実行を確認済み。S1の接続基盤も完了し、[S1報告](reports/compiler-s1.md)に記録した。
-S2の同期データ接続も[確認済み](reports/compiler-s2.md)。S3の関数値・effect・失敗も[確認済み](reports/compiler-s3.md)。S4の中断・並行処理も[確認済み](reports/compiler-s4.md)。S5のconst・ABI・ISRも[接続済み](reports/compiler-s5.md)。S6の全体照合と差分修正を進行中。前回の607テストの成功を今回の接続の成功として数えない。
+S2の同期データ接続も[確認済み](reports/compiler-s2.md)。S3の関数値・effect・失敗も[確認済み](reports/compiler-s3.md)。S4の中断・並行処理も[確認済み](reports/compiler-s4.md)。S5のconst・ABI・ISRも[接続済み](reports/compiler-s5.md)。S6の全体照合と差分修正も[完了](reports/compiler-s6.md)。今回の377試験と別ディレクトリでの再実行が成功した。前回の607テストの成功を今回の接続の成功として数えない。
 
 ## 2. 保持する方針
 
@@ -133,7 +133,7 @@ emelinoは受信したFlowのconst単位で初期化・cache・defect等を実�
 
 ## 6. 実装段階
 
-S0の最小実験とS1の接続基盤は完了済み。S1〜S6を次の機能単位で管理する。
+S0の最小実験とS1〜S6は完了済み。S1〜S6を次の機能単位で管理する。
 backendの共通コードはS1でまとまって採用できるが、コードが存在するだけでは各段階を完了にしない。
 
 | 段階 | 作業 | 終了条件 |
@@ -145,8 +145,10 @@ backendの共通コードはS1でまとまって採用できるが、コード�
 | S5 const・公開ABI・ISR | 標準Flowのconst、同期/非同期adapter、所有値公開、ISR到達性、組み込みmodule/C bridgeを接続 | header/manifestとC呼出しが整合。constの正常観測とUPSTREAM-001の影響を分離し、ISR制約を検証 |
 | S6 対応表と全体確認 | 前回のsource/C harness/IR試験の接続先を照合し、回帰試験と新規checkoutでの再現を確認 | 対象行が新経路で検証済み、理由付き適用外、または明示した本体既知問題へ分類され、理由不明の未接続・未確認を残さない |
 
-S5の組み込みmoduleはemelinoが所有する追加ソースとして供給する。
-本体のcore/stdを複製・差し替えず、外部ソースへcore内部権限を与えない。
+S5の互換 `Embedded.*` は、固定本体の標準ソースからimport名だけを変えて供給する。
+6moduleの派生結果は旧moduleの固定hashとの一致を確認し、同じ宣言のコピーをrepoへ置かない。
+本体未提供のBytes拡張は `Emelino.Bytes` として所有する。
+本体のcore/stdを差し替えず、互換ソースへcore内部権限を与えない。
 利用可能な公開APIの範囲で接続し、供給できない場合はその項目を未完として記録する。
 Pome・project loadingの独自実装は作らず、必要な入口は本体へ委譲する。
 
@@ -160,6 +162,8 @@ source試験は本体経由へ接続する。raw IR試験と旧frontend後の手
 別区分を維持し、通常sourceだけで通った実績として数えない。
 
 公開C名・値・副作用・失敗・所有権・資源境界を比較し、生成C本文のbyte一致は要求しない。
+本体raw Flowの診断情報やhandler接続で補足試験の必要容量が変わった箇所は、
+旧設定と実測・新設定を[S6報告](reports/compiler-s6.md)へ記録する。旧容量で成功したとは扱わない。
 対象の生成Cを `-O0` / `-O2` でコンパイル・リンク・実行し、C compiler不在を成功扱いしない。
 fmt、strict clippy、必要なRust試験を行う。source生成と保存済み入力からの再生成を両方確認する。
 

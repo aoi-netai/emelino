@@ -32,6 +32,7 @@ core/stdは `emela_core::core_sources()` から供給する。兄弟repoへのpa
 機械的に置換し、通常のsourceとして公開APIへ渡す。本体の `Std.Embedded.*` とuser sourceの
 本文は変更せず、互換コピーへcore権限を付けない。派生した6moduleのbyte列は旧moduleの
 固定SHA256と一致することを試験し、独立した `lib/embedded` の実装は保持しない。
+互換モジュールは別の通常moduleなので、型・effect・Board handlerのimportは同じnamespaceで揃える。
 固定本体に存在しない `Emelino.Bytes` は専用の通常external拡張として保持する。
 
 ## 公開入口と設定
