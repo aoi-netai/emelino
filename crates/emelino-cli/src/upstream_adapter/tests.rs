@@ -191,6 +191,19 @@ fn later_ir_stages_are_rejected_before_backend_lowering() {
 }
 
 #[test]
+fn const_specializations_keep_upstream_identity() {
+    let program = source_program("const VALUE = 42\npub fn answer() -> Int { VALUE }");
+    assert!(program.const_function_groups.is_empty());
+    assert!(program.functions.iter().any(|(_, f)| f.constant));
+    assert!(
+        program
+            .functions
+            .iter()
+            .all(|(_, f)| f.canonical_const.is_none())
+    );
+}
+
+#[test]
 fn standard_bytes_preserve_canonical_ids_and_project_intrinsics() {
     let generated = crate::frontend::generate(
         "import Std.Bytes\npub fn answer() -> Int { Bytes.size(Bytes.encode_utf8(\"abc\")) + 39 }",
