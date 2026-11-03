@@ -1,0 +1,40 @@
+use super::super::*;
+
+pub(in crate::backend::plan) fn string_behavior(callee: &Callee) -> StringBehavior {
+    match callee {
+        Callee::Direct(id) => StringBehavior {
+            output: StringOutput::Call(*id),
+            ..StringBehavior::default()
+        },
+        Callee::Indirect(_) | Callee::Op { .. } => StringBehavior::default(),
+    }
+}
+
+pub(in crate::backend::plan) fn require_runtime(
+    callee: &Callee,
+    suspends: bool,
+    on_fail: &Option<OnFail>,
+    requirements: &mut crate::contract::runtime::RuntimeRequirements,
+) {
+    match callee {
+        Callee::Indirect(_) => requirements.defects |= !suspends && on_fail.is_none(),
+        Callee::Direct(_) | Callee::Op { .. } => {}
+    }
+}
+
+pub(in crate::backend::plan) fn needs_heap(callee: &Callee) -> bool {
+    match callee {
+        Callee::Op { .. } => true,
+        Callee::Direct(_) | Callee::Indirect(_) => false,
+    }
+}
+
+pub(in crate::backend::plan) fn is_known_empty(
+    callee: &Callee,
+    empty_list_functions: &HashSet<FnId>,
+) -> bool {
+    match callee {
+        Callee::Direct(id) => empty_list_functions.contains(id),
+        Callee::Indirect(_) | Callee::Op { .. } => false,
+    }
+}
