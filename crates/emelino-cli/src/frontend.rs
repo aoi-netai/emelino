@@ -42,8 +42,27 @@ pub fn generate_sources(
     // User files never receive ModuleMap::add_core privileges. Source names are
     // explicit module paths, not a locally reimplemented project/package loader.
     let root = Path::new("<emelino-input>");
+    if inputs.iter().any(|input| {
+        crate::bundled::SOURCES
+            .iter()
+            .any(|(name, _)| *name == input.name)
+    }) {
+        return Err("source name conflicts with an emelino extension module".into());
+    }
+    let inputs: Vec<_> = inputs
+        .iter()
+        .map(|source| Source {
+            name: source.name,
+            text: source.text,
+        })
+        .chain(
+            crate::bundled::SOURCES
+                .iter()
+                .map(|(name, text)| Source { name, text }),
+        )
+        .collect();
     let mut names = std::collections::HashSet::new();
-    for input in inputs {
+    for input in &inputs {
         let path = Path::new(input.name);
         if path.extension().is_none_or(|ext| ext != "emel")
             || path
@@ -71,7 +90,7 @@ pub fn generate_sources(
         .ok_or_else(|| "Emela module collection: entry module is missing".to_owned())?;
     let mut sources = ArenaMap::default();
     let mut user_modules = std::collections::HashSet::new();
-    for input in inputs {
+    for input in &inputs {
         let file = root.join(input.name);
         let id = modules
             .iter()

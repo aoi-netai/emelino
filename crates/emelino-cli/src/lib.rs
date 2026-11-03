@@ -1,4 +1,5 @@
 //! Upstream orchestration and the owned backend boundary, usable without CLI I/O.
+mod bundled;
 pub mod config;
 pub mod frontend;
 pub mod upstream_adapter;
