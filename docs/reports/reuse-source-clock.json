@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "purpose": "Supplemental standard TestClock/State/List.map and suspending List.fold source observation. Original source body, C harness and resource limits are reused except the explicitly recorded frame size.",
+  "entries": [
+    {
+      "legacy_tests": [],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/source_clock.rs",
+        "symbol": "clock_handlers_wait_for_host_tasks_and_test_clock_updates_shared_virtual_time"
+      },
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p5_clock.rs",
+        "symbol": "clock_handlers_wait_for_host_tasks_and_test_clock_updates_shared_virtual_time"
+      },
+      "contexts": [
+        {
+          "id": "emela_lir::Term::Break",
+          "context": "suspend"
+        },
+        {
+          "id": "emela_lir::Stmt::Block",
+          "context": "suspend"
+        },
+        {
+          "id": "emela_lir::Value::List",
+          "context": "suspend"
+        },
+        {
+          "id": "emela_lir::Value::ListIsEmpty",
+          "context": "suspend"
+        },
+        {
+          "id": "emela_lir::Value::ListHead",
+          "context": "suspend"
+        },
+        {
+          "id": "emela_lir::Value::ListTail",
+          "context": "suspend"
+        }
+      ],
+      "observation_kind": "runtime",
+      "status": "verified",
+      "source_sha256": "e6193db89dfc814353b80a8ad4b1aa68323c675ca577ace3800affe152073e39"
+    }
+  ],
+  "pipeline": "official frontend -> raw Flow -> adapter -> BackendInput -> saved JSON replay -> identical C artifacts -> strict O0/O2 C execution",
+  "budget_difference": {
+    "old_frame_bytes": 1024,
+    "observed_largest_frame_bytes": 1624,
+    "new_frame_bytes": 2048,
+    "measurement": "Host C sizeof(emela_fn_24_frame); 1024 fails generated static assertion,2048 passes. This is a source-lowering frame-layout difference, not a claim of the old memory budget.",
+    "unchanged_heap_bytes": 65536,
+    "other_capacities": "old defaults unchanged"
+  },
+  "observations": [
+    "All public clock entries retain suspension semantics, including immediate now().",
+    "SystemClock reads1000, waits one task for42ms, then observes42 elapsed.",
+    "TestClock holds State[Instant], clamps -7 sleep to0 and advances virtual time100→150 through two explicit when_stalled completions.",
+    "List.map invokes a suspending callback; upstream standard List.fold produces actual suspend Break/Block/ListIsEmpty/ListHead/ListTail Flow.",
+    "Duplicate and stale task notifications are rejected, results remain unwritten before resumption, and every released root reclaims all heap blocks over1000 rounds."
+  ],
+  "scope_note": "TestClock contains Tag inside a synchronous State.update closure. This report does not claim direct Tag-suspend evidence; that context is covered by the separate raised-interruption source fixture.",
+  "validation": {
+    "tests_passed": 1,
+    "failed": 0,
+    "ignored": 0,
+    "C": [
+      "-std=c11 -O0 -Wall -Werror",
+      "-std=c11 -O2 -Wall -Werror"
+    ],
+    "clippy": "passed with -D warnings",
+    "commands": [
+      "cargo test -p emelino-cli --test source_clock --locked --offline",
+      "cargo clippy -p emelino-cli --test source_clock --locked --offline -- -D warnings"
+    ]
+  }
+}
