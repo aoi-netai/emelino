@@ -108,3 +108,106 @@ fn unit_children_keep_side_effects_and_join_without_a_result_slot() {
         0,
     );
 }
+
+#[test]
+fn unit_deferred_distinguishes_empty_and_full_without_payload_storage() {
+    let mut p = program(vec![]);
+    let deferred_type = handle_type(&mut p, "Std.Deferred.Deferred", TypeId::UNIT);
+    let param = p.core.types.intern(Type::Param(0));
+    let option = p.core.enums.alloc(EnumDef {
+        name: "Option".into(),
+        params: 1,
+        variants: vec![
+            VariantDef {
+                name: "Some".into(),
+                fields: VariantFields::Positional(1),
+                tys: vec![param],
+            },
+            VariantDef {
+                name: "None".into(),
+                fields: VariantFields::Unit,
+                tys: vec![],
+            },
+        ],
+        error: false,
+        external: false,
+    });
+    let option_type = p.core.types.intern(Type::Enum(option, vec![TypeId::UNIT]));
+    let mut f = simple();
+    f.suspends = true;
+    let scope = aggregate_variable(&mut f, TypeId::FIBER_SCOPE);
+    let deferred = aggregate_variable(&mut f, deferred_type);
+    let mut statements = vec![binding(
+        &mut f,
+        Some(deferred),
+        Value::Fiber {
+            op: FiberOp::Deferred,
+            args: vec![scope.into()],
+            on_fail: None,
+        },
+    )];
+    for full in [false, true] {
+        let poll = aggregate_variable(&mut f, option_type);
+        statements.push(binding(
+            &mut f,
+            Some(poll),
+            Value::Fiber {
+                op: FiberOp::Poll,
+                args: vec![deferred.into()],
+                on_fail: None,
+            },
+        ));
+        let good = f.seqs.alloc(Seq {
+            stmts: vec![],
+            term: Term::Yield(None),
+        });
+        let bad = f.seqs.alloc(Seq {
+            stmts: vec![],
+            term: Term::Defect(Const::String("unexpected Unit Deferred poll".into()).into()),
+        });
+        statements.push(f.stmts.alloc(Stmt::Switch {
+            dst: None,
+            on: SwitchOn::Tag(poll),
+            cases: vec![Case {
+                key: CaseKey::Variant(if full { 0 } else { 1 }),
+                body: good,
+            }],
+            default: Some(bad),
+        }));
+        let completed = variable(&mut f, TypeId::BOOL);
+        statements.push(binding(
+            &mut f,
+            Some(completed),
+            Value::Fiber {
+                op: FiberOp::Complete,
+                args: vec![deferred.into(), Const::Unit.into()],
+                on_fail: None,
+            },
+        ));
+        statements.push(check_bool(&mut f, completed, !full));
+    }
+    statements.push(binding(
+        &mut f,
+        None,
+        Value::Fiber {
+            op: FiberOp::DeferredAwait,
+            args: vec![deferred.into()],
+            on_fail: None,
+        },
+    ));
+    let body = f.seqs.alloc(Seq {
+        stmts: statements,
+        term: Term::Return(Some(Const::Int(42).into())),
+    });
+    scope_function(&mut p, &mut f, body, scope);
+    p.functions.alloc(f);
+    let output = crate::backend::compile_saved_program(
+        p,
+        &Options::default()
+            .with_heap_bytes(8192)
+            .with_frame_bytes(1024)
+            .with_deferred_capacity(1),
+    )
+    .unwrap();
+    execute_answer(output);
+}

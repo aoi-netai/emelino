@@ -376,7 +376,23 @@ pub(super) fn emit_function(
                     ..
                 } = statement
                 {
-                    return Err(unsupported(&function.name, "Deferred await"));
+                    super::features::fibers::deferred_await::emit_suspend(
+                        &mut super::features::SuspendContext {
+                            flow,
+                            layouts,
+                            function,
+                            writer,
+                            names,
+                            strings,
+                            next_temp: &mut next_temp,
+                            next: *next,
+                            index,
+                            failing,
+                            call_error_var,
+                            call_error_label,
+                        },
+                        statement,
+                    )?;
                 } else if let Stmt::Let {
                     dst: _dst,
                     value:

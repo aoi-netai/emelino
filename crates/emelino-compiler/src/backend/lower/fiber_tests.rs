@@ -197,6 +197,128 @@ fn check_option(f: &mut Function, value: VarId, option: EnumId, expected: Option
     })
 }
 
+#[test]
+fn deferred_complete_poll_and_await_share_one_typed_value_until_scope_closes() {
+    let mut p = program(vec![]);
+    let deferred_type = handle_type(&mut p, "Std.Deferred.Deferred", TypeId::INT);
+    let param = p.core.types.intern(Type::Param(0));
+    let option = p.core.enums.alloc(EnumDef {
+        name: "Option".into(),
+        params: 1,
+        variants: vec![
+            VariantDef {
+                name: "Some".into(),
+                fields: VariantFields::Positional(1),
+                tys: vec![param],
+            },
+            VariantDef {
+                name: "None".into(),
+                fields: VariantFields::Unit,
+                tys: vec![],
+            },
+        ],
+        error: false,
+        external: false,
+    });
+    let option_type = p.core.types.intern(Type::Enum(option, vec![TypeId::INT]));
+    let mut f = simple();
+    f.suspends = true;
+    let scope = aggregate_variable(&mut f, TypeId::FIBER_SCOPE);
+    let deferred = aggregate_variable(&mut f, deferred_type);
+    let empty = aggregate_variable(&mut f, option_type);
+    let filled = aggregate_variable(&mut f, option_type);
+    let first = variable(&mut f, TypeId::BOOL);
+    let again = variable(&mut f, TypeId::BOOL);
+    let value = variable(&mut f, TypeId::INT);
+    let make = binding(
+        &mut f,
+        Some(deferred),
+        Value::Fiber {
+            op: FiberOp::Deferred,
+            args: vec![scope.into()],
+            on_fail: None,
+        },
+    );
+    let poll_empty = binding(
+        &mut f,
+        Some(empty),
+        Value::Fiber {
+            op: FiberOp::Poll,
+            args: vec![deferred.into()],
+            on_fail: None,
+        },
+    );
+    let complete = binding(
+        &mut f,
+        Some(first),
+        Value::Fiber {
+            op: FiberOp::Complete,
+            args: vec![deferred.into(), Const::Int(42).into()],
+            on_fail: None,
+        },
+    );
+    let duplicate = binding(
+        &mut f,
+        Some(again),
+        Value::Fiber {
+            op: FiberOp::Complete,
+            args: vec![deferred.into(), Const::Int(99).into()],
+            on_fail: None,
+        },
+    );
+    let poll = binding(
+        &mut f,
+        Some(filled),
+        Value::Fiber {
+            op: FiberOp::Poll,
+            args: vec![deferred.into()],
+            on_fail: None,
+        },
+    );
+    let first_ok = check_bool(&mut f, first, true);
+    let duplicate_ok = check_bool(&mut f, again, false);
+    let empty_ok = check_option(&mut f, empty, option, None);
+    let filled_ok = check_option(&mut f, filled, option, Some(42));
+    let await_ = binding(
+        &mut f,
+        Some(value),
+        Value::Fiber {
+            op: FiberOp::DeferredAwait,
+            args: vec![deferred.into()],
+            on_fail: None,
+        },
+    );
+    let scope_body = f.seqs.alloc(Seq {
+        stmts: vec![
+            make,
+            poll_empty,
+            empty_ok,
+            complete,
+            duplicate,
+            poll,
+            filled_ok,
+            first_ok,
+            duplicate_ok,
+            await_,
+        ],
+        term: Term::Return(Some(value.into())),
+    });
+    scope_function(&mut p, &mut f, scope_body, scope);
+    p.functions.alloc(f);
+    let options = Options::default()
+        .with_heap_bytes(8192)
+        .with_frame_bytes(1024)
+        .with_deferred_capacity(1);
+    let output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
+    execute_answer(output);
+    assert!(
+        crate::backend::compile_saved_program(p, &options.with_deferred_capacity(0))
+            .unwrap_err()
+            .iter()
+            .any(|error| error.kind == crate::ErrorKind::InvalidOptions)
+    );
+}
+
 fn exit_types(p: &mut Program, value: TypeId) -> (TypeId, EnumId, TypeId, EnumId, TypeId) {
     let cause = p.core.enums.alloc(EnumDef {
         name: "Std.Cause.Cause".into(),

@@ -4,9 +4,12 @@ pub(in crate::backend::emit) mod r#await;
 pub(in crate::backend::emit) mod cause_kind;
 pub(in crate::backend::emit) mod cause_raise;
 pub(in crate::backend::emit) mod cause_to_string;
+pub(in crate::backend::emit) mod complete;
 pub(in crate::backend::emit) mod deferred;
+pub(in crate::backend::emit) mod deferred_await;
 pub(in crate::backend::emit) mod fork;
 pub(in crate::backend::emit) mod join;
+pub(in crate::backend::emit) mod poll;
 pub(in crate::backend::emit) mod scope;
 pub(in crate::backend::emit) fn emit(
     context: &mut Context<'_, '_>,
@@ -26,13 +29,9 @@ pub(in crate::backend::emit) fn emit(
             Err(unsupported(&context.function.name, "interrupt"))
         }
         crate::contract::ir::FiberOp::Attempt { .. } => attempt::emit(context, dst, value),
-        crate::contract::ir::FiberOp::Complete => {
-            Err(unsupported(&context.function.name, "complete"))
-        }
-        crate::contract::ir::FiberOp::DeferredAwait => {
-            Err(unsupported(&context.function.name, "deferred_await"))
-        }
-        crate::contract::ir::FiberOp::Poll => Err(unsupported(&context.function.name, "poll")),
+        crate::contract::ir::FiberOp::Complete => complete::emit(context, dst, value),
+        crate::contract::ir::FiberOp::DeferredAwait => deferred_await::emit(context, dst, value),
+        crate::contract::ir::FiberOp::Poll => poll::emit(context, dst, value),
         crate::contract::ir::FiberOp::CauseKind { .. } => cause_kind::emit(context, dst, value),
         crate::contract::ir::FiberOp::CauseToString => cause_to_string::emit(context, dst, value),
         crate::contract::ir::FiberOp::CauseRaise => cause_raise::emit(context, dst, value),
