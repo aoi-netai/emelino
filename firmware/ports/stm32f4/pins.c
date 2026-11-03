@@ -5,6 +5,24 @@
 static const uint16_t package_pins[EMELA_GPIO_PORT_COUNT] = EMELA_GPIO_PIN_MASKS;
 static uint16_t owners[EMELA_GPIO_PORT_COUNT * 16];
 
+GPIO_TypeDef *stm32f4_gpio_port(uint32_t port) {
+    static GPIO_TypeDef *const ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH};
+    return ports[port];
+}
+
+void stm32f4_enable_gpio_clock(uint32_t port) {
+    switch (port) {
+    case 0: __HAL_RCC_GPIOA_CLK_ENABLE(); break;
+    case 1: __HAL_RCC_GPIOB_CLK_ENABLE(); break;
+    case 2: __HAL_RCC_GPIOC_CLK_ENABLE(); break;
+    case 3: __HAL_RCC_GPIOD_CLK_ENABLE(); break;
+    case 4: __HAL_RCC_GPIOE_CLK_ENABLE(); break;
+    case 5: __HAL_RCC_GPIOF_CLK_ENABLE(); break;
+    case 6: __HAL_RCC_GPIOG_CLK_ENABLE(); break;
+    case 7: __HAL_RCC_GPIOH_CLK_ENABLE(); break;
+    }
+}
+
 bool stm32f4_pin_valid(int32_t pin) {
     return pin >= 0 && (uint32_t)pin < EMELA_GPIO_PORT_COUNT * 16
         && (package_pins[(uint32_t)pin / 16] & (1U << ((uint32_t)pin % 16)));

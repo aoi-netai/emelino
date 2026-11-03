@@ -134,6 +134,7 @@ def build(args, profile, chip, board_dir, inputs, metadata, run):
     sources = [HERE / "startup.S", HERE / "platform.c", HERE / "pins.c",
                *([board_dir / "init.c"] if (board_dir / "init.c").is_file() else []),
                *([HERE / "time.c"] if timed else []),
+               *([COMMON / "spi.c"] if "spi" in drivers else []),
                *[HERE / (name + ".c") for name in sorted(drivers)],
                *sdk_sources, *inputs["source"], *[path.resolve() for path in args.source]]
     for source in sources:

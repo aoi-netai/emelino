@@ -21,7 +21,7 @@ static uint8_t bytes[EMELA_PERIPHERAL_BUFFER_CAPACITY];
 static const int32_t pins[] = {EMELA_I2C1_SCL_PIN, EMELA_I2C1_SDA_PIN};
 
 static GPIO_TypeDef *pin_port(int32_t pin) {
-    return (GPIO_TypeDef *)(GPIOA_BASE + (uint32_t)(pin / 16) * 0x400U);
+    return stm32f4_gpio_port((uint32_t)pin / 16);
 }
 static uint16_t pin_bit(int32_t pin) { return (uint16_t)(1U << (pin % 16)); }
 static bool expired(uint64_t deadline) { return stm32f4_now_us() >= deadline; }
@@ -168,7 +168,7 @@ int32_t emela_i2c_configure(EmelaI2cId id, EmelaI2cConfig config) {
     if (status) return status;
     int32_t claim = stm32f4_pins_claim(STM32F4_OWNER_I2C1, pins, 2);
     if (claim) { occupied = false; return claim == 5 ? RESOURCE_CONFLICT : INVALID_ARGUMENT; }
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    for (unsigned i = 0; i < 2; ++i) stm32f4_enable_gpio_clock((uint32_t)pins[i] / 16);
     __HAL_RCC_I2C1_CLK_ENABLE();
     alternate_pins();
     controller.Instance = I2C1;

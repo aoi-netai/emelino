@@ -19,7 +19,6 @@ enum {
     GPIO_INVALID_STATE = 6,
 };
 
-static GPIO_TypeDef *const gpio_ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH};
 /* Shared with ISR reads; configuration changes are serialized by PRIMASK. */
 static volatile uint16_t configured_pins[EMELA_GPIO_PORT_COUNT];
 static volatile uint16_t output_pins[EMELA_GPIO_PORT_COUNT];
@@ -39,18 +38,6 @@ static IRQn_Type irq_number(uint32_t line) {
     return line < 5 ? individual[line] : line < 10 ? EXTI9_5_IRQn : EXTI15_10_IRQn;
 }
 
-static void enable_gpio_clock(uint32_t port) {
-    switch (port) {
-    case 0: __HAL_RCC_GPIOA_CLK_ENABLE(); break;
-    case 1: __HAL_RCC_GPIOB_CLK_ENABLE(); break;
-    case 2: __HAL_RCC_GPIOC_CLK_ENABLE(); break;
-    case 3: __HAL_RCC_GPIOD_CLK_ENABLE(); break;
-    case 4: __HAL_RCC_GPIOE_CLK_ENABLE(); break;
-    case 5: __HAL_RCC_GPIOF_CLK_ENABLE(); break;
-    case 6: __HAL_RCC_GPIOG_CLK_ENABLE(); break;
-    case 7: __HAL_RCC_GPIOH_CLK_ENABLE(); break;
-    }
-}
 
 static uint32_t irq_lines(uint32_t line) {
     return line < 5 ? UINT32_C(1) << line : line < 10 ? UINT32_C(0x03e0) : UINT32_C(0xfc00);
@@ -105,8 +92,8 @@ static int32_t configure_owned(uint16_t owner, EmelaGpioPin pin, EmelaGpioConfig
     }
     int32_t claim = stm32f4_pins_claim(owner, &pin.id, 1);
     if (claim != GPIO_OK) { stm32f4_interrupt_unlock(previous); return claim; }
-    enable_gpio_clock(port);
-    GPIO_TypeDef *gpio = gpio_ports[port];
+    stm32f4_enable_gpio_clock(port);
+    GPIO_TypeDef *gpio = stm32f4_gpio_port(port);
     /* Disconnect a previous output while changing its type and initial level. */
     CLEAR_BIT(gpio->MODER, GPIO_MODER_MODER0 << shift);
     HAL_GPIO_WritePin(gpio, (uint16_t)bit, initial == EMELA_GPIO_PIN_STATE_HIGH ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -135,7 +122,7 @@ void stm32f4_gpio_release_owned(uint16_t owner, int32_t pin) {
     if (stm32f4_pin_valid(pin) && stm32f4_pin_owner(pin) == owner) {
         uint32_t port = (uint32_t)pin / 16, bit = 1U << ((uint32_t)pin % 16);
         if (!(interrupt_lines & bit) || interrupt_ports[(uint32_t)pin % 16] != port) {
-            HAL_GPIO_DeInit(gpio_ports[port], bit);
+            HAL_GPIO_DeInit(stm32f4_gpio_port(port), bit);
             configured_pins[port] &= ~bit;
             output_pins[port] &= ~bit;
             analog_pins[port] &= ~bit;
@@ -154,7 +141,7 @@ int32_t emela_gpio_read(EmelaGpioPin pin, EmelaGpioPinState *out) {
     int32_t status = !(configured_pins[port] & bit) ? GPIO_NOT_CONFIGURED
         : analog_pins[port] & bit ? GPIO_INVALID_STATE : GPIO_OK;
     if (status == GPIO_OK)
-        *out = HAL_GPIO_ReadPin(gpio_ports[port], (uint16_t)bit) == GPIO_PIN_SET
+        *out = HAL_GPIO_ReadPin(stm32f4_gpio_port(port), (uint16_t)bit) == GPIO_PIN_SET
             ? EMELA_GPIO_PIN_STATE_HIGH : EMELA_GPIO_PIN_STATE_LOW;
     stm32f4_interrupt_unlock(previous);
     return status;
@@ -170,7 +157,7 @@ static int32_t write_owned(uint16_t owner, EmelaGpioPin pin, EmelaGpioPinState s
     int32_t status = !(configured_pins[port] & bit) ? GPIO_NOT_CONFIGURED
         : !(output_pins[port] & bit) ? GPIO_INVALID_STATE : GPIO_OK;
     if (status == GPIO_OK)
-        HAL_GPIO_WritePin(gpio_ports[port], (uint16_t)bit,
+        HAL_GPIO_WritePin(stm32f4_gpio_port(port), (uint16_t)bit,
                          state == EMELA_GPIO_PIN_STATE_HIGH ? GPIO_PIN_SET : GPIO_PIN_RESET);
     stm32f4_interrupt_unlock(previous);
     return status;
@@ -193,7 +180,7 @@ int32_t emela_gpio_toggle(EmelaGpioPin pin) {
     int32_t status = !(configured_pins[port] & bit) ? GPIO_NOT_CONFIGURED
         : !(output_pins[port] & bit) ? GPIO_INVALID_STATE : GPIO_OK;
     /* The read and BSRR update are one critical section, including ISR callers. */
-    if (status == GPIO_OK) HAL_GPIO_TogglePin(gpio_ports[port], (uint16_t)bit);
+    if (status == GPIO_OK) HAL_GPIO_TogglePin(stm32f4_gpio_port(port), (uint16_t)bit);
     stm32f4_interrupt_unlock(previous);
     return status;
 }
@@ -228,7 +215,7 @@ int32_t emela_gpio_enable_interrupt(EmelaGpioPin pin, EmelaGpioEdge edge, EmelaI
     }
 
     IRQn_Type irq = irq_number(line);
-    GPIO_TypeDef *gpio = gpio_ports[port];
+    GPIO_TypeDef *gpio = stm32f4_gpio_port(port);
     CLEAR_BIT(EXTI->IMR, bit);
     GPIO_InitTypeDef init = {
         .Pin = bit,
@@ -283,7 +270,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin_mask) {
         uint32_t bit = UINT32_C(1) << line;
         if (!(pin_mask & interrupt_lines & bit)) continue;
         uint32_t port = interrupt_ports[line];
-        EmelaGpioPinState level = HAL_GPIO_ReadPin(gpio_ports[port], (uint16_t)bit) == GPIO_PIN_SET
+        EmelaGpioPinState level = HAL_GPIO_ReadPin(stm32f4_gpio_port(port), (uint16_t)bit) == GPIO_PIN_SET
             ? EMELA_GPIO_PIN_STATE_HIGH : EMELA_GPIO_PIN_STATE_LOW;
         emela_gpio_dispatch_interrupt((EmelaGpioPin){.id = (int32_t)(port * 16 + line)}, level);
     }

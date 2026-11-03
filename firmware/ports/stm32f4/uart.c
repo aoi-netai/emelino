@@ -35,20 +35,7 @@ static volatile uint32_t receive_errors;
 static int32_t claimed_pins[2];
 static uint16_t claimed_count;
 
-static GPIO_TypeDef *const ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH};
 
-static void enable_gpio_clock(uint32_t port) {
-    switch (port) {
-    case 0: __HAL_RCC_GPIOA_CLK_ENABLE(); break;
-    case 1: __HAL_RCC_GPIOB_CLK_ENABLE(); break;
-    case 2: __HAL_RCC_GPIOC_CLK_ENABLE(); break;
-    case 3: __HAL_RCC_GPIOD_CLK_ENABLE(); break;
-    case 4: __HAL_RCC_GPIOE_CLK_ENABLE(); break;
-    case 5: __HAL_RCC_GPIOF_CLK_ENABLE(); break;
-    case 6: __HAL_RCC_GPIOG_CLK_ENABLE(); break;
-    case 7: __HAL_RCC_GPIOH_CLK_ENABLE(); break;
-    }
-}
 
 static int32_t validate_id(EmelaUartId id) {
     if (id < EMELA_UART_ID_UART0 || id > EMELA_UART_ID_UART7) return UART_INVALID_ARGUMENT;
@@ -142,11 +129,11 @@ int32_t emela_uart_configure(EmelaUartId id, EmelaUartConfig config) {
     __HAL_RCC_USART2_CLK_ENABLE();
     for (uint16_t index = 0; index < count; ++index) {
         uint32_t port = (uint32_t)pins[index] / 16;
-        enable_gpio_clock(port);
+        stm32f4_enable_gpio_clock(port);
         GPIO_InitTypeDef init = {.Pin = UINT32_C(1) << ((uint32_t)pins[index] % 16),
             .Mode = GPIO_MODE_AF_PP, .Pull = GPIO_NOPULL, .Speed = GPIO_SPEED_FREQ_HIGH,
             .Alternate = EMELA_UART2_AF};
-        HAL_GPIO_Init(ports[port], &init);
+        HAL_GPIO_Init(stm32f4_gpio_port(port), &init);
     }
     uart.Instance = USART2;
     uart.Init = (UART_InitTypeDef){.BaudRate = (uint32_t)config.baud_rate,
@@ -179,7 +166,7 @@ int32_t emela_uart_configure(EmelaUartId id, EmelaUartConfig config) {
         bool retained = false;
         for (uint16_t index = 0; index < count; ++index) retained |= claimed_pins[old] == pins[index];
         if (!retained) {
-            HAL_GPIO_DeInit(ports[(uint32_t)claimed_pins[old] / 16], UINT32_C(1) << ((uint32_t)claimed_pins[old] % 16));
+            HAL_GPIO_DeInit(stm32f4_gpio_port((uint32_t)claimed_pins[old] / 16), UINT32_C(1) << ((uint32_t)claimed_pins[old] % 16));
             stm32f4_pins_release(STM32F4_OWNER_USART2, &claimed_pins[old], 1);
         }
     }
