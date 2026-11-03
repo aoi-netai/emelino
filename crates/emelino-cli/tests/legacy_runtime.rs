@@ -3,6 +3,22 @@
 mod support;
 
 #[test]
+fn legacy_concurrency_await_preserves_string_and_list_results_past_frame_and_scope_reuse() {
+    support::run_fixture(
+        "legacy-concurrency-await_preserves_string_and_list_results_past_frame_and_scope_reuse",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_await_resumes_all_waiters_in_fifo_order_after_completer_finishes() {
+    support::run_fixture(
+        "legacy-concurrency-await_resumes_all_waiters_in_fifo_order_after_completer_finishes",
+        true,
+    );
+}
+
+#[test]
 fn legacy_concurrency_nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries()
  {
     support::run_fixture(
@@ -20,9 +36,41 @@ fn legacy_concurrency_a_direct_suspend_call_can_return_an_inline_exit_into_its_c
 }
 
 #[test]
+fn legacy_concurrency_await_and_join_share_fifo_waiters_and_transfer_each_result() {
+    support::run_fixture(
+        "legacy-concurrency-await_and_join_share_fifo_waiters_and_transfer_each_result",
+        true,
+    );
+}
+
+#[test]
 fn legacy_concurrency_await_keeps_owned_list_results_after_the_scope_ends() {
     support::run_fixture(
         "legacy-concurrency-await_keeps_owned_list_results_after_the_scope_ends",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_await_preserves_int64_float_bits_and_bool_payloads() {
+    support::run_fixture(
+        "legacy-concurrency-await_preserves_int64_float_bits_and_bool_payloads",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_await_returns_success_and_can_mix_with_repeated_join_without_yielding() {
+    support::run_fixture(
+        "legacy-concurrency-await_returns_success_and_can_mix_with_repeated_join_without_yielding",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_await_with_a_string_exit_keeps_owned_backing_after_scope_and_frame_reuse() {
+    support::run_fixture(
+        "legacy-concurrency-await_with_a_string_exit_keeps_owned_backing_after_scope_and_frame_reuse",
         true,
     );
 }
@@ -82,6 +130,39 @@ fn legacy_concurrency_scope_end_breaks_cycles_when_a_child_result_closure_captur
 fn legacy_concurrency_closing_nested_scopes_unlinks_join_waiters_before_the_target_completes() {
     support::run_fixture(
         "legacy-concurrency-closing_nested_scopes_unlinks_join_waiters_before_the_target_completes",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_join_preserves_int64_float_bits_and_bool() {
+    support::run_fixture(
+        "legacy-concurrency-join_preserves_int64_float_bits_and_bool",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_join_results_own_strings_and_lists_after_scope_and_frame_reuse() {
+    support::run_fixture(
+        "legacy-concurrency-join_results_own_strings_and_lists_after_scope_and_frame_reuse",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_join_reuses_completed_results_without_yielding_and_waits_for_discarded_unit()
+{
+    support::run_fixture(
+        "legacy-concurrency-join_reuses_completed_results_without_yielding_and_waits_for_discarded_unit",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_join_wakes_multiple_waiters_in_fifo_after_the_childs_last_breath() {
+    support::run_fixture(
+        "legacy-concurrency-join_wakes_multiple_waiters_in_fifo_after_the_childs_last_breath",
         true,
     );
 }
