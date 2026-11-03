@@ -1,0 +1,10 @@
+
+@external(c,"should_not_run")
+fn should_not_run() -> Int use {}
+pub fn placeholder() -> Int { todo()
+  should_not_run() }
+pub fn dynamic_panic(n:Int) -> Int { panic("halt#{n}")
+  should_not_run() }
+
+pub fn checked(n:Int)->Int { assert n == 42
+ n }

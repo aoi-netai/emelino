@@ -23,7 +23,11 @@ fixture_test!(
     false
 );
 fixture_test!(bytes_ownership_and_wide_lengths, "p3-bytes-owned", true);
-
+fixture_test!(
+    bytes_unicode_and_unsigned_traits,
+    "p3-bytes-transform",
+    true
+);
 fixture_test!(
     record_updates_order_and_ownership,
     "p7-record-updates",

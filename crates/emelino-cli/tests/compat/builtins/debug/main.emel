@@ -1,0 +1,9 @@
+
+type Key(value:Int)
+impl Key:Show{fn show(self){"K#{self.value}"}}
+type Inner(text:String)
+type Outer(key:Key,inner:Inner)
+@external(c,"read_once")
+fn read_once()->Int use {}
+pub fn debug_value()->Int{value=dbg(Outer(key:Key(read_once()),inner:Inner("x")))
+value.key.value}
