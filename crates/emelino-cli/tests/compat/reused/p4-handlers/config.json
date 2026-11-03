@@ -1,0 +1,41 @@
+{
+  "exports": [
+    {
+      "function": "lifecycle",
+      "symbol": "layer_lifecycle"
+    },
+    {
+      "function": "overridden",
+      "symbol": "overridden_arguments"
+    },
+    {
+      "function": "shadow",
+      "symbol": "capability_shadow"
+    },
+    {
+      "function": "label_providers",
+      "symbol": "label_providers"
+    },
+    {
+      "function": "explicit_default",
+      "symbol": "explicit_default"
+    },
+    {
+      "function": "label_merge",
+      "symbol": "label_merge"
+    },
+    {
+      "function": "handler_failure",
+      "symbol": "handler_failure"
+    },
+    {
+      "function": "initializer_failure",
+      "symbol": "initializer_failure"
+    },
+    {
+      "function": "operation_failure",
+      "symbol": "operation_failure"
+    }
+  ],
+  "heap_bytes": 16384
+}

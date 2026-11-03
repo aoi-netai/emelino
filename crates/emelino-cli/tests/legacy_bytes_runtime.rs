@@ -40,6 +40,66 @@ _Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){fpr
 "#;
 
 #[test]
+fn full_legacy_bytes_corpus_preserves_const_traits_and_every_debug_observation() {
+    // The saved source already contains the old embedded test's two adaptations:
+    // public main, and its bounded 128-element example. Add only an explicit C root.
+    let original = include_str!(
+        "compat/legacy-corpus/sources/1ad66c9f12980347b7e4a5d94fa35ad1c5c0f96b6e13e7f48e96e431d5119936.emel"
+    );
+    let source = original.replace(
+        "pub fn main()",
+        "@export(c,\"legacy_bytes\")\npub fn main()",
+    );
+    let output = compile_sources(
+        &[Source::new("main.emel", &source)],
+        "main.emel",
+        &Options::default()
+            .with_heap_bytes(131072)
+            .with_string_capacity(512),
+    )
+    .unwrap_or_else(|errors| panic!("{errors:?}"));
+    let output = heap::with_heap_audit(output);
+    let expected = include_bytes!("compat/p7/bytes-std.expected")
+        .iter()
+        .map(u8::to_string)
+        .collect::<Vec<_>>()
+        .join(",");
+    support::compile_and_run(
+        &output,
+        &format!(
+            r#"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+size_t test_heap_used(void);
+void emela_platform_start(void (*program)(void)){{program();}}
+void emela_board_init(void){{}}
+void emela_board_idle(void){{}}
+static const unsigned char expected[]={{ {expected} }};
+static size_t position;
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){{fprintf(stderr,"defect %d: %.*s\n",k,(int)n,m);abort();}}
+void emela_board_debug(const char*s,uint16_t n){{
+  assert(position+n<sizeof expected);
+  assert(!memcmp(s,expected+position,n));position+=n;
+  assert(expected[position++]=='\n');
+}}
+int main(void){{
+  size_t retained=0;
+  for(int i=0;i<1000;i++){{
+    position=0;(void)legacy_bytes();assert(position==sizeof expected);
+    size_t used=test_heap_used();
+    if(i==0)retained=used;else assert(used==retained);
+  }}return 0;
+}}
+"#
+        ),
+    );
+}
+
+#[test]
 fn legacy_bytes_keep_owned_snapshots_across_suspend_null_output_and_cancellation() {
     let output = suspended(
         include_str!(

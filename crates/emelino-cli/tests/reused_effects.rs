@@ -14,3 +14,4 @@ macro_rules! fixture_test {
 
 fixture_test!(failure_payloads_and_escape, "p2-failures", false);
 fixture_test!(closure_captures_order_and_failure, "p4-closures", true);
+fixture_test!(handler_layers_labels_and_cleanup, "p4-handlers", true);
