@@ -42,7 +42,7 @@ __emela_vector_table_end__:
 .type Reset_Handler, %function
 .thumb_func
 Reset_Handler:
-    /* Enable the FPU before hard-float code; reset clock remains HSI at 16 MHz. */
+    /* Enable the FPU before hard-float code. */
     ldr r0, =0xe000ed88
     ldr r1, [r0]
     ldr r2, =0x00f00000
@@ -72,6 +72,9 @@ Reset_Handler:
     str r3, [r1], #4
     b 3b
 4:
+#ifdef EMELA_CALL_SYSTEM_INIT
+    bl SystemInit
+#endif
     bl __libc_init_array
     bl main
 5:

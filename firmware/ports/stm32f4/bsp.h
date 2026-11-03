@@ -27,4 +27,7 @@ void emela_board_init(void);
 void stm32f4_time_init(void);
 uint64_t stm32f4_now_us(void);
 bool stm32f4_delay_us(uint64_t delay, uint64_t deadline);
+#define emelino_platform_lock stm32f4_interrupt_lock
+#define emelino_platform_unlock stm32f4_interrupt_unlock
+#define emelino_platform_time_init stm32f4_time_init
 #endif
