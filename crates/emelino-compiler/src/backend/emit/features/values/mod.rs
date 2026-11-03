@@ -2,6 +2,7 @@
 use super::*;
 pub(in crate::backend::emit) mod builtin;
 pub(in crate::backend::emit) mod call;
+pub(in crate::backend::emit) mod coerce;
 pub(in crate::backend::emit) mod const_;
 pub(in crate::backend::emit) mod field;
 pub(in crate::backend::emit) mod list;
@@ -44,6 +45,6 @@ pub(in crate::backend::emit) fn emit(
         Value::IsError { .. } => Err(unsupported(&context.function.name, "is_error")),
         Value::AsError { .. } => Err(unsupported(&context.function.name, "as_error")),
         Value::Runtime { .. } => runtime::emit(context, dst, value),
-        Value::Coerce(_) => Err(unsupported(&context.function.name, "coerce")),
+        Value::Coerce(_) => coerce::emit(context, dst, value),
     }
 }

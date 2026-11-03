@@ -20,7 +20,7 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
             return Ok(());
         }
         match program.core.ty(id) {
-            Type::Any => require(function, "owned values")?,
+            Type::String | Type::Bytes | Type::Any => {}
             Type::Tuple(fields) => {
                 for id in fields {
                     ty(program, function, *id, seen)?;
