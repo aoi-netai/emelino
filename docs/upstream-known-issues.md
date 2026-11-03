@@ -77,7 +77,7 @@ stderr:
 本書に再現入力・生成経路・観測結果を保持し、ローカルの未追跡実験ファイルを根拠の必須条件にしない。
 これは確認した固定版のJS経路の結果であり、全targetで実行確認したものではない。
 v0.26.1でも標準Core単相化・Flowに共有情報の追加はなく、修正は含まれていない。
-その版のC経路の回帰結果は依存更新報告（履歴資料 `docs/reports/compiler-v0.26.1.md` は検証台帳PRで収録）に分けて記録する。
+その版のC経路の回帰結果は[依存更新報告](reports/compiler-v0.26.1.md)に分けて記録する。
 上記のNode実行結果は旧pinでの記録であり、新版でのJS再実行は主張しない。
 上流へのissue登録・修正時期は未確定である。
 
@@ -110,9 +110,9 @@ S5で `upstream_known_issues::upstream_001_specialized_consts_keep_two_initializ
 
 ## S6で照合した旧観測
 
-旧source観測の対応表（履歴資料 `docs/reports/reuse-source-coverage.json` は検証台帳PRで収録） の174件中8件で、
+[旧source観測の対応表](reports/reuse-source-coverage.json) の174件中8件で、
 この問題による初期化回数・cache名などの差分を個別に記録した。
-const・cleanup等の移行記録（履歴資料 `docs/reports/reuse-source-seams.json` は検証台帳PRで収録） に、元の期待値と今回の観測を保持する。
+[const・cleanup等の移行記録](reports/reuse-source-seams.json) に、元の期待値と今回の観測を保持する。
 値・所有権・解放など影響を受けない観測は引き続き検証し、const全体を除外しない。
 
 これらの回帰テストが成功しても、単一初期化の仕様が修正されたことを意味しない。

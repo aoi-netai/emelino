@@ -84,3 +84,6 @@ cargo test --workspace --locked
 
 sourceからの生成と保存入力の再生成を照合し、生成Cを`-O0`/`-O2`で実行します。
 既存cacheだけを使う場合はCargoコマンドに`--offline`を追加し、依存の新規取得とは区別します。
+
+現在の検証revision・結果は[対応表](docs/compiler-coverage.md)と[再現検証記録](docs/reports/reconstruction-validation.json)を参照してください。
+旧S報告・取得元・ライセンス・過去の実行SHAは[履歴索引](docs/reports/README.md)に分けて保持します。

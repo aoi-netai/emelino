@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "status": "pending",
+  "date": null,
+  "old_revision": "948a8be7e3bb01956b1558aa42204d19f177bb59",
+  "old_archive_tag": "archive/pre-history-cleanup",
+  "tested_revision": null,
+  "implementation_and_test_trees": {},
+  "environment": {
+    "os": null,
+    "rustc": null,
+    "cargo": null,
+    "c_compiler": null,
+    "dependency_mode": null
+  },
+  "checks": [
+    {
+      "id": "format",
+      "command": "cargo fmt --all -- --check",
+      "status": "pending",
+      "exit_code": null,
+      "log_sha256": null
+    },
+    {
+      "id": "clippy",
+      "command": "cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+      "status": "pending",
+      "exit_code": null,
+      "log_sha256": null
+    },
+    {
+      "id": "workspace_tests",
+      "command": "cargo test --workspace --locked --offline",
+      "status": "pending",
+      "exit_code": null,
+      "passed": null,
+      "failed": null,
+      "ignored": null,
+      "filtered": null,
+      "log_sha256": null
+    },
+    {
+      "id": "isolated_archive_tests",
+      "command": "cargo test --workspace --locked --offline",
+      "status": "pending",
+      "archive_revision": null,
+      "directory": null,
+      "exit_code": null,
+      "passed": null,
+      "failed": null,
+      "ignored": null,
+      "filtered": null,
+      "log_sha256": null
+    },
+    {
+      "id": "source_removed_replay",
+      "command": "cargo test --locked --offline -p emelino-cli --test pipeline upstream_flow_survives_source_removal_and_links_from_c -- --exact",
+      "status": "pending",
+      "exit_code": null,
+      "log_sha256": null
+    },
+    {
+      "id": "finalized_ledger_integrity",
+      "command": "cargo test --locked --offline -p emelino-cli --test reused_pipeline coverage_ -- --nocapture",
+      "status": "pending",
+      "exit_code": null,
+      "passed": null,
+      "log_sha256": null
+    },
+    {
+      "id": "product_and_test_identity",
+      "command": "compare baseline and reconstructed tracked product/test/config/example files byte-for-byte",
+      "status": "pending",
+      "changed_paths": null,
+      "manifest_sha256": null
+    },
+    {
+      "id": "docs_integrity",
+      "command": "one-off verify_docs.py BASELINE RECONSTRUCTED_TREE",
+      "status": "pending",
+      "exit_code": null,
+      "log_sha256": null
+    }
+  ],
+  "limitations": [
+    "UPSTREAM-001は未修正。8観測は既知差分として分離する。",
+    "固定参照表の生成器は含まれず、再生成を実施したとはしない。",
+    "ネットワークからの新規依存取得・本体JSの再実行・strace非アクセス証明・実機boardは、別途実施記録がない限り未実施。"
+  ],
+  "finalization_rule": "実際のcommitとtree、実行ログから記入する。全必須確認後にcompletion.finalizedをtrueとし、finalized分岐を含む台帳整合2試験を再実行する。再失敗時はfinalizedをfalseへ戻す。"
+}
