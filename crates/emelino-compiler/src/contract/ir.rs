@@ -2,7 +2,9 @@
 //! Frontend function bodies, name-resolution state, source files, and Heap-IR stages are absent.
 //! The independent frontend constructs these owned definitions; downstream stages use these IDs only.
 use crate::contract::DerivedOperation;
+use crate::input::codec;
 use la_arena::{Arena, Idx};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 pub type FnId = Idx<Function>;
@@ -13,11 +15,15 @@ pub type LabelId = Idx<LabelData>;
 pub type EnumId = Idx<EnumDef>;
 pub type EffectId = Idx<EffectDef>;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Definitions {
     pub types: TypeTable,
+    #[serde(with = "codec::arena")]
     pub enums: Arena<EnumDef>,
+    #[serde(with = "codec::arena")]
     pub effects: Arena<EffectDef>,
+    #[serde(skip)]
     pub expanding_enums: HashSet<EnumId>,
 }
 impl Definitions {
@@ -26,65 +32,87 @@ impl Definitions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Program {
     pub core: Definitions,
+    #[serde(with = "codec::arena")]
     pub functions: Arena<Function>,
+    #[serde(with = "codec::index_pairs")]
     pub error_shows: Vec<(EnumId, FnId)>,
+    #[serde(with = "codec::index_groups")]
     pub const_function_groups: Vec<Vec<FnId>>,
+    #[serde(skip)]
     pub has_scopes: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Function {
     pub name: String,
     pub exported: bool,
     /// Explicit public C name supplied by the independent frontend.
     pub export_symbol: Option<String>,
+    #[serde(with = "codec::indices")]
     pub params: Vec<VarId>,
     pub ret: TypeId,
     pub fails: bool,
     pub suspends: bool,
     pub constant: bool,
+    #[serde(with = "codec::optional_index")]
     pub canonical_const: Option<FnId>,
     pub external: Option<External>,
     pub env: Option<Vec<TypeId>>,
+    #[serde(with = "codec::optional_index")]
     pub body: Option<SeqId>,
+    #[serde(with = "codec::arena")]
     pub vars: Arena<VarData>,
+    #[serde(with = "codec::arena")]
     pub stmts: Arena<Stmt>,
+    #[serde(with = "codec::arena")]
     pub seqs: Arena<Seq>,
+    #[serde(with = "codec::arena")]
     pub labels: Arena<LabelData>,
     pub derivation: Option<DerivedOperation>,
     pub infallible_cause_fail: bool,
+    #[serde(skip)]
     pub statement_positions: HashMap<StmtId, usize>,
+    #[serde(skip)]
     pub sequence_positions: HashMap<SeqId, usize>,
+    #[serde(skip)]
     pub active_statements: HashSet<StmtId>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct VarData {
     pub hint: String,
     pub repr: Repr,
     pub ty: TypeId,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LabelData {
     pub hint: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Seq {
+    #[serde(with = "codec::indices")]
     pub stmts: Vec<StmtId>,
     pub term: Term,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Term {
     Yield(Option<Operand>),
     Return(Option<Operand>),
     Fail(Operand),
     Break {
+        #[serde(with = "codec::index")]
         label: LabelId,
         value: Option<Operand>,
     },
@@ -94,87 +122,113 @@ pub enum Term {
     Unreachable,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Stmt {
     Let {
+        #[serde(with = "codec::optional_index")]
         dst: Option<VarId>,
         value: Value,
+        #[serde(with = "codec::optional_index")]
         on_defect: Option<SeqId>,
         on_suspend: Option<Suspend>,
     },
     If {
+        #[serde(with = "codec::optional_index")]
         dst: Option<VarId>,
         cond: Operand,
+        #[serde(with = "codec::index")]
         then: SeqId,
+        #[serde(with = "codec::index")]
         else_: SeqId,
     },
     Switch {
+        #[serde(with = "codec::optional_index")]
         dst: Option<VarId>,
         on: SwitchOn,
         cases: Vec<Case>,
+        #[serde(with = "codec::optional_index")]
         default: Option<SeqId>,
     },
     Loop {
+        #[serde(with = "codec::optional_index")]
         dst: Option<VarId>,
+        #[serde(with = "codec::indices")]
         vars: Vec<VarId>,
         inits: Vec<Operand>,
+        #[serde(with = "codec::index")]
         body: SeqId,
     },
     Block {
+        #[serde(with = "codec::optional_index")]
         dst: Option<VarId>,
+        #[serde(with = "codec::index")]
         label: LabelId,
+        #[serde(with = "codec::index")]
         body: SeqId,
     },
     Protect {
+        #[serde(with = "codec::optional_index")]
         dst: Option<VarId>,
+        #[serde(with = "codec::index")]
         body: SeqId,
+        #[serde(with = "codec::index")]
         cleanup: SeqId,
     },
-    Dup(VarId),
-    Drop(VarId),
+    Dup(#[serde(with = "codec::index")] VarId),
+    Drop(#[serde(with = "codec::index")] VarId),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Suspend {
     pub state: u32,
+    #[serde(with = "codec::indices")]
     pub saved: Vec<VarId>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum SwitchOn {
-    Tag(VarId),
-    Lit(VarId),
+    Tag(#[serde(with = "codec::index")] VarId),
+    Lit(#[serde(with = "codec::index")] VarId),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Case {
     pub key: CaseKey,
+    #[serde(with = "codec::index")]
     pub body: SeqId,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum CaseKey {
     Variant(usize),
     Lit(Const),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Operand {
-    Var(VarId),
+    Var(#[serde(with = "codec::index")] VarId),
     Const(Const),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Const {
     Int(i32),
     Int64(i64),
-    Float(f64),
+    Float(#[serde(with = "codec::float_bits")] f64),
     Bool(bool),
     String(String),
     Unit,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Value {
     Const(Const),
     Prim {
@@ -197,13 +251,15 @@ pub enum Value {
         args: Vec<Operand>,
     },
     Field {
+        #[serde(with = "codec::index")]
         base: VarId,
         ctor: CtorRef,
         index: usize,
     },
-    Tag(VarId),
+    Tag(#[serde(with = "codec::index")] VarId),
     Tuple(Vec<Operand>),
     TupleGet {
+        #[serde(with = "codec::index")]
         base: VarId,
         index: usize,
     },
@@ -211,30 +267,39 @@ pub enum Value {
         elems: Vec<Operand>,
         tail: Option<Operand>,
     },
-    ListIsEmpty(VarId),
-    ListHead(VarId),
-    ListTail(VarId),
-    FnRef(FnId),
+    ListIsEmpty(#[serde(with = "codec::index")] VarId),
+    ListHead(#[serde(with = "codec::index")] VarId),
+    ListTail(#[serde(with = "codec::index")] VarId),
+    FnRef(#[serde(with = "codec::index")] FnId),
     Closure(Box<Closure>),
     MakeClosure {
+        #[serde(with = "codec::index")]
         function: FnId,
+        #[serde(with = "codec::indices")]
         captures: Vec<VarId>,
     },
     EnvGet {
+        #[serde(with = "codec::index")]
         env: VarId,
         index: usize,
     },
     EvLookup {
+        #[serde(with = "codec::index")]
         ev: VarId,
+        #[serde(with = "codec::index")]
         effect: EffectId,
     },
     EvExtend {
+        #[serde(with = "codec::optional_index")]
         base: Option<VarId>,
+        #[serde(with = "codec::index_pairs")]
         bindings: Vec<(EffectId, VarId)>,
     },
     Handler {
         name: String,
+        #[serde(with = "codec::index")]
         effect: EffectId,
+        #[serde(with = "codec::indices")]
         ops: Vec<VarId>,
     },
     Fiber {
@@ -243,12 +308,16 @@ pub enum Value {
         on_fail: Option<OnFail>,
     },
     IsError {
+        #[serde(with = "codec::index")]
         error: VarId,
+        #[serde(with = "codec::index")]
         enum_id: EnumId,
         error_type: TypeId,
     },
     AsError {
+        #[serde(with = "codec::index")]
         error: VarId,
+        #[serde(with = "codec::index")]
         enum_id: EnumId,
         error_type: TypeId,
     },
@@ -256,10 +325,11 @@ pub enum Value {
         op: RuntimeOp,
         args: Vec<Operand>,
     },
-    Coerce(VarId),
+    Coerce(#[serde(with = "codec::index")] VarId),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum RuntimeOp {
     ShowString,
     DebugPrint,
@@ -274,33 +344,47 @@ pub enum RuntimeOp {
     YieldPerform,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Closure {
+    #[serde(with = "codec::indices")]
     pub params: Vec<VarId>,
+    #[serde(with = "codec::indices")]
     pub captures: Vec<VarId>,
+    #[serde(with = "codec::index")]
     pub body: SeqId,
     pub suspends: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Callee {
-    Direct(FnId),
-    Indirect(VarId),
+    Direct(#[serde(with = "codec::index")] FnId),
+    Indirect(#[serde(with = "codec::index")] VarId),
     Op {
+        #[serde(with = "codec::index")]
         handler: VarId,
+        #[serde(with = "codec::index")]
         effect: EffectId,
         op: usize,
     },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum OnFail {
-    Break(LabelId),
+    Break(#[serde(with = "codec::index")] LabelId),
     Propagate,
-    Handle { error: VarId, body: SeqId },
+    Handle {
+        #[serde(with = "codec::index")]
+        error: VarId,
+        #[serde(with = "codec::index")]
+        body: SeqId,
+    },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum PrimOp {
     Add,
     Sub,
@@ -317,7 +401,8 @@ pub enum PrimOp {
     Ge,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum PrimTy {
     I32,
     I64,
@@ -325,40 +410,47 @@ pub enum PrimTy {
     String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct External {
     pub bindings: Vec<ExternalBinding>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ExternalBinding {
     pub target: String,
     pub host: HostRef,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum HostRef {
     Global(String),
     Import { module: HostModule, name: String },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum HostModule {
     Named(String),
     File(String),
     Bundled(String),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EffectDef {
     pub name: String,
     pub decl: String,
     pub args: Vec<TypeId>,
     pub ops: Vec<OpDef>,
+    #[serde(with = "codec::optional_index")]
     pub label_of: Option<EffectId>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct OpDef {
     pub name: String,
     pub suspend: bool,
@@ -368,7 +460,8 @@ pub struct OpDef {
     pub fails: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EnumDef {
     pub name: String,
     pub params: usize,
@@ -377,30 +470,36 @@ pub struct EnumDef {
     pub external: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct VariantDef {
     pub name: String,
     pub fields: VariantFields,
     pub tys: Vec<TypeId>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum VariantFields {
     Unit,
     Positional(usize),
     Named(Vec<String>),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CtorRef {
+    #[serde(with = "codec::index")]
     pub enum_id: EnumId,
     pub variant: usize,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TypeId(u32);
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Type {
     Int,
     Int64,
@@ -412,10 +511,10 @@ pub enum Type {
     Never,
     Tuple(Vec<TypeId>),
     List(TypeId),
-    Enum(EnumId, Vec<TypeId>),
+    Enum(#[serde(with = "codec::index")] EnumId, Vec<TypeId>),
     Param(usize),
     Fn(FnType),
-    Handler(EffectId),
+    Handler(#[serde(with = "codec::index")] EffectId),
     Evidence,
     Cell(TypeId),
     FiberScope,
@@ -423,7 +522,8 @@ pub enum Type {
     Set(SetSummary),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SetSummary {
     pub fails: bool,
     pub suspends: bool,
@@ -431,13 +531,15 @@ pub struct SetSummary {
     pub params: Vec<TypeId>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FnSets {
     pub errors: TypeId,
     pub effects: TypeId,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FnType {
     pub params: Vec<TypeId>,
     pub ret: TypeId,
@@ -447,31 +549,48 @@ pub struct FnType {
     pub sets: Option<FnSets>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum FiberOp {
-    Scope { fails: bool },
+    Scope {
+        fails: bool,
+    },
     Fork,
     Deferred,
     Join,
-    Await { exit: EnumId },
+    Await {
+        #[serde(with = "codec::index")]
+        exit: EnumId,
+    },
     Interrupt,
-    Attempt { exit: EnumId, suspends: bool },
+    Attempt {
+        #[serde(with = "codec::index")]
+        exit: EnumId,
+        suspends: bool,
+    },
     Complete,
     DeferredAwait,
     Poll,
-    CauseKind { kind: EnumId },
+    CauseKind {
+        #[serde(with = "codec::index")]
+        kind: EnumId,
+    },
     CauseToString,
     CauseRaise,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TypeTable {
     pub types: Vec<Type>,
+    #[serde(skip)]
     pub has_param: Vec<bool>,
+    #[serde(skip)]
     pub ids: HashMap<Type, TypeId>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Builtin {
     StringLength,
     StringByteSize,
@@ -533,7 +652,8 @@ pub enum Builtin {
     DebugPrint,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Repr {
     I32,
     I64,

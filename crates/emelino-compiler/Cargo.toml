@@ -2,6 +2,7 @@
 name = "emelino-compiler"
 version.workspace = true
 edition.workspace = true
+rust-version = "1.85"
 publish.workspace = true
 
 [dependencies]
