@@ -1,3 +1,5 @@
+#[path = "p7_data_tests.rs"]
+mod p7_data;
 use super::*;
 use crate::{Options, Output};
 use std::path::PathBuf;
@@ -542,4 +544,183 @@ fn float_constant_bits_and_non_finite_values_execute() {
         "#include <math.h>\n#include \"emela_embedded.h\"\nint main(void) {\n if (float_value0() != 1.25 || float_value1() != 1e100) return 1;\n if (float_value2() != 0.0 || !signbit(float_value2())) return 2;\n if (!isinf(float_value3()) || signbit(float_value3())) return 3;\n if (!isinf(float_value4()) || !signbit(float_value4())) return 4;\n return isnan(float_value5()) ? 0 : 5;\n}\n",
         0,
     );
+}
+
+fn aggregate_variable(f: &mut Function, ty: TypeId) -> VarId {
+    f.vars.alloc(VarData {
+        hint: String::new(),
+        ty,
+        repr: Repr::Ref,
+    })
+}
+#[test]
+fn tuple_constructor_projection_and_enum_switch_execute() {
+    let mut p = program(vec![]);
+    let tuple_ty = p
+        .core
+        .types
+        .intern(Type::Tuple(vec![TypeId::INT, TypeId::BOOL]));
+    let enum_id = p.core.enums.alloc(EnumDef {
+        name: "Choice".into(),
+        params: 0,
+        variants: vec![
+            VariantDef {
+                name: "Number".into(),
+                fields: VariantFields::Positional(1),
+                tys: vec![TypeId::INT],
+            },
+            VariantDef {
+                name: "Empty".into(),
+                fields: VariantFields::Unit,
+                tys: vec![],
+            },
+        ],
+        error: false,
+        external: false,
+    });
+    let enum_ty = p.core.types.intern(Type::Enum(enum_id, vec![]));
+    let mut f = simple();
+    let pair = aggregate_variable(&mut f, tuple_ty);
+    let number = variable(&mut f, TypeId::INT);
+    let choice = aggregate_variable(&mut f, enum_ty);
+    let payload = variable(&mut f, TypeId::INT);
+    let result = variable(&mut f, TypeId::INT);
+    let tuple = binding(
+        &mut f,
+        Some(pair),
+        Value::Tuple(vec![Const::Int(42).into(), Const::Bool(true).into()]),
+    );
+    let project = binding(
+        &mut f,
+        Some(number),
+        Value::TupleGet {
+            base: pair,
+            index: 0,
+        },
+    );
+    let make = binding(
+        &mut f,
+        Some(choice),
+        Value::Make {
+            ctor: CtorRef {
+                enum_id,
+                variant: 0,
+            },
+            args: vec![number.into()],
+        },
+    );
+    let field = binding(
+        &mut f,
+        Some(payload),
+        Value::Field {
+            base: choice,
+            ctor: CtorRef {
+                enum_id,
+                variant: 0,
+            },
+            index: 0,
+        },
+    );
+    let number_case = f.seqs.alloc(Seq {
+        stmts: vec![field],
+        term: Term::Yield(Some(payload.into())),
+    });
+    let empty_case = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(Some(Const::Int(0).into())),
+    });
+    let switch = f.stmts.alloc(Stmt::Switch {
+        dst: Some(result),
+        on: SwitchOn::Tag(choice),
+        cases: vec![
+            Case {
+                key: CaseKey::Variant(0),
+                body: number_case,
+            },
+            Case {
+                key: CaseKey::Variant(1),
+                body: empty_case,
+            },
+        ],
+        default: None,
+    });
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![tuple, project, make, switch],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(f);
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    execute(&output, DEFECT_HARNESS, 0);
+}
+
+#[test]
+fn unit_enum_uses_the_scalar_tag_representation() {
+    let mut p = program(vec![]);
+    let enum_id = p.core.enums.alloc(EnumDef {
+        name: "Marker".into(),
+        params: 0,
+        variants: vec![
+            VariantDef {
+                name: "First".into(),
+                fields: VariantFields::Unit,
+                tys: vec![],
+            },
+            VariantDef {
+                name: "Second".into(),
+                fields: VariantFields::Unit,
+                tys: vec![],
+            },
+        ],
+        error: false,
+        external: false,
+    });
+    let ty = p.core.types.intern(Type::Enum(enum_id, vec![]));
+    let mut f = simple();
+    let tag = f.vars.alloc(VarData {
+        hint: "tag".into(),
+        ty,
+        repr: Repr::I32,
+    });
+    let result = variable(&mut f, TypeId::INT);
+    let make = binding(
+        &mut f,
+        Some(tag),
+        Value::Make {
+            ctor: CtorRef {
+                enum_id,
+                variant: 1,
+            },
+            args: vec![],
+        },
+    );
+    let first = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(Some(Const::Int(0).into())),
+    });
+    let second = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(Some(Const::Int(42).into())),
+    });
+    let switch = f.stmts.alloc(Stmt::Switch {
+        dst: Some(result),
+        on: SwitchOn::Tag(tag),
+        cases: vec![
+            Case {
+                key: CaseKey::Variant(0),
+                body: first,
+            },
+            Case {
+                key: CaseKey::Variant(1),
+                body: second,
+            },
+        ],
+        default: None,
+    });
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![make, switch],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(f);
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    execute(&output, DEFECT_HARNESS, 0);
 }

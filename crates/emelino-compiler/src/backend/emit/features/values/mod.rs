@@ -3,8 +3,13 @@ use super::*;
 pub(in crate::backend::emit) mod builtin;
 pub(in crate::backend::emit) mod call;
 pub(in crate::backend::emit) mod const_;
+pub(in crate::backend::emit) mod field;
+pub(in crate::backend::emit) mod make;
 pub(in crate::backend::emit) mod prim;
 pub(in crate::backend::emit) mod runtime;
+pub(in crate::backend::emit) mod tag;
+pub(in crate::backend::emit) mod tuple;
+pub(in crate::backend::emit) mod tuple_get;
 pub(in crate::backend::emit) fn emit(
     context: &mut Context<'_, '_>,
     dst: &Option<VarId>,
@@ -15,11 +20,11 @@ pub(in crate::backend::emit) fn emit(
         Value::Prim { .. } => prim::emit(context, dst, value),
         Value::Call { .. } => call::emit(context, dst, value),
         Value::Builtin { .. } => builtin::emit(context, dst, value),
-        Value::Make { .. } => Err(unsupported(&context.function.name, "make")),
-        Value::Field { .. } => Err(unsupported(&context.function.name, "field")),
-        Value::Tag(_) => Err(unsupported(&context.function.name, "tag")),
-        Value::Tuple(_) => Err(unsupported(&context.function.name, "tuple")),
-        Value::TupleGet { .. } => Err(unsupported(&context.function.name, "tuple_get")),
+        Value::Make { .. } => make::emit(context, dst, value),
+        Value::Field { .. } => field::emit(context, dst, value),
+        Value::Tag(_) => tag::emit(context, dst, value),
+        Value::Tuple(_) => tuple::emit(context, dst, value),
+        Value::TupleGet { .. } => tuple_get::emit(context, dst, value),
         Value::List { .. } => Err(unsupported(&context.function.name, "list")),
         Value::ListIsEmpty(_) => Err(unsupported(&context.function.name, "list_is_empty")),
         Value::ListHead(_) => Err(unsupported(&context.function.name, "list_head")),

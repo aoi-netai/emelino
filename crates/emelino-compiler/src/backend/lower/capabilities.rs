@@ -22,7 +22,6 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         match program.core.ty(id) {
             Type::String | Type::Bytes | Type::Any => require(function, "owned values")?,
             Type::Tuple(fields) => {
-                require(function, "aggregate values")?;
                 for id in fields {
                     ty(program, function, *id, seen)?;
                 }
@@ -32,7 +31,6 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                 ty(program, function, *item, seen)?;
             }
             Type::Enum(id, args) => {
-                require(function, "enum values")?;
                 for id in args {
                     ty(program, function, *id, seen)?;
                 }
