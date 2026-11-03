@@ -367,7 +367,7 @@ fn exit_types(p: &mut Program, value: TypeId) -> (TypeId, EnumId, TypeId, EnumId
 
 #[test]
 fn attempts_preserve_success_and_typed_cause_failures_across_raise() {
-    for suspends in [false] {
+    for suspends in [false, true] {
         for fails in [false, true] {
             let mut p = program(vec![]);
             let (cause_type, exit, exit_type, kind, kind_type) = exit_types(&mut p, TypeId::INT);
