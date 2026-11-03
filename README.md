@@ -59,14 +59,17 @@ CLI binaryのCargoビルドには固定した本体crateを含む依存が必要
 - [closure・effect・State・failure](docs/architecture.md#functions-effects-failure)
 - [async task・Scope・Fiber・Deferred](docs/architecture.md#async-runtime)
 - [const・UPSTREAM-001](docs/architecture.md#const)
+- [C ABI・ISR・Embedded.*・board hook](docs/architecture.md#c-abi-embedded)
 
 Bytesは本体の`Std.Bytes`からimportします。
 
 汎化constの型特殊化をまたぐ共有には未修正の[UPSTREAM-001](docs/upstream-known-issues.md)があります。
 
+組み込みmoduleはemelinoが管理する`Embedded.*`からimportします。`Std.Embedded.*`は供給しません。
+
 公開入口には具体型のwrapperを用意し、残るeffectをhandlerで処理します。
 追加ソースは設定の`sources`へentryからの相対moduleパスを列挙します。
-公開名と導入済み機能の容量・入口設定を明示し、生成headerをC側のABIの正本とします。
+容量・起動入口・adapter・ISR入口も設定で明示し、生成headerをC側のABIの正本とします。
 
 Pome/project loader、`@test`/`@internal`のdriver処理、物理BSP、firmware build/flash、実機検証は後続範囲です。
 採用範囲と終了条件は[実装計画](docs/implementation-plan.md)に定義します。

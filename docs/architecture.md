@@ -215,8 +215,8 @@ pool枯渇はresource defectとして停止し、暗黙に拡張しない。
 実装は`crates/emelino-compiler/src/backend/lower/fiber*`、`backend/plan/task_values.rs`、
 `backend/emit/{deferred.rs,task_values.rs}`と`backend/emit/runtime/`のscheduler/scope/taskが担当する。
 `crates/emelino-cli/tests/reused_concurrency.rs`、`legacy_runtime.rs`、`legacy_more.rs`、
-`legacy_bytes_runtime.rs`は再開順・取消・所有値・slot再利用・pool枯渇を観測する。
-boardの所有値adapterとClockのC境界を使う観測はPR7で追加する。
+`legacy_externals.rs`、`legacy_bytes_runtime.rs`は再開順・取消・所有値・slot再利用・pool枯渇を観測する。
+`source_clock.rs`はhost taskを待つClockと共有仮想時刻を扱う。
 
 <a id="const"></a>
 ## constの評価・cache・既知差分（PR6）
@@ -245,3 +245,50 @@ defect cache・所有権を回帰確認してから既知問題を閉じる。
 `upstream_known_issues::upstream_001_specialized_consts_keep_two_initializers_until_upstream_fix`は
 未修正のFlow形状を明示的に確認する。
 source後にIRを加工するseam試験は通常sourceだけの成功と分けて記録する。
+
+<a id="c-abi-embedded"></a>
+## C ABI・ISR・組み込みライブラリー（PR7）
+
+C公開関数の型、公開名、失敗、effect/evidence、suspend、所有権を検査してheaderを生成する。
+通常C targetのString/callback ABIを自動的に継承せず、生成headerを接続先の正本とする。
+外部関数はscalarの直接bindingか、生成値表現に対応する明示adapterを選ぶ。
+非scalar値を通常host C backendのABIへ誤ってリンクしない。
+
+| 同期adapterの結果 | 契約 |
+| --- | --- |
+| `Borrowed` | 戻る前にEmela側が所有copyを取得する。取得完了までboardが元値を保持する。C calleeのstack上のpointerは禁止 |
+| `Owned` | 管理fieldを含む完全な所有値を移す。ownerはこの生成moduleのheap由来とし、mallocやC stack由来を認めない |
+| `StringBuffer` | 追加のcaller bufferへownerless Stringを返す。boardがbyte容量を確認する。String結果だけに使う |
+
+同期callの引数はcall終了までのborrowであり、保持したいboard側は有効な間に独立の所有を取得する。
+ownerless Stringのbyteを保持するときはcopyする。
+非同期externalは明示したtask adapterを通し、完了通知、取消、context寿命、成功/errorの所有移転を扱う。
+通知はmain側schedulerが処理し、ISR内で一般のEmela処理を再開する契約にはしない。
+
+adapterのC名は識別子構文、runtime予約名、公開wrapper、実際に生成するhelperとの衝突を事前検査する。
+`emela_scheduler_run`、生成される`run_start`、異なるtaskから重複生成する`<adapter>_push`等は拒否する。
+生成しない条件付きhelperの名前まで予約せず、helper不要なら`run_unwind`も使える。
+衝突時はC出力を作らず通常診断を返す。
+
+`isr_entries`はexportをISR入口として指定する。到達するheap、参照管理、再帰、動的call、
+suspend、runtime const、外部callを検査し、一般処理をISRから誤実行させない。
+外部callは明示した`isr_safe_externals`の契約に従う。
+static borrowとscalar bit値を扱う安全な入口は保持する。
+
+`Embedded.Peripheral/Gpio/Uart/I2c/Spi/Board`の6moduleはemelinoが
+`crates/emelino-cli/lib/embedded/`に保持し、`bundled.rs`で通常sourceとして供給する。
+本体の`Std.Embedded.*`は登録せず、互換aliasも提供しない。
+ユーザーによる同名moduleの上書きを拒否し、組み込みsourceにもcore内部権限を与えない。
+汎用core/stdと`Std.Bytes`は引き続き本体から供給する。
+本体の`emela-codegen-c`/`emela-codegen-emb`には依存せず、ローカルmoduleを将来も本体と同期する契約にはしない。
+
+生成するboard header、service adapter、manifestはCとの接続点である。
+GPIO/UART/I2C/SPI等の操作はhandlerとC bridgeを経由し、buffer・error・取消を維持する。
+物理BSP、startup/vector/linker、SDK/toolchain選定、firmware build/flash、実機動作確認は後続範囲とする。
+
+実装は`crates/emelino-compiler/src/contract/options.rs`、ABI/ISRのlowerとplan、
+CLIの`bundled.rs`とlocal moduleが担当する。
+`crates/emelino-cli/tests/{board_boundary.rs,adapter_symbols.rs,legacy_externals.rs,legacy_services.rs}`が
+header/manifest、公開型、sourceと保存再生成、所有移転、ISR制約、名前衝突、service取消を観測する。
+`adapter_symbols::valid_task_adapters_execute_after_saved_input_replay_including_unused_suffix_names`は
+正常なtaskと使用しないhelper suffixを含む設定のC実行を確認する。
