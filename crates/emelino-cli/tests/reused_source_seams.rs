@@ -13,6 +13,8 @@ mod cleanup;
 mod consts;
 #[path = "compat/seams/generic_consts.rs"]
 mod generic_consts;
+#[path = "compat/seams/integration.rs"]
+mod integration;
 #[path = "compat/seams/protect.rs"]
 mod protect;
 

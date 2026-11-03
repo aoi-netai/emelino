@@ -6,7 +6,7 @@ mod legacy;
 mod support;
 use heap::with_heap_audit;
 
-use legacy::{Options, Output, Source, compile_sources};
+use legacy::{ExternalAdapter, ExternalResult, Options, Output, Source, compile_sources};
 use support::compile_and_run;
 
 fn compile_source(source: &str, options: &Options) -> Output {
@@ -157,4 +157,75 @@ _Noreturn void emela_board_defect(EmelaDefectKind kind,const char *message,uint1
 int main(void) { static uint8_t value[70000];(void)decode_large((EmelaBytes){value,sizeof value,NULL});return 2; }
 "#,
     );
+}
+
+#[test]
+fn bytes_external_adapters_snapshot_borrowed_data_and_transfer_owned_data() {
+    let source = r#"
+import Std.Bytes.{Bytes}
+@external(c, "raw_bytes")
+fn raw(n: Int) -> Bytes
+effect NativeBytes { fn read(n: Int) -> Bytes }
+handler ReadNativeBytes: NativeBytes { fn read(n) { raw(n) } }
+@export(c, "owned_bytes")
+pub fn make(s: String) -> Bytes { Bytes.encode_utf8(s) }
+@export(c, "external_bytes")
+pub fn work(n: Int) -> Bytes { with ReadNativeBytes { (use NativeBytes).read(n) } }
+"#;
+    let errors = compile_sources(
+        &[Source::new("main.emel", source)],
+        "main.emel",
+        &Options::default().with_heap_bytes(4096),
+    )
+    .unwrap_err();
+    assert!(
+        errors.iter().any(|error| {
+            error
+                .message
+                .contains("external function with a non-scalar signature")
+        }),
+        "{errors:?}"
+    );
+    for ownership in [ExternalResult::Borrowed, ExternalResult::Owned] {
+        let output = with_heap_audit(compile_source(
+            source,
+            &Options::default()
+                .with_heap_bytes(4096)
+                .with_external_adapter(
+                    "raw_bytes",
+                    ExternalAdapter::new("native_bytes", ownership),
+                ),
+        ));
+        let result = match ownership {
+            ExternalResult::Borrowed => "(EmelaBytes){buffer,3,NULL}",
+            ExternalResult::Owned => "owned_bytes((EmelaString){(const char *)buffer,3,NULL})",
+            ExternalResult::StringBuffer => unreachable!(),
+        };
+        compile_and_run(
+            &output,
+            &format!(
+                r#"
+#include <assert.h>
+#include <stdlib.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+int test_heap_empty(void);
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char *m,uint16_t n) {{ (void)k;(void)m;(void)n;abort(); }}
+EmelaBytes native_bytes(int32_t n) {{
+  static uint8_t buffer[3];buffer[0]=(uint8_t)n;buffer[1]=0;buffer[2]=255;
+  return {result};
+}}
+int main(void) {{
+  for(int i=0;i<500;i++) {{
+    EmelaBytes a=external_bytes(1),b=external_bytes(2);
+    assert(a.owner && b.owner && a.length==3 && b.length==3);
+    assert(a.data[0]==1 && b.data[0]==2 && a.data[1]==0 && a.data[2]==255);
+    emela_embedded_release_bytes(&a);emela_embedded_release_bytes(&b);assert(test_heap_empty());
+  }}
+  return 0;
+}}
+"#
+            ),
+        );
+    }
 }

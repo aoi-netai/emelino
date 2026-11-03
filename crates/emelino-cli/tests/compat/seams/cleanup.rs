@@ -283,3 +283,41 @@ fn scope_causes_and_notes_keep_string_payloads_after_frames_and_scopes_end() {
         options, false, true, false,
     );
 }
+
+#[test]
+fn external_failure_payload_survives_suspending_cleanup_and_later_interruption() {
+    let options = Options::default()
+        .with_heap_bytes(4096)
+        .with_fiber_capacity(8)
+        .with_frame_capacity(24)
+        .with_frame_bytes(1536)
+        .with_task_capacity(2)
+        .with_event_capacity(2)
+        .with_task_adapter("host_wait", "board_wait_start")
+        .with_task_adapter("host_request", "board_request_start")
+        .with_string_capacity(256);
+    run(
+        include_str!("../../../tests/compat/legacy-corpus/sources/eb0c2cac3a117558bf3564475ed61f667cbe44dcd7ef3821895e3edb69422f64.emel"),
+        include_str!("../../../tests/compat/p7/cleanup/external_failure_payload_survives_suspending_cleanup_and_later_interruption.c").to_owned(),
+        options, false, false, true,
+    );
+}
+
+#[test]
+fn external_failures_own_borrowed_strings_and_lists_across_escape_attempt_scope_and_cancel() {
+    let options = Options::default()
+        .with_heap_bytes(4096)
+        .with_fiber_capacity(8)
+        .with_frame_capacity(24)
+        .with_frame_bytes(1536)
+        .with_task_capacity(2)
+        .with_event_capacity(2)
+        .with_task_adapter("host_wait", "board_wait_start")
+        .with_task_adapter("host_request", "board_request_start")
+        .with_string_capacity(256);
+    run(
+        include_str!("../../../tests/compat/legacy-corpus/sources/eb0c2cac3a117558bf3564475ed61f667cbe44dcd7ef3821895e3edb69422f64.emel"),
+        include_str!("../../../tests/compat/p7/cleanup/external_failures_own_borrowed_strings_and_lists_across_escape_attempt_scope_and_cancel.c").to_owned(),
+        options, false, false, true,
+    );
+}
