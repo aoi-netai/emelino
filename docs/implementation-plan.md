@@ -21,7 +21,7 @@
 S0で完了した最小実験は、`answer() -> Int { 42 }` の本体Flow生成、実験用JSONの保存、
 ソース削除後のC再生成、ホストCからの呼出しである。全14テスト、fmt、strict clippy、
 生成Cの `-O0` / `-O2` 実行を確認済み。S1の接続基盤も完了し、[S1報告](reports/compiler-s1.md)に記録した。
-S2の同期データ接続も[確認済み](reports/compiler-s2.md)。S3の関数値・effect・失敗も[確認済み](reports/compiler-s3.md)。S4の中断・並行処理も[確認済み](reports/compiler-s4.md)。S5〜S6は検証・接続を進行中。前回の607テストの成功を今回の接続の成功として数えない。
+S2の同期データ接続も[確認済み](reports/compiler-s2.md)。S3の関数値・effect・失敗も[確認済み](reports/compiler-s3.md)。S4の中断・並行処理も[確認済み](reports/compiler-s4.md)。S5のconst・ABI・ISRも[接続済み](reports/compiler-s5.md)。S6の全体照合と差分修正を進行中。前回の607テストの成功を今回の接続の成功として数えない。
 
 ## 2. 保持する方針
 
