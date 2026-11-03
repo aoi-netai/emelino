@@ -173,4 +173,12 @@ fixture hash・名前空間の変更を区別する。
 428定義・226文脈・115代表試験・10要件の集合と既知問題の分類は維持する。
 追加nonruntime観測3件は、旧Std namespaceの拒否を含めて3件とも `verified` とする。
 移管元、現行供給経路、検証結果は[所有範囲の報告](reports/embedded-library-ownership.md)に記録する。
-JSON台帳の `release_completion` はv0.26.1更新時点、`completion` は管理移管後の判定を表す。
+JSON台帳の `release_completion` はv0.26.1更新時点、`embedded_ownership_completion` は管理移管時点の判定を表す。
+
+## 仕様監査後の境界検証
+
+管理移管後の監査で、FnSetsの不正な集合参照によるpanicと、task adapterのC名衝突を再現した。
+これらはUPSTREAM-001と別の実装不備であり、[修正・回帰試験](reports/spec-boundary-fixes.md)を
+FnSets関連定義、`frontend_validation`、`c_abi_isr_services` の追加証拠とする。
+元の定義・文脈・代表試験・要件の集合は維持し、新しい回帰試験を旧代表試験数へ加算しない。
+管理移管時点の記録は `embedded_ownership_completion` に保存し、現在の判定は `completion` に記録する。

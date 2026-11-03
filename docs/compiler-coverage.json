@@ -5703,6 +5703,11 @@
           "kind": "implementation",
           "path": "crates/emelino-cli/src/upstream_adapter.rs",
           "symbol": "adapt_type"
+        },
+        {
+          "kind": "implementation",
+          "path": "crates/emelino-compiler/src/input/validate.rs",
+          "symbol": "prepare"
         }
       ],
       "evidence": [
@@ -5719,9 +5724,28 @@
           "kind": "review",
           "path": "docs/reports/backend-coverage-review.json",
           "symbol": "schema_review_groups.data_types"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "invalid_function_sets_are_rejected_before_enum_field_substitution"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "generic_function_set_declarations_survive_input_roundtrip"
+        },
+        {
+          "kind": "input_rejection",
+          "path": "crates/emelino-cli/tests/pipeline.rs",
+          "symbol": "invalid_saved_function_sets_are_diagnosed_without_outputs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/spec-boundary-fixes.md"
         }
       ],
-      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary.",
+      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary. Follow-up boundary regression checks that FnSets E/R reference Set nodes before enum field substitution; generic Set parameters and conservative flags remain valid.",
       "legacy_phase": "P6"
     },
     {
@@ -5744,6 +5768,11 @@
           "kind": "implementation",
           "path": "crates/emelino-cli/src/upstream_adapter.rs",
           "symbol": "adapt_type"
+        },
+        {
+          "kind": "implementation",
+          "path": "crates/emelino-compiler/src/input/validate.rs",
+          "symbol": "prepare"
         }
       ],
       "evidence": [
@@ -5760,9 +5789,28 @@
           "kind": "review",
           "path": "docs/reports/backend-coverage-review.json",
           "symbol": "schema_review_groups.data_types"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "invalid_function_sets_are_rejected_before_enum_field_substitution"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "generic_function_set_declarations_survive_input_roundtrip"
+        },
+        {
+          "kind": "input_rejection",
+          "path": "crates/emelino-cli/tests/pipeline.rs",
+          "symbol": "invalid_saved_function_sets_are_diagnosed_without_outputs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/spec-boundary-fixes.md"
         }
       ],
-      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary.",
+      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary. Follow-up boundary regression checks that FnSets E/R reference Set nodes before enum field substitution; generic Set parameters and conservative flags remain valid.",
       "legacy_phase": "P6"
     },
     {
@@ -5785,6 +5833,11 @@
           "kind": "implementation",
           "path": "crates/emelino-cli/src/upstream_adapter.rs",
           "symbol": "adapt_type"
+        },
+        {
+          "kind": "implementation",
+          "path": "crates/emelino-compiler/src/input/validate.rs",
+          "symbol": "prepare"
         }
       ],
       "evidence": [
@@ -5801,9 +5854,28 @@
           "kind": "review",
           "path": "docs/reports/backend-coverage-review.json",
           "symbol": "schema_review_groups.data_types"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "invalid_function_sets_are_rejected_before_enum_field_substitution"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "generic_function_set_declarations_survive_input_roundtrip"
+        },
+        {
+          "kind": "input_rejection",
+          "path": "crates/emelino-cli/tests/pipeline.rs",
+          "symbol": "invalid_saved_function_sets_are_diagnosed_without_outputs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/spec-boundary-fixes.md"
         }
       ],
-      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary.",
+      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary. Follow-up boundary regression checks that FnSets E/R reference Set nodes before enum field substitution; generic Set parameters and conservative flags remain valid.",
       "legacy_phase": "P6"
     },
     {
@@ -6031,6 +6103,11 @@
           "kind": "implementation",
           "path": "crates/emelino-cli/src/upstream_adapter.rs",
           "symbol": "adapt_type"
+        },
+        {
+          "kind": "implementation",
+          "path": "crates/emelino-compiler/src/input/validate.rs",
+          "symbol": "prepare"
         }
       ],
       "evidence": [
@@ -6047,9 +6124,28 @@
           "kind": "review",
           "path": "docs/reports/backend-coverage-review.json",
           "symbol": "schema_review_groups.data_types"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "invalid_function_sets_are_rejected_before_enum_field_substitution"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "generic_function_set_declarations_survive_input_roundtrip"
+        },
+        {
+          "kind": "input_rejection",
+          "path": "crates/emelino-cli/tests/pipeline.rs",
+          "symbol": "invalid_saved_function_sets_are_diagnosed_without_outputs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/spec-boundary-fixes.md"
         }
       ],
-      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary.",
+      "reason": "Field/variant mapping, validation and representation were reviewed under data_types. See the referenced schema group for the exact preservation, projection or rejection boundary. Follow-up boundary regression checks that FnSets E/R reference Set nodes before enum field substitution; generic Set parameters and conservative flags remain valid.",
       "legacy_phase": "P6"
     },
     {
@@ -33017,9 +33113,28 @@
         {
           "kind": "integrated_run_report",
           "path": "docs/reports/compiler-s6-validation.json"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "invalid_function_sets_are_rejected_before_enum_field_substitution"
+        },
+        {
+          "kind": "ir_test",
+          "path": "crates/emelino-compiler/tests/backend_input.rs",
+          "symbol": "generic_function_set_declarations_survive_input_roundtrip"
+        },
+        {
+          "kind": "input_rejection",
+          "path": "crates/emelino-cli/tests/pipeline.rs",
+          "symbol": "invalid_saved_function_sets_are_diagnosed_without_outputs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/spec-boundary-fixes.md"
         }
       ],
-      "reason": "固定版本体の公開APIで名前解決・型/effect検査・単相化・Flow検証を行う。公開入口の選択、予約module、未処理effect、後段IR、invalid saved入力の拒否を確認した。独自frontendは移入しない。"
+      "reason": "固定版本体の公開APIで名前解決・型/effect検査・単相化・Flow検証を行う。公開入口の選択、予約module、未処理effect、後段IR、invalid saved入力の拒否を確認した。独自frontendは移入しない。 保存入力のFnSets E/Rが非集合型を参照する場合も、型置換前の通常診断で拒否する。"
     },
     {
       "id": "standard_library",
@@ -33203,9 +33318,17 @@
         {
           "kind": "integrated_run_report",
           "path": "docs/reports/compiler-s6-validation.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/spec-boundary-fixes.md"
+        },
+        {
+          "kind": "source_or_contract",
+          "path": "crates/emelino-cli/tests/adapter_symbols.rs"
         }
       ],
-      "reason": "C ABI2/schema2、borrowed/owned/出力buffer/native task契約、ISRの再帰・heap・const制限、Clock/Console/TimerとEmbedded serviceをC側で確認した。未処理effect evidenceを公開C pointerへ流出させない。"
+      "reason": "C ABI2/schema2、borrowed/owned/出力buffer/native task契約、ISRの再帰・heap・const制限、Clock/Console/TimerとEmbedded serviceをC側で確認した。未処理effect evidenceを公開C pointerへ流出させない。 明示adapterの予約C名、実生成wrapper/helperとの衝突と、task helper重複生成を拒否する。正常task adapterの保存再生成とC O0/O2実行を確認する。"
     },
     {
       "id": "numeric_unicode",
@@ -33329,13 +33452,13 @@
     "finalized": true,
     "date": "2026-11-03",
     "scope": "fixed legacy fork under documented embedded constraints, upstream delegation, raw-input boundaries and known UPSTREAM-001 differences",
-    "integration_report": "docs/reports/embedded-library-ownership.md",
+    "integration_report": "docs/reports/spec-boundary-fixes.md",
     "source_crosswalk": "docs/reports/reuse-source-coverage.json",
-    "note": "After local embedded-library ownership transfer, all 377 workspace tests, format and strict all-target clippy passed. The namespace-omission observation returns from replaced to verified; all other classifications are retained. Previous S6 and release results remain in baseline_completion and release_completion. Ledger integrity is rechecked after finalization.",
-    "implementation_and_test_revision": "7967eb96f13610dd30a29363ee1cfc5f7826564c",
+    "note": "Follow-up specification audit found missing FnSets kind checks and task adapter C-name collisions. Both were fixed and independently reviewed; 386 workspace tests, fmt and strict all-target clippy passed. Nine new regressions cover invalid input, valid generic sets, adapter collisions and successful source/saved-input C execution. Previous embedded ownership completion is preserved separately. UPSTREAM-001 remains accepted and unresolved; this is not proof for arbitrary input.",
+    "implementation_and_test_revision": "ced5789af9b06538ab49bda88f12d2cf446bcae3",
     "implementation_and_test_trees": {
-      "crates/emelino-cli": "84b302271b4a8b2e0e93e2547ea58f7d03d45185",
-      "crates/emelino-compiler": "260f39d1db5a69e280b110d686b0184c79d520d8"
+      "crates/emelino-cli": "01852bcf31210d2d382bac98ff3ec2a9809744b0",
+      "crates/emelino-compiler": "f0f5198a179d0fbca87d4d332dc6ffcb86e6bf7d"
     }
   },
   "counts": {
@@ -33430,5 +33553,39 @@
       "strict_all_target_clippy": "passed"
     },
     "classification_decision": "Fixed 428 records, 226 contexts, 115 representative tests, 10 requirements and 174 runtime source observations retain their classifications. All three additional nonruntime observations are now verified: the original Std.Embedded namespace-omission expectation is restored by the explicit ownership change."
+  },
+  "embedded_ownership_completion": {
+    "finalized": true,
+    "date": "2026-11-03",
+    "scope": "fixed legacy fork under documented embedded constraints, upstream delegation, raw-input boundaries and known UPSTREAM-001 differences",
+    "integration_report": "docs/reports/embedded-library-ownership.md",
+    "source_crosswalk": "docs/reports/reuse-source-coverage.json",
+    "note": "After local embedded-library ownership transfer, all 377 workspace tests, format and strict all-target clippy passed. The namespace-omission observation returns from replaced to verified; all other classifications are retained. Previous S6 and release results remain in baseline_completion and release_completion. Ledger integrity is rechecked after finalization.",
+    "implementation_and_test_revision": "7967eb96f13610dd30a29363ee1cfc5f7826564c",
+    "implementation_and_test_trees": {
+      "crates/emelino-cli": "84b302271b4a8b2e0e93e2547ea58f7d03d45185",
+      "crates/emelino-compiler": "260f39d1db5a69e280b110d686b0184c79d520d8"
+    }
+  },
+  "boundary_validation_fix": {
+    "audit_revision": "3f1458e64ea3ed0f55acc88f7f1b96d20f9eef53",
+    "implementation_revisions": [
+      "1a30c20",
+      "ced5789af9b06538ab49bda88f12d2cf446bcae3"
+    ],
+    "report": "docs/reports/spec-boundary-fixes.md",
+    "validation": {
+      "workspace_tests": 386,
+      "new_tests": 9,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "format": "passed",
+      "strict_all_target_clippy": "passed",
+      "independent_review": "passed",
+      "original_cli_reproductions": "exit1_no_panic_no_output"
+    },
+    "workspace_test_log_sha256": "5189733644b95a80839cf4d0f3d830c62abad807a9b2f3f133a60bed32353f82",
+    "scope": "FnSets E/R kind validation and explicit adapter/generated C-name collisions; pinned reference keys and UPSTREAM-001 classifications are unchanged."
   }
 }

@@ -30,6 +30,10 @@ release tagが指すcommitへ5 crateと保存入力のproducerを固定し、標
 本体側のcodegen-emb/codegen-c削除予定に対し、組み込みライブラリー・backend・将来のBSPは
 こちらで管理する。[所有範囲と接続変更](reports/embedded-library-ownership.md)を正本とする。
 
+後続の仕様監査で、保存入力の関数型の集合参照と非同期adapterのC名衝突に検証不足が見つかった。
+S1/S5の境界条件として修正し、[回帰試験と検証結果](reports/spec-boundary-fixes.md)を追加する。
+既存テストの成功や対応表の件数だけで、このような入力・設定の組合せまで保証済みとは扱わない。
+
 ## 2. 保持する方針
 
 - 本体を変更せず、公開APIと標準の単相化・Flow生成を利用する。

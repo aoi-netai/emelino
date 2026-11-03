@@ -72,6 +72,7 @@ Pome/project loader、`@test` / `@internal` のdriver処理はまだ提供して
 公開入口・容量の条件と結果の内訳は[S6報告](docs/reports/compiler-s6.md)を参照してください。
 v0.26.1への更新・標準Bytesへの移行と再検証は[依存更新報告](docs/reports/compiler-v0.26.1.md)に記録します。
 その後の組み込みライブラリーの管理移管は[所有範囲の報告](docs/reports/embedded-library-ownership.md)を参照してください。
+仕様監査で見つかった保存入力・adapter名の検証不足は[修正報告](docs/reports/spec-boundary-fixes.md)で追跡します。
 本体由来の汎化constの共有問題は[既知問題](docs/upstream-known-issues.md)として追跡します。
 現在の境界は[構成](docs/architecture.md)、移入元は[再利用記録](docs/reports/reuse-provenance.md)を参照してください。
 
