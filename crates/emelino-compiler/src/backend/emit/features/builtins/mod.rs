@@ -1,6 +1,7 @@
 // Keep analysis dispatch exhaustive: every new variant needs an explicit planning decision.
 use super::*;
 pub(in crate::backend::emit) mod bytes;
+pub(in crate::backend::emit) mod cells;
 pub(in crate::backend::emit) mod float;
 pub(in crate::backend::emit) mod float_parse;
 pub(in crate::backend::emit) mod float_to_string;
@@ -87,9 +88,9 @@ pub(in crate::backend::emit) fn emit(
         Builtin::Todo => rejected::todo(context, dst, args),
         Builtin::Dbg => rejected::dbg(context, dst, args),
         Builtin::Inspect => rejected::inspect(context, dst, args),
-        Builtin::CellNew => Err(unsupported(&context.function.name, "cells")),
-        Builtin::CellGet => Err(unsupported(&context.function.name, "cells")),
-        Builtin::CellSet => Err(unsupported(&context.function.name, "cells")),
+        Builtin::CellNew => cells::cell_new(context, dst, args),
+        Builtin::CellGet => cells::cell_get(context, dst, args),
+        Builtin::CellSet => cells::cell_set(context, dst, args),
         Builtin::ShowString => rejected::show_string(context, dst, args),
         Builtin::DebugPrint => rejected::debug_print(context, dst, args),
     }

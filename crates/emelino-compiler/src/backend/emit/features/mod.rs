@@ -23,6 +23,8 @@ pub(in crate::backend::emit) struct BuiltinContext<'a, 'ir> {
 }
 use builtin_utilities::ResultType;
 
+type Emission = Result<(), Vec<Error>>;
+
 pub(in crate::backend::emit) mod constants;
 
 pub(in crate::backend::emit) mod operands;

@@ -56,3 +56,44 @@ pub(super) fn prepare(
         .map_err(|variant| unsupported(&function.name, variant))?;
     Ok((dst, expressions))
 }
+
+pub(super) fn cell_arity(
+    context: &BuiltinContext<'_, '_>,
+    args: &[Operand],
+    arity: usize,
+) -> Emission {
+    if args.len() == arity {
+        Ok(())
+    } else {
+        Err(invalid_flow_ir(
+            &context.function.name,
+            "Cell builtin has an invalid argument count",
+        ))
+    }
+}
+
+pub(super) struct CellStorage {
+    pub(super) content: TypeId,
+    pub(super) c_type: String,
+    pub(super) expression: String,
+}
+
+pub(super) fn cell_storage(
+    context: &BuiltinContext<'_, '_>,
+    operand: &Operand,
+) -> Result<CellStorage, Vec<Error>> {
+    let cell_ty = operand_type(context.function, operand).expect("Cell operand has a type");
+    let Type::Cell(content) = context.layouts.shapes.types[cell_ty] else {
+        return Err(invalid_flow_ir(
+            &context.function.name,
+            "Cell builtin first argument is not a Cell",
+        ));
+    };
+    let cell = operand_expression(operand).map_err(|v| unsupported(&context.function.name, v))?;
+    let c_type = context.layouts.cell_content_c_type(content);
+    Ok(CellStorage {
+        content,
+        expression: format!("(*(({c_type} *){cell}))"),
+        c_type,
+    })
+}

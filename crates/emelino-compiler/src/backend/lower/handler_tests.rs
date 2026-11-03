@@ -254,6 +254,105 @@ fn dynamic_evidence_keeps_handlers_alive_and_protection_retires_and_releases_the
 }
 
 #[test]
+fn cell_closure_any_cycles_are_collected_after_the_last_root_is_dropped() {
+    let mut p = program(vec![]);
+    let cell_type = p.core.types.intern(Type::Cell(TypeId::ANY));
+    let ft = p.core.types.intern(Type::Fn(FnType {
+        params: vec![],
+        ret: TypeId::INT,
+        fails: false,
+        suspends: false,
+        ev: false,
+        sets: None,
+    }));
+    let mut f = simple();
+    let zero = variable(&mut f, TypeId::INT);
+    let initial = reference(&mut f, TypeId::ANY);
+    let cell = reference(&mut f, cell_type);
+    let closure = reference(&mut f, ft);
+    let erased = reference(&mut f, TypeId::ANY);
+    let loaded = reference(&mut f, TypeId::ANY);
+    let restored = reference(&mut f, ft);
+    let result = variable(&mut f, TypeId::INT);
+    let initial_value = binding(&mut f, Some(zero), Value::Const(Const::Int(0)));
+    let initial_binding = binding(&mut f, Some(initial), Value::Coerce(zero));
+    let make_cell = binding(
+        &mut f,
+        Some(cell),
+        Value::Builtin {
+            op: Builtin::CellNew,
+            args: vec![initial.into()],
+        },
+    );
+    let body = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Return(Some(Const::Int(42).into())),
+    });
+    let make_closure = binding(
+        &mut f,
+        Some(closure),
+        Value::Closure(Box::new(Closure {
+            params: vec![],
+            captures: vec![cell],
+            body,
+            suspends: false,
+        })),
+    );
+    let erase = binding(&mut f, Some(erased), Value::Coerce(closure));
+    let store = binding(
+        &mut f,
+        None,
+        Value::Builtin {
+            op: Builtin::CellSet,
+            args: vec![cell.into(), erased.into()],
+        },
+    );
+    let load = binding(
+        &mut f,
+        Some(loaded),
+        Value::Builtin {
+            op: Builtin::CellGet,
+            args: vec![cell.into()],
+        },
+    );
+    let restore = binding(&mut f, Some(restored), Value::Coerce(loaded));
+    let call = binding(
+        &mut f,
+        Some(result),
+        Value::Call {
+            callee: Callee::Indirect(restored),
+            args: vec![],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![
+            initial_value,
+            initial_binding,
+            make_cell,
+            make_closure,
+            erase,
+            store,
+            load,
+            restore,
+            call,
+        ],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(f);
+    let mut output =
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
+    audit_heap(&mut output);
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint test_heap_empty(void);\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){for(int i=0;i<1000;i++)if(answer()!=42||!test_heap_empty())return 1;return 0;}\n",
+        0,
+    );
+}
+
+#[test]
 fn retirement_through_an_erased_alias_keeps_operation_active_checks() {
     let mut p = program(vec![]);
     let (effect, ht, ft) = read_effect(&mut p);

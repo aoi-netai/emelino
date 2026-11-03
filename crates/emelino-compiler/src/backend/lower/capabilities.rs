@@ -55,24 +55,6 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         require("options", "external adapters and ISR entries")?;
     }
     for (_, f) in program.functions.iter() {
-        if f.vars
-            .iter()
-            .any(|(_, v)| matches!(program.core.ty(v.ty), Type::Cell(_)))
-            || f.stmts.iter().any(|(_, s)| {
-                matches!(
-                    s,
-                    Stmt::Let {
-                        value: Value::Builtin {
-                            op: Builtin::CellNew | Builtin::CellGet | Builtin::CellSet,
-                            ..
-                        },
-                        ..
-                    }
-                )
-            })
-        {
-            require(&f.name, "shared Cell values")?;
-        }
         if f.stmts.iter().any(|(_, s)| {
             matches!(
                 s,

@@ -1,3 +1,5 @@
+#[path = "cell_tests.rs"]
+mod cell;
 #[path = "function_tests.rs"]
 mod function;
 #[path = "handler_tests.rs"]
