@@ -128,6 +128,85 @@ pub(in crate::backend::emit) fn emit_owned_cleanup(
     }
 }
 
+pub(in crate::backend::emit) fn emit_any_ownership_declarations(
+    layouts: &TypeLayouts<'_>,
+    writer: &mut Writer,
+) {
+    if !layouts.runtime.any_abi {
+        return;
+    }
+    writer.line("static inline EMELA_UNUSED void emela_any_retain(EmelaAny value);");
+    writer.line("static inline EMELA_UNUSED void emela_any_own(EmelaAny *value);");
+    writer.line("static inline EMELA_UNUSED void emela_any_enqueue(EmelaAny value, emela_heap_block **pending, emela_heap_block **tail);");
+    writer.line("static inline EMELA_UNUSED void emela_any_release(EmelaAny value);");
+}
+
+pub(in crate::backend::emit) fn emit_any_ownership(
+    layouts: &TypeLayouts<'_>,
+    heap: bool,
+    writer: &mut Writer,
+) {
+    if !layouts.runtime.any_abi {
+        return;
+    }
+    writer.begin_block("static inline EMELA_UNUSED void emela_any_retain(EmelaAny value)");
+    writer.line("(void)value;");
+    if heap && layouts.runtime.any_box_required {
+        writer.line("if (value.tag == 0) emela_heap_retain(value.payload.any_box);");
+    }
+    if layouts.has_error_ownership() {
+        writer.line("if (value.tag != 0) emela_error_retain(value);");
+    }
+    writer.end_block();
+    writer.begin_block("static inline EMELA_UNUSED void emela_any_own(EmelaAny *value)");
+    writer.line("(void)value;");
+    if heap && layouts.runtime.any_box_required {
+        writer.line("if (value->tag == 0) emela_heap_retain(value->payload.any_box);");
+    }
+    if layouts.has_error_ownership() {
+        writer.line("if (value->tag != 0) emela_error_own(value);");
+    }
+    writer.end_block();
+    if heap {
+        writer.begin_block("static inline EMELA_UNUSED void emela_any_enqueue(EmelaAny value, emela_heap_block **pending, emela_heap_block **tail)");
+        writer.line("(void)value; (void)pending; (void)tail;");
+        if layouts.runtime.any_box_required {
+            writer.line(
+                "if (value.tag == 0) emela_heap_enqueue(value.payload.any_box, pending, tail);",
+            );
+        }
+        if layouts.has_error_ownership() {
+            writer.line("if (value.tag != 0) emela_error_enqueue(value, pending, tail);");
+        }
+        writer.end_block();
+    }
+    writer.begin_block("static inline EMELA_UNUSED void emela_any_release(EmelaAny value)");
+    if heap {
+        writer.line("emela_heap_block *pending = NULL, *tail = NULL;");
+        writer.line("emela_any_enqueue(value, &pending, &tail); emela_heap_drain(pending, tail);");
+    } else {
+        writer.line("(void)value;");
+    }
+    writer.end_block();
+}
+
+pub(in crate::backend::emit) fn emit_public_string_ownership(writer: &mut Writer) {
+    writer.begin_block("void emela_embedded_retain_string(const EmelaString *value)");
+    writer.begin_block("if (value != NULL)");
+    writer.line("emela_heap_retain(value->owner);");
+    writer.end_block();
+    writer.end_block();
+    writer.blank();
+
+    writer.begin_block("void emela_embedded_release_string(EmelaString *value)");
+    writer.begin_block("if (value != NULL)");
+    writer.line("emela_heap_release(value->owner);");
+    writer.line("*value = (EmelaString){0};");
+    writer.end_block();
+    writer.end_block();
+    writer.blank();
+}
+
 pub(in crate::backend::emit) fn signature(
     layouts: &TypeLayouts<'_>,
     function: &Function,
@@ -162,3 +241,33 @@ pub(in crate::backend::emit) fn signature(
 }
 
 use super::layouts::LayoutEmission;
+
+pub(in crate::backend::emit) fn emit_closure_string_copy_helper(
+    layouts: &TypeLayouts<'_>,
+    writer: &mut Writer,
+) {
+    let kind = layouts.string_owner_kind();
+    writer.begin_block(
+        "static inline EMELA_UNUSED EmelaString emela_heap_copy_string(EmelaString value)",
+    );
+    writer.line("if (value.length == UINT16_C(0)) return (EmelaString){ .data = \"\" };");
+    writer.line(&format!(
+        "char *bytes = (char *)emela_heap_allocate((size_t)value.length, UINT32_C({kind}));"
+    ));
+    writer.line("for (uint32_t index = UINT32_C(0); index < (uint32_t)value.length; ++index)");
+    writer.begin_block("");
+    writer.line("bytes[index] = value.data[index];");
+    writer.end_block();
+    writer.line("EmelaString copy = { bytes, value.length, bytes };");
+    writer.ret(Some("copy"));
+    writer.end_block();
+    writer.blank();
+    writer.begin_block(
+        "static inline EMELA_UNUSED EmelaString emela_heap_own_string(EmelaString value)",
+    );
+    writer.line("if (value.length == UINT16_C(0)) return (EmelaString){ .data = \"\" };");
+    writer.line("if (value.owner == NULL) return emela_heap_copy_string(value);");
+    writer.line("emela_heap_retain(value.owner);");
+    writer.line("return value;");
+    writer.end_block();
+}
