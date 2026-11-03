@@ -1,0 +1,106 @@
+import Test.Target
+import Embedded.Board.{BoardI2c}
+import Embedded.I2c
+import Embedded.Interrupt.{Normal}
+
+@external(c, "bmp180_test_mark")
+fn mark(number: Int) -> () use {}
+@external(c, "bmp180_test_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "bmp180_test_error_record")
+fn record_error(kind: Int) -> () use {}
+@external(c, "bmp180_test_temperature_record")
+fn record_temperature(slot: Int, value: Int) -> () use {}
+@external(c, "bmp180_test_wait")
+fn wait_stage(stage: Int) -> () use {}
+
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn read(register: Int, count: Int) -> List[Int] fails I2c.I2cError use I2c.I2c {
+  (use I2c.I2c).write_read(Target.i2c(), Target.address(), [register], count, 20)
+}
+fn word(bytes: List[Int]) -> Int {
+  bytes match { [high, low] -> high * 256 + low
+    _ -> -1 }
+}
+fn temperature(raw: List[Int]) -> Int {
+  # BMP180 datasheet section 3.5: forward compensation, using the verified
+  # calibration block (AC5=32629, AC6=23153, MC=-8711, MD=2868).
+  x1 = (word(raw) - 23153) * 32629 / 32768
+  x2 = (-8711 * 2048) / (x1 + 2868)
+  (x1 + x2 + 8) / 16
+}
+fn calibration() -> List[Int] {
+  [27, 203, 251, 203, 198, 145, 123, 168, 127, 117, 90, 113,
+   21, 122, 0, 56, 128, 0, 221, 249, 11, 52]
+}
+
+pub fn main() -> () {
+  with BoardI2c {
+    bus = use I2c.I2c
+    bus.configure(Target.i2c(), I2c.I2cConfig(100000, I2c.Standard))
+    mark(1)
+    check(1, read(208, 1) == [85])
+    mark(2)
+    check(2, bus.is_device_ready(Target.i2c(), Target.address(), 2, 20))
+    mark(3)
+    check(3, read(170, 22) == calibration())
+    mark(4)
+    check(4, read(170, 2) == [27, 203])
+    mark(5)
+    bus.master_transmit(Target.i2c(), Target.address(), [170], 20)
+    first = bus.write_read(Target.i2c(), Target.address(), [], 1, 20)
+    second = bus.write_read(Target.i2c(), Target.address(), [], 1, 20)
+    check(5, first == [27] && second == [203])
+    mark(6)
+    bus.memory_write(Target.i2c(), Target.address(), 244, I2c.Bits8, [46], 20)
+    check(6, read(244, 1) == [14])
+    mark(7)
+    temp = temperature(read(246, 2))
+    record_temperature(0, temp)
+    check(7, temp == 240)
+    mark(8)
+    bus.master_transmit(Target.i2c(), Target.address(), [244, 52], 20)
+    check(8, read(246, 3) == [4, 76, 0])
+    mark(9)
+    bus.master_transmit(Target.i2c(), Target.address(), [224, 182], 20)
+    check(9, read(244, 1) == [0] && read(246, 3) == [128, 0, 0])
+    mark(10)
+    bus.enable_interrupt(Target.i2c(), Normal)
+    check(10, read(208, 1) == [85])
+    mark(11)
+    check(11, read(170, 22) == calibration())
+    wait_stage(1)
+    mark(12)
+    bus.memory_write(Target.i2c(), Target.address(), 244, I2c.Bits8, [46], 20)
+    temp2 = temperature(read(246, 2))
+    record_temperature(1, temp2)
+    check(12, temp2 == 320)
+    mark(13)
+    bus.master_transmit(Target.i2c(), Target.address(), [244, 244], 20)
+    check(13, read(246, 3) == [1, 19, 0])
+    mark(14)
+    bus.disable_interrupt(Target.i2c())
+    check(14, read(208, 1) == [85])
+    mark(15)
+    check(15, {
+      bus.write_read(Target.i2c(), Target.missing_address(), [208], 1, 20)
+      False
+    } escape { I2c.I2cError(I2c.Nack) -> True
+      I2c.I2cError(_) -> False })
+    mark(16)
+    check(16, !bus.is_device_ready(Target.i2c(), Target.missing_address(), 3, 20))
+    mark(17)
+    check(17, read(208, 1) == [85])
+    mark(18)
+    bus.recover(Target.i2c(), 20)
+    check(18, read(208, 1) == [85])
+    mark(19)
+    bus.configure(Target.i2c(), I2c.I2cConfig(400000, I2c.Standard))
+    check(19, read(208, 1) == [85] && read(170, 22) == calibration())
+    wait_stage(2)
+  } escape {
+    I2c.I2cError(I2c.Timeout) -> record_error(5)
+    I2c.I2cError(I2c.Nack) -> record_error(9)
+    I2c.I2cError(_) -> record_error(99)
+  }
+}

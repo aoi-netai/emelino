@@ -1,0 +1,20 @@
+import Embedded.Board.{BoardGpio}
+import Embedded.Gpio
+import Embedded.Interrupt.{Normal}
+
+# NUCLEO-F446RE: LD2 is PA5 (5); the user button is PC13 (45).
+fn on_button(event: Gpio.GpioEvent) -> () {
+  with BoardGpio {
+    (use Gpio.Gpio).toggle(Gpio.GpioPin(5))
+  } escape { Gpio.GpioError(_) -> () }
+}
+
+pub fn main() -> Int {
+  with BoardGpio {
+    gpio = use Gpio.Gpio
+    gpio.configure(Gpio.GpioPin(5), Gpio.OutputPushPull(Gpio.NoPull, Gpio.Low))
+    gpio.configure(Gpio.GpioPin(45), Gpio.Input(Gpio.Up))
+    gpio.enable_interrupt(Gpio.GpioPin(45), Gpio.Falling, Normal, on_button)
+    0
+  } escape { Gpio.GpioError(_) -> 1 }
+}

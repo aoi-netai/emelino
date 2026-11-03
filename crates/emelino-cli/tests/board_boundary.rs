@@ -2,8 +2,21 @@
 mod support;
 
 #[test]
-fn embedded_handlers_preserve_services_buffers_errors_and_cancellation() {
-    support::run_fixture("p7-embedded", true);
+fn legacy_peripheral_source_requires_migration_to_the_new_interfaces() {
+    // Keep the historical source and C harness unchanged. The selected GPIO,
+    // I2C and SPI API redesign intentionally replaces their old signatures.
+    // Current GPIO execution is covered by gpio_isr and the STM32F4 Renode test.
+    let source = include_str!("compat/reused/p7-embedded/main.emel");
+    let config = emelino_cli::config::Config::from_json(include_str!(
+        "compat/reused/p7-embedded/config.json"
+    ))
+    .unwrap();
+    let error = emelino_cli::compile(source, &config).unwrap_err();
+    assert!(
+        error.contains("`Embedded.I2c` has no `SevenBit`"),
+        "{error}"
+    );
+    assert!(error.contains("`Embedded.Spi` has no `Div16`"), "{error}");
 }
 
 #[test]

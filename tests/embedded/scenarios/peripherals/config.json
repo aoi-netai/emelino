@@ -1,0 +1,6 @@
+{
+  "entry": "main",
+  "exports": [{ "function": "main", "symbol": "peripherals_test_main" }],
+  "heap_bytes": 8192,
+  "peripheral_buffer_capacity": 32
+}

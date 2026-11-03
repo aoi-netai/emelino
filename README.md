@@ -71,7 +71,10 @@ Bytesは本体の`Std.Bytes`からimportします。
 追加ソースは設定の`sources`へentryからの相対moduleパスを列挙します。
 容量・起動入口・adapter・ISR入口も設定で明示し、生成headerをC側のABIの正本とします。
 
-Pome/project loader、`@test`/`@internal`のdriver処理、物理BSP、firmware build/flash、実機検証は後続範囲です。
+[STM32F4のGPIO・UART・SPI・I2C firmware](docs/embedded/README.md)は、STM32CubeF4 HALと組み合わせて
+ビルドし、Renodeで検証できます。初期配線はNUCLEO-F446REのUSART2・SPI1・I2C1です。
+ほかのボード、書き込みと実機検証は後続範囲です。
+Pome/project loader、`@test`/`@internal`のdriver処理も後続範囲です。
 採用範囲と終了条件は[実装計画](docs/implementation-plan.md)に定義します。
 
 ## 検証

@@ -1,0 +1,261 @@
+import Embedded.Board.{BoardUart}
+import Embedded.Uart
+import Embedded.Interrupt.{Normal}
+
+@external(c, "uart_test_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "uart_test_wait")
+fn wait_stage(stage: Int) -> () use {}
+@external(c, "uart_test_now")
+fn now() -> Int use {}
+
+fn check(number: Int, success: Bool) -> () {
+  raw_check(number, if success { 1 } else { 0 })
+}
+fn ms(value: Int) -> Int64 { Int64.from_int(value) }
+fn config(bits: Uart.UartDataBits, parity: Uart.Parity, direction: Uart.UartDirection) -> Uart.UartConfig {
+  Uart.UartConfig(115200, bits, Uart.One, parity, direction, Uart.NoFlowControl, Uart.Native)
+}
+
+pub fn main() -> () {
+  with BoardUart {
+    uart = use Uart.Uart
+    missing = {
+      uart.receive(Uart.Uart2, 1, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.NotConfigured) -> True
+      Uart.UartError(_) -> False
+    }
+    check(1, missing)
+    unavailable = {
+      uart.configure(Uart.Uart0, config(Uart.Bits8, Uart.NoParity, Uart.Both))
+      False
+    } escape {
+      Uart.UartError(Uart.Unsupported) -> True
+      Uart.UartError(_) -> False
+    }
+    check(2, unavailable)
+    uart.configure(Uart.Uart2, config(Uart.Bits8, Uart.NoParity, Uart.Both))
+    uart.transmit(Uart.Uart2, [65, 66, 10], ms(20))
+    invalid_word = {
+      uart.transmit(Uart.Uart2, [88, 256], ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidArgument) -> True
+      Uart.UartError(_) -> False
+    }
+    check(3, invalid_word)
+    invalid_size = {
+      uart.receive(Uart.Uart2, 0, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidArgument) -> True
+      Uart.UartError(_) -> False
+    }
+    check(4, invalid_size)
+    invalid_timeout = {
+      uart.receive_some(Uart.Uart2, 1, ms(0))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidArgument) -> True
+      Uart.UartError(_) -> False
+    }
+    check(5, invalid_timeout)
+    invalid_stop = {
+      uart.configure(Uart.Uart2, Uart.UartConfig(115200, Uart.Bits8, Uart.Half,
+        Uart.NoParity, Uart.Both, Uart.NoFlowControl, Uart.Native))
+      False
+    } escape {
+      Uart.UartError(Uart.Unsupported) -> True
+      Uart.UartError(_) -> False
+    }
+    check(6, invalid_stop)
+    no_flow_pins = {
+      uart.configure(Uart.Uart2, Uart.UartConfig(115200, Uart.Bits8, Uart.One,
+        Uart.NoParity, Uart.Both, Uart.Rts, Uart.Native))
+      False
+    } escape {
+      Uart.UartError(Uart.Unsupported) -> True
+      Uart.UartError(_) -> False
+    }
+    check(7, no_flow_pins)
+    seven_without_parity = {
+      uart.configure(Uart.Uart2, config(Uart.Bits7, Uart.NoParity, Uart.Both))
+      False
+    } escape {
+      Uart.UartError(Uart.Unsupported) -> True
+      Uart.UartError(_) -> False
+    }
+    check(8, seven_without_parity)
+    nine_with_parity = {
+      uart.configure(Uart.Uart2, config(Uart.Bits9, Uart.Odd, Uart.Both))
+      False
+    } escape {
+      Uart.UartError(Uart.Unsupported) -> True
+      Uart.UartError(_) -> False
+    }
+    check(9, nine_with_parity)
+
+    wait_stage(1)
+    check(10, uart.receive(Uart.Uart2, 2, ms(20)) == [97, 98])
+    wait_stage(2)
+    check(11, uart.receive_some(Uart.Uart2, 8, ms(20)) == [99])
+    started = now()
+    timeout = {
+      uart.receive(Uart.Uart2, 1, ms(5))
+      False
+    } escape {
+      Uart.UartError(Uart.Timeout) -> True
+      Uart.UartError(_) -> False
+    }
+    elapsed = now() - started
+    check(12, timeout && elapsed >= 5 && elapsed <= 6)
+    uart.set_receive_mode(Uart.Uart2, Uart.InterruptReceive)
+    not_enabled = {
+      uart.receive(Uart.Uart2, 1, ms(5))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidState) -> True
+      Uart.UartError(_) -> False
+    }
+    check(13, not_enabled)
+    uart.enable_interrupt(Uart.Uart2, Normal, True)
+    uart.transmit(Uart.Uart2, [73, 82, 81, 10], ms(20))
+    wait_stage(3)
+    check(14, uart.receive(Uart.Uart2, 3, ms(10)) == [100, 101, 102])
+    wait_stage(4)
+    check(15, uart.discard_input(Uart.Uart2, 2) == 2)
+    check(16, uart.receive_some(Uart.Uart2, 8, ms(10)) == [105])
+    uart.disable_interrupt(Uart.Uart2)
+    disabled = {
+      uart.receive(Uart.Uart2, 1, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidState) -> True
+      Uart.UartError(_) -> False
+    }
+    check(17, disabled)
+    uart.set_receive_mode(Uart.Uart2, Uart.Polling)
+    wait_stage(5)
+    check(18, uart.receive(Uart.Uart2, 1, ms(10)) == [106])
+    uart.enable_interrupt(Uart.Uart2, Normal, False)
+    uart.set_receive_mode(Uart.Uart2, Uart.InterruptReceive)
+    wait_stage(6)
+    overflow = {
+      uart.receive_some(Uart.Uart2, 8, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.Overrun) -> True
+      Uart.UartError(_) -> False
+    }
+    check(19, overflow)
+    check(20, uart.discard_input(Uart.Uart2, 64) == 64)
+    empty = {
+      uart.receive_some(Uart.Uart2, 8, ms(5))
+      False
+    } escape {
+      Uart.UartError(Uart.Timeout) -> True
+      Uart.UartError(_) -> False
+    }
+    check(21, empty)
+    wait_stage(7)
+    parity_error = {
+      uart.receive(Uart.Uart2, 1, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.Parity) -> True
+      Uart.UartError(_) -> False
+    }
+    check(22, parity_error)
+    wait_stage(8)
+    framing_error = {
+      uart.receive(Uart.Uart2, 1, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.Framing) -> True
+      Uart.UartError(_) -> False
+    }
+    check(23, framing_error)
+    wait_stage(9)
+    noise_error = {
+      uart.receive(Uart.Uart2, 1, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.Other) -> True
+      Uart.UartError(_) -> False
+    }
+    check(24, noise_error)
+    wait_stage(10)
+    hardware_overrun = {
+      uart.receive(Uart.Uart2, 1, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.Overrun) -> True
+      Uart.UartError(_) -> False
+    }
+    check(25, hardware_overrun)
+    wait_stage(11)
+    check(26, uart.receive(Uart.Uart2, 1, ms(10)) == [90])
+
+    uart.configure(Uart.Uart2, config(Uart.Bits9, Uart.NoParity, Uart.Both))
+    uart.transmit(Uart.Uart2, [0, 255, 256, 511], ms(20))
+    wait_stage(12)
+    check(33, uart.receive(Uart.Uart2, 1, ms(10)) == [511])
+    too_wide9 = {
+      uart.transmit(Uart.Uart2, [512], ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidArgument) -> True
+      Uart.UartError(_) -> False
+    }
+    check(27, too_wide9)
+    uart.configure(Uart.Uart2, config(Uart.Bits7, Uart.Even, Uart.Both))
+    uart.transmit(Uart.Uart2, [127], ms(20))
+    too_wide7 = {
+      uart.transmit(Uart.Uart2, [128], ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidArgument) -> True
+      Uart.UartError(_) -> False
+    }
+    check(28, too_wide7)
+    uart.configure(Uart.Uart2, config(Uart.Bits8, Uart.Even, Uart.Both))
+    uart.transmit(Uart.Uart2, [255], ms(20))
+    too_wide8 = {
+      uart.transmit(Uart.Uart2, [256], ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidArgument) -> True
+      Uart.UartError(_) -> False
+    }
+    check(29, too_wide8)
+    uart.configure(Uart.Uart2, config(Uart.Bits8, Uart.NoParity, Uart.Receive))
+    no_tx = {
+      uart.transmit(Uart.Uart2, [1], ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidState) -> True
+      Uart.UartError(_) -> False
+    }
+    check(30, no_tx)
+    no_tc = {
+      uart.enable_interrupt(Uart.Uart2, Normal, True)
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidState) -> True
+      Uart.UartError(_) -> False
+    }
+    check(31, no_tc)
+    uart.configure(Uart.Uart2, config(Uart.Bits8, Uart.NoParity, Uart.Transmit))
+    no_rx = {
+      uart.receive(Uart.Uart2, 1, ms(10))
+      False
+    } escape {
+      Uart.UartError(Uart.InvalidState) -> True
+      Uart.UartError(_) -> False
+    }
+    check(32, no_rx)
+    uart.configure(Uart.Uart2, config(Uart.Bits8, Uart.NoParity, Uart.Both))
+  } escape { Uart.UartError(_) -> raw_check(99, 0) }
+}

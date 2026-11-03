@@ -1,0 +1,6 @@
+{
+  "entry": "main",
+  "exports": [{ "function": "main", "symbol": "spi_device_test_main" }],
+  "heap_bytes": 16384,
+  "peripheral_buffer_capacity": 32
+}

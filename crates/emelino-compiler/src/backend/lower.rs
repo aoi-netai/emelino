@@ -16,6 +16,7 @@ mod failures;
 mod fiber_failures;
 mod fibers;
 mod function_abi;
+mod gpio;
 mod handler;
 mod scope_abi;
 mod suspend;
@@ -90,6 +91,7 @@ pub(crate) fn lower_program(
     fibers::normalize_values(&mut program);
     let deferred_pool = fibers::needs_deferred_pool(&program, &closures, options);
     handler::lower(&mut program, options);
+    gpio::lower(&mut program, &closures);
     let mut const_outcomes = HashMap::new();
     let mut runtime_consts = HashSet::new();
     for (id, function) in program.functions.iter() {

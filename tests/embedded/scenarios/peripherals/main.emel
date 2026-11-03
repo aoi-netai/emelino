@@ -1,0 +1,91 @@
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+
+@external(c, "peripherals_test_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "peripherals_test_claim_rollback")
+fn claim_rollback() -> Int use {}
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn uart_config(direction: Uart.UartDirection) -> Uart.UartConfig {
+  Uart.UartConfig(115200, Uart.Bits8, Uart.One, Uart.NoParity,
+    direction, Uart.NoFlowControl, Uart.Native)
+}
+
+pub fn main() -> () {
+  with BoardGpio {
+    with BoardUart {
+      with BoardSpi {
+        with BoardI2c {
+          gpio = use Gpio.Gpio
+          uart = use Uart.Uart
+          spi = use Spi.Spi
+          i2c = use I2c.I2c
+          check(1, claim_rollback() == 1)
+          uart.configure(Uart.Uart2, uart_config(Uart.Both))
+          spi_config = Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits8,
+            Spi.IdleLow, Spi.FirstEdge, 1000000, Spi.MostSignificantFirst)
+          spi.configure(Spi.Spi1, spi_config)
+          i2c.configure(I2c.I2c1, I2c.I2cConfig(100000, I2c.Standard))
+          check(2, {
+            gpio.configure(Gpio.GpioPin(2), Gpio.Input(Gpio.NoPull))
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          check(3, {
+            gpio.read(Gpio.GpioPin(5))
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          check(4, {
+            gpio.write(Gpio.GpioPin(24), Gpio.Low)
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          check(5, {
+            spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1, spi_config,
+              Gpio.GpioPin(2), Gpio.Low, 0, 0))
+            False
+          } escape {
+            Spi.SpiTransactionError(Some(Spi.GpioFailure(Gpio.ResourceConflict)), None) -> True
+            Spi.SpiTransactionError(_, _) -> False
+          })
+          spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1, spi_config,
+            Gpio.GpioPin(4), Gpio.Low, 0, 0))
+          check(6, {
+            gpio.configure(Gpio.GpioPin(4), Gpio.OutputPushPull(Gpio.NoPull, Gpio.Low))
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          # Releasing RX must allow GPIO use without affecting TX.
+          uart.configure(Uart.Uart2, uart_config(Uart.Transmit))
+          gpio.configure(Gpio.GpioPin(3), Gpio.OutputPushPull(Gpio.NoPull, Gpio.High))
+          check(7, {
+            uart.configure(Uart.Uart2, uart_config(Uart.Both))
+            False
+          } escape { Uart.UartError(Uart.ResourceConflict) -> True
+            Uart.UartError(_) -> False })
+          uart.transmit(Uart.Uart2, [79, 75, 10], 20)
+          check(8, {
+            uart.receive(Uart.Uart2, 1, 2)
+            False
+          } escape { Uart.UartError(Uart.InvalidState) -> True
+            Uart.UartError(_) -> False })
+          # Reconfiguring a controller keeps its own pin reservation valid.
+          i2c.configure(I2c.I2c1, I2c.I2cConfig(400000, I2c.Standard))
+          spi.configure(Spi.Spi1, spi_config)
+          gpio.toggle(Gpio.GpioPin(3))
+          check(9, True)
+        }
+      }
+    }
+  } escape {
+    Gpio.GpioError(_) -> raw_check(96, 0)
+    Uart.UartError(_) -> raw_check(97, 0)
+    Spi.SpiError(_) -> raw_check(98, 0)
+    Spi.SpiTransactionError(_, _) -> raw_check(99, 0)
+    I2c.I2cError(_) -> raw_check(100, 0)
+  }
+}

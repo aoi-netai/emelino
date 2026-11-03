@@ -5,38 +5,41 @@
 import Std.Clock.{Clock}
 import Std.Console.{Console}
 import Std.Instant.{Instant}
-import Embedded.Peripheral.{PeripheralError}
-import Embedded.Gpio.{Gpio, GpioPin, PinState, Pull, GpioMode, Edge}
-import Embedded.Uart.{Uart, UartId, UartConfig}
-import Embedded.I2c.{I2c, I2cId, I2cConfig, MemoryAddressSize}
-import Embedded.Spi.{Spi, SpiId, SpiConfig}
+import Embedded.Gpio.{Gpio, GpioPin, PinState, GpioConfig, GpioEvent, Edge, GpioError, GpioErrorKind}
+import Embedded.Interrupt.{InterruptPriority}
+import Embedded.Uart.{Uart, UartId, UartConfig, UartReceiveMode, UartError, UartErrorKind}
+import Embedded.I2c.{I2c, I2cId, I2cConfig, MemoryAddressSize, I2cError, I2cErrorKind}
+import Embedded.Spi.{Spi, SpiId, SpiConfig, SpiError, SpiErrorKind, SpiDevice, SpiDeviceConfig, SpiOperation, SpiTransactionError, SpiTransactionFailure}
 
 @external(c, "__emela_peripheral_gpio_configure")
-fn gpio_configure(pin: GpioPin, mode: GpioMode, pull: Pull) -> ()
+fn gpio_configure(pin: GpioPin, config: GpioConfig) -> (Int, ())
 
 @external(c, "__emela_peripheral_gpio_read")
-fn gpio_read(pin: GpioPin) -> PinState
+fn gpio_read(pin: GpioPin) -> (Int, PinState)
 
 @external(c, "__emela_peripheral_gpio_write")
-fn gpio_write(pin: GpioPin, state: PinState) -> ()
+fn gpio_write(pin: GpioPin, state: PinState) -> (Int, ())
 
 @external(c, "__emela_peripheral_gpio_toggle")
-fn gpio_toggle(pin: GpioPin) -> ()
+fn gpio_toggle(pin: GpioPin) -> (Int, ())
 
 @external(c, "__emela_peripheral_gpio_enable_interrupt")
-fn gpio_enable_interrupt(pin: GpioPin, edge: Edge) -> ()
+fn gpio_enable_interrupt(pin: GpioPin, edge: Edge, priority: InterruptPriority,
+  on_event: fn(GpioEvent) -> () fails {} use {}) -> (Int, ())
 
 @external(c, "__emela_peripheral_gpio_disable_interrupt")
-fn gpio_disable_interrupt(pin: GpioPin) -> ()
+fn gpio_disable_interrupt(pin: GpioPin) -> (Int, ())
 
 ## GPIO operations on the selected board. Pin IDs are logical board IDs.
 pub handler BoardGpio: Gpio {
-  fn configure(pin, mode, pull) { gpio_configure(pin, mode, pull) }
-  fn read(pin) { gpio_read(pin) }
-  fn write(pin, state) { gpio_write(pin, state) }
-  fn toggle(pin) { gpio_toggle(pin) }
-  fn enable_interrupt(pin, edge) { gpio_enable_interrupt(pin, edge) }
-  fn disable_interrupt(pin) { gpio_disable_interrupt(pin) }
+  fn configure(pin, config) { checked_gpio(gpio_configure(pin, config)) }
+  fn read(pin) { checked_gpio(gpio_read(pin)) }
+  fn write(pin, state) { checked_gpio(gpio_write(pin, state)) }
+  fn toggle(pin) { checked_gpio(gpio_toggle(pin)) }
+  fn enable_interrupt(pin, edge, priority, on_event) {
+    checked_gpio(gpio_enable_interrupt(pin, edge, priority, on_event))
+  }
+  fn disable_interrupt(pin) { checked_gpio(gpio_disable_interrupt(pin)) }
 }
 
 @external(c, "__emela_peripheral_uart_configure")
@@ -48,11 +51,31 @@ fn uart_transmit(id: UartId, data: List[Int], timeout_ms: Int64) -> (Int, ())
 @external(c, "__emela_peripheral_uart_receive")
 fn uart_receive(id: UartId, size: Int, timeout_ms: Int64) -> (Int, List[Int])
 
+@external(c, "__emela_peripheral_uart_receive_some")
+fn uart_receive_some(id: UartId, max_size: Int, timeout_ms: Int64) -> (Int, List[Int])
+
+@external(c, "__emela_peripheral_uart_discard_input")
+fn uart_discard_input(id: UartId, max_size: Int) -> (Int, Int)
+
+@external(c, "__emela_peripheral_uart_set_receive_mode")
+fn uart_set_receive_mode(id: UartId, mode: UartReceiveMode) -> (Int, ())
+
+@external(c, "__emela_peripheral_uart_enable_interrupt")
+fn uart_enable_interrupt(id: UartId, priority: InterruptPriority, notify_transmit: Bool) -> (Int, ())
+
+@external(c, "__emela_peripheral_uart_disable_interrupt")
+fn uart_disable_interrupt(id: UartId) -> (Int, ())
+
 ## Synchronous UART operations on the selected board.
 pub handler BoardUart: Uart {
-  fn configure(id, config) { checked(uart_configure(id, config)) }
-  fn transmit(id, data, timeout_ms) { checked(uart_transmit(id, data, timeout_ms)) }
-  fn receive(id, size, timeout_ms) { checked(uart_receive(id, size, timeout_ms)) }
+  fn configure(id, config) { checked_uart(uart_configure(id, config)) }
+  fn transmit(id, data, timeout_ms) { checked_uart(uart_transmit(id, data, timeout_ms)) }
+  fn receive(id, size, timeout_ms) { checked_uart(uart_receive(id, size, timeout_ms)) }
+  fn receive_some(id, max_size, timeout_ms) { checked_uart(uart_receive_some(id, max_size, timeout_ms)) }
+  fn discard_input(id, max_size) { checked_uart(uart_discard_input(id, max_size)) }
+  fn set_receive_mode(id, mode) { checked_uart(uart_set_receive_mode(id, mode)) }
+  fn enable_interrupt(id, priority, notify_transmit) { checked_uart(uart_enable_interrupt(id, priority, notify_transmit)) }
+  fn disable_interrupt(id) { checked_uart(uart_disable_interrupt(id)) }
 }
 
 @external(c, "__emela_peripheral_i2c_configure")
@@ -66,11 +89,12 @@ fn i2c_master_transmit(
   timeout_ms: Int64
 ) -> (Int, ())
 
-@external(c, "__emela_peripheral_i2c_master_receive")
-fn i2c_master_receive(
+@external(c, "__emela_peripheral_i2c_write_read")
+fn i2c_write_read(
   id: I2cId,
   address: Int,
-  size: Int,
+  write_data: List[Int],
+  read_size: Int,
   timeout_ms: Int64
 ) -> (Int, List[Int])
 
@@ -84,16 +108,6 @@ fn i2c_memory_write(
   timeout_ms: Int64
 ) -> (Int, ())
 
-@external(c, "__emela_peripheral_i2c_memory_read")
-fn i2c_memory_read(
-  id: I2cId,
-  address: Int,
-  memory_address: Int,
-  address_size: MemoryAddressSize,
-  size: Int,
-  timeout_ms: Int64
-) -> (Int, List[Int])
-
 @external(c, "__emela_peripheral_i2c_is_device_ready")
 fn i2c_is_device_ready(
   id: I2cId,
@@ -102,24 +116,33 @@ fn i2c_is_device_ready(
   timeout_ms: Int64
 ) -> (Int, Bool)
 
+@external(c, "__emela_peripheral_i2c_recover")
+fn i2c_recover(id: I2cId, timeout_ms: Int64) -> (Int, ())
+
+@external(c, "__emela_peripheral_i2c_enable_interrupt")
+fn i2c_enable_interrupt(id: I2cId, priority: InterruptPriority) -> (Int, ())
+
+@external(c, "__emela_peripheral_i2c_disable_interrupt")
+fn i2c_disable_interrupt(id: I2cId) -> (Int, ())
+
 ## Synchronous I2C master operations on the selected board.
 pub handler BoardI2c: I2c {
-  fn configure(id, config) { checked(i2c_configure(id, config)) }
+  fn configure(id, config) { checked_i2c(i2c_configure(id, config)) }
   fn master_transmit(id, address, data, timeout_ms) {
-    checked(i2c_master_transmit(id, address, data, timeout_ms))
+    checked_i2c(i2c_master_transmit(id, address, data, timeout_ms))
   }
-  fn master_receive(id, address, size, timeout_ms) {
-    checked(i2c_master_receive(id, address, size, timeout_ms))
+  fn write_read(id, address, write_data, read_size, timeout_ms) {
+    checked_i2c(i2c_write_read(id, address, write_data, read_size, timeout_ms))
   }
   fn memory_write(id, address, memory_address, address_size, data, timeout_ms) {
-    checked(i2c_memory_write(id, address, memory_address, address_size, data, timeout_ms))
-  }
-  fn memory_read(id, address, memory_address, address_size, size, timeout_ms) {
-    checked(i2c_memory_read(id, address, memory_address, address_size, size, timeout_ms))
+    checked_i2c(i2c_memory_write(id, address, memory_address, address_size, data, timeout_ms))
   }
   fn is_device_ready(id, address, trials, timeout_ms) {
-    checked(i2c_is_device_ready(id, address, trials, timeout_ms))
+    checked_i2c(i2c_is_device_ready(id, address, trials, timeout_ms))
   }
+  fn recover(id, timeout_ms) { checked_i2c(i2c_recover(id, timeout_ms)) }
+  fn enable_interrupt(id, priority) { checked_i2c(i2c_enable_interrupt(id, priority)) }
+  fn disable_interrupt(id) { checked_i2c(i2c_disable_interrupt(id)) }
 }
 
 @external(c, "__emela_peripheral_spi_configure")
@@ -134,18 +157,131 @@ fn spi_receive(id: SpiId, size: Int, timeout_ms: Int64) -> (Int, List[Int])
 @external(c, "__emela_peripheral_spi_transfer")
 fn spi_transfer(id: SpiId, data: List[Int], timeout_ms: Int64) -> (Int, List[Int])
 
+@external(c, "__emela_peripheral_spi_create_device")
+fn spi_create_device(config: SpiDeviceConfig) -> (Int, Int, Int, SpiDevice)
+
+@external(c, "__emela_peripheral_spi_transaction")
+fn spi_transaction(device: SpiDevice, operations: List[SpiOperation], timeout_ms: Int64) -> (Int, Int, Int, List[List[Int]])
+
+@external(c, "__emela_peripheral_spi_recover")
+fn spi_recover(id: SpiId) -> (Int, Int, Int, ())
+
 ## Synchronous SPI operations on the selected board. Use GPIO for chip select.
 pub handler BoardSpi: Spi {
-  fn configure(id, config) { checked(spi_configure(id, config)) }
-  fn transmit(id, data, timeout_ms) { checked(spi_transmit(id, data, timeout_ms)) }
-  fn receive(id, size, timeout_ms) { checked(spi_receive(id, size, timeout_ms)) }
-  fn transfer(id, data, timeout_ms) { checked(spi_transfer(id, data, timeout_ms)) }
+  fn configure(id, config) { checked_spi(spi_configure(id, config)) }
+  fn transmit(id, data, timeout_ms) { checked_spi(spi_transmit(id, data, timeout_ms)) }
+  fn receive(id, size, timeout_ms) { checked_spi(spi_receive(id, size, timeout_ms)) }
+  fn transfer(id, data, timeout_ms) { checked_spi(spi_transfer(id, data, timeout_ms)) }
+  fn create_device(config) { checked_spi_transaction(spi_create_device(config)) }
+  fn transaction(device, operations, timeout_ms) { checked_spi_transaction(spi_transaction(device, operations, timeout_ms)) }
+  fn recover(id) { checked_spi_transaction(spi_recover(id)) }
 }
 
-# The bridge returns status zero on success. Preserve the board's error code on failure.
-fn checked[A](outcome: (Int, A)) -> A fails PeripheralError {
+# Compound SPI preserves the first failure and a separate CS cleanup failure.
+fn checked_spi_transaction[A](outcome: (Int, Int, Int, A)) -> A fails SpiTransactionError {
+  (spi_code, gpio_code, cleanup_code, value) = outcome
+  if spi_code == 0 && gpio_code == 0 && cleanup_code == 0 { value } else {
+    primary = if spi_code != 0 { Some(Spi.SpiFailure(spi_error_kind(spi_code))) }
+      else if gpio_code != 0 { Some(Spi.GpioFailure(gpio_error_kind(gpio_code))) }
+      else { None }
+    cleanup = if cleanup_code == 0 { None } else { Some(gpio_error_kind(cleanup_code)) }
+    fail SpiTransactionError(primary, cleanup)
+  }
+}
+
+# Status zero is success; positive codes are ErrorKind ordinal + 1.
+# -1/-2 remain reserved for bridge argument/capacity errors.
+fn gpio_error_kind(code: Int) -> GpioErrorKind {
+  code match {
+    1 -> Gpio.InvalidArgument
+    2 -> Gpio.NotConfigured
+    3 -> Gpio.Unsupported
+    4 -> Gpio.Busy
+    5 -> Gpio.ResourceConflict
+    6 -> Gpio.InvalidState
+    -1 -> Gpio.InvalidArgument
+    _ -> Gpio.Other
+  }
+}
+
+fn checked_gpio[A](outcome: (Int, A)) -> A fails GpioError {
   (code, value) = outcome
-  if code == 0 { value } else { fail PeripheralError(code) }
+  if code == 0 { value } else {
+    kind = gpio_error_kind(code)
+    fail GpioError(kind)
+  }
+}
+
+fn checked_uart[A](outcome: (Int, A)) -> A fails UartError {
+  (code, value) = outcome
+  if code == 0 { value } else {
+    kind = code match {
+      1 -> Uart.InvalidArgument
+      2 -> Uart.CapacityExceeded
+      3 -> Uart.NotConfigured
+      4 -> Uart.Unsupported
+      5 -> Uart.Timeout
+      6 -> Uart.Busy
+      7 -> Uart.ResourceConflict
+      8 -> Uart.InvalidState
+      9 -> Uart.Parity
+      10 -> Uart.Framing
+      11 -> Uart.Overrun
+      -1 -> Uart.InvalidArgument
+      -2 -> Uart.CapacityExceeded
+      _ -> Uart.Other
+    }
+    fail UartError(kind)
+  }
+}
+
+fn checked_i2c[A](outcome: (Int, A)) -> A fails I2cError {
+  (code, value) = outcome
+  if code == 0 { value } else {
+    kind = code match {
+      1 -> I2c.InvalidArgument
+      2 -> I2c.CapacityExceeded
+      3 -> I2c.NotConfigured
+      4 -> I2c.Unsupported
+      5 -> I2c.Timeout
+      6 -> I2c.Busy
+      7 -> I2c.ResourceConflict
+      8 -> I2c.InvalidState
+      9 -> I2c.Nack
+      10 -> I2c.BusError
+      11 -> I2c.ArbitrationLost
+      -1 -> I2c.InvalidArgument
+      -2 -> I2c.CapacityExceeded
+      _ -> I2c.Other
+    }
+    fail I2cError(kind)
+  }
+}
+
+fn spi_error_kind(code: Int) -> SpiErrorKind {
+  code match {
+    1 -> Spi.InvalidArgument
+    2 -> Spi.CapacityExceeded
+    3 -> Spi.NotConfigured
+    4 -> Spi.Unsupported
+    5 -> Spi.Timeout
+    6 -> Spi.Busy
+    7 -> Spi.ResourceConflict
+    8 -> Spi.InvalidState
+    9 -> Spi.ModeFault
+    10 -> Spi.Overrun
+    -1 -> Spi.InvalidArgument
+    -2 -> Spi.CapacityExceeded
+    _ -> Spi.Other
+  }
+}
+
+fn checked_spi[A](outcome: (Int, A)) -> A fails SpiError {
+  (code, value) = outcome
+  if code == 0 { value } else {
+    kind = spi_error_kind(code)
+    fail SpiError(kind)
+  }
 }
 
 @external(c, "__emela_peripheral_clock_sleep")

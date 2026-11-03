@@ -1,6 +1,6 @@
-# The Emela interface for SPI. Chip select is controlled through GPIO.
+# Synchronous SPI bus operations and devices with managed chip select.
 # Transfers are synchronous and must not be called from interrupt context.
-import Embedded.Peripheral.{PeripheralError}
+import Embedded.Gpio.{GpioPin, PinState, GpioErrorKind}
 
 pub enum SpiId { Spi1, Spi2, Spi3, Spi4, Spi5, Spi6 }
 pub enum SpiMode { Master, Slave }
@@ -9,20 +9,72 @@ pub enum SpiDataSize { Bits8, Bits16 }
 pub enum ClockPolarity { IdleLow, IdleHigh }
 pub enum ClockPhase { FirstEdge, SecondEdge }
 pub enum BitOrder { MostSignificantFirst, LeastSignificantFirst }
-pub enum SpiPrescaler { Div2, Div4, Div8, Div16, Div32, Div64, Div128, Div256 }
+## In Master mode, max_frequency_hz is a positive SCK upper limit in Hz.
+## The BSP selects the highest achievable frequency at or below this limit.
+## A nonpositive master limit fails with InvalidArgument; no achievable frequency
+## at or below the limit fails with Unsupported. The BSP never exceeds the limit.
+## In Slave mode, SCK is supplied externally and max_frequency_hz is ignored.
 pub type SpiConfig(
   mode: SpiMode,
   direction: SpiDirection,
   data_size: SpiDataSize,
   polarity: ClockPolarity,
   phase: ClockPhase,
-  prescaler: SpiPrescaler,
-  bit_order: BitOrder
+  max_frequency_hz: Int,
+  bit_order: BitOrder,
+)
+
+pub enum SpiErrorKind {
+  InvalidArgument
+  CapacityExceeded
+  NotConfigured
+  Unsupported
+  Timeout
+  Busy
+  ResourceConflict
+  InvalidState
+  ModeFault
+  Overrun
+  Other
+}
+pub error SpiError(kind: SpiErrorKind)
+
+## A device description; create_device reserves and initializes its resources.
+pub type SpiDeviceConfig(
+  bus: SpiId,
+  config: SpiConfig,
+  cs: GpioPin,
+  active: PinState,
+  setup_us: Int64,
+  hold_us: Int64,
+)
+## A checked board handle. Unknown or uninitialized slots are rejected at runtime.
+pub type SpiDevice(slot: Int)
+pub enum SpiOperation {
+  Write(data: List[Int])
+  Read(size: Int)
+  Transfer(data: List[Int])
+}
+pub enum SpiTransactionFailure {
+  SpiFailure(kind: SpiErrorKind)
+  GpioFailure(kind: GpioErrorKind)
+}
+## The first failure and a separate failure while deasserting chip select.
+pub error SpiTransactionError(
+  primary: Option[SpiTransactionFailure],
+  cleanup: Option[GpioErrorKind],
 )
 
 pub effect Spi {
-  fn configure(id: SpiId, config: SpiConfig) -> () fails PeripheralError
-  fn transmit(id: SpiId, data: List[Int], timeout_ms: Int64) -> () fails PeripheralError
-  fn receive(id: SpiId, size: Int, timeout_ms: Int64) -> List[Int] fails PeripheralError
-  fn transfer(id: SpiId, data: List[Int], timeout_ms: Int64) -> List[Int] fails PeripheralError
+  fn configure(id: SpiId, config: SpiConfig) -> () fails SpiError
+  fn transmit(id: SpiId, data: List[Int], timeout_ms: Int64) -> () fails SpiError
+  fn receive(id: SpiId, size: Int, timeout_ms: Int64) -> List[Int] fails SpiError
+  fn transfer(id: SpiId, data: List[Int], timeout_ms: Int64) -> List[Int] fails SpiError
+  fn create_device(config: SpiDeviceConfig) -> SpiDevice fails SpiTransactionError
+  fn transaction(
+    device: SpiDevice,
+    operations: List[SpiOperation],
+    timeout_ms: Int64,
+  ) -> List[List[Int]] fails SpiTransactionError
+  fn recover(id: SpiId) -> () fails SpiTransactionError
 }

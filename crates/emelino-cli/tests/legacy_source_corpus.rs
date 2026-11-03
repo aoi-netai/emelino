@@ -1,4 +1,4 @@
-//! All fixed legacy source programs reach C generation through official Flow.
+//! Fixed legacy programs reach C generation or report an explicitly replaced API.
 //! Runtime observations are tracked separately in reused_* and legacy_runtime.
 use emelino_cli::{frontend, upstream_adapter};
 use emelino_compiler::{ExternalAdapter, ExternalResult, Options, ir};
@@ -99,7 +99,7 @@ fn compile_case(program: &Value, directory: &Path, concrete_entry: bool) -> Resu
 }
 
 #[test]
-fn every_fixed_legacy_source_program_reaches_c_generation() {
+fn fixed_legacy_source_programs_preserve_generation_and_report_replaced_apis() {
     let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/compat/legacy-corpus");
     let manifest: Value =
         serde_json::from_str(&std::fs::read_to_string(directory.join("manifest.json")).unwrap())
@@ -115,12 +115,25 @@ fn every_fixed_legacy_source_program_reaches_c_generation() {
     let mut failures = Vec::new();
     let mut public_functions = 0;
     let mut concrete_wrappers = 0;
+    let mut replaced_peripheral_apis = 0;
     for program in programs {
         for file in program["files"].as_array().unwrap() {
             files.insert(file["fixture"].as_str().unwrap());
         }
         for test in program["legacy_tests"].as_array().unwrap() {
             legacy_tests.insert(test.as_str().unwrap());
+        }
+        if program["id"] == "program:5290f0b664af9543cbf5" {
+            // This is the frozen p7-embedded source, not the current interface.
+            // Do not rewrite its hashes or count its old signatures as accepted.
+            let error = compile_case(program, &directory, false).unwrap_err();
+            assert!(
+                error.contains("`Embedded.I2c` has no `SevenBit`"),
+                "{error}"
+            );
+            assert!(error.contains("`Embedded.Spi` has no `Div16`"), "{error}");
+            replaced_peripheral_apis += 1;
+            continue;
         }
         if program["id"] == "program:45d10a963a24d47032c7" {
             // The original inferred State[Int] effect is not a concrete C entry.
@@ -158,4 +171,5 @@ fn every_fixed_legacy_source_program_reaches_c_generation() {
     );
     assert!(public_functions >= 169);
     assert_eq!(concrete_wrappers, 1);
+    assert_eq!(replaced_peripheral_apis, 1);
 }

@@ -4,6 +4,10 @@
 pub(crate) fn sources() -> &'static [(&'static str, &'static str)] {
     &[
         (
+            "embedded/interrupt.emel",
+            include_str!("../lib/embedded/interrupt.emel"),
+        ),
+        (
             "embedded/peripheral.emel",
             include_str!("../lib/embedded/peripheral.emel"),
         ),
@@ -64,20 +68,28 @@ mod tests {
     }
 
     #[test]
-    fn embedded_sources_match_imported_baseline() {
+    fn embedded_import_provenance_matches_record() {
         let report: serde_json::Value = serde_json::from_str(include_str!(
             "../../../docs/reports/reuse-boundary-fixtures.json"
         ))
         .unwrap();
-        let sources = sources();
-        assert_eq!(sources.len(), 6);
         let mut checked = 0;
         for module in report["modules"].as_array().unwrap() {
             let Some(path) = module["module_path"].as_str() else {
                 continue;
             };
-            let (_, source) = sources.iter().find(|(name, _)| *name == path).unwrap();
-            assert_eq!(sha256(source), module["sha256"], "local {path}");
+            // These hashes describe the import, not the evolving local API.
+            // Check the pinned provenance without resetting the current sources
+            // or rewriting the historical record when an interface changes.
+            assert!(sources().iter().any(|(name, _)| *name == path));
+            let upstream_name = module["upstream_module"].as_str().unwrap();
+            let (_, source) = emela_core::core_sources()
+                .iter()
+                .find(|(name, _)| *name == upstream_name)
+                .unwrap();
+            assert_eq!(sha256(source), module["source_sha256"], "upstream {path}");
+            let imported = source.replace("Std.Embedded", "Embedded");
+            assert_eq!(sha256(&imported), module["sha256"], "imported {path}");
             checked += 1;
         }
         assert_eq!(checked, 6);

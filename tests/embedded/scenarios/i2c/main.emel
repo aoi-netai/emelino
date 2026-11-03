@@ -1,0 +1,91 @@
+import Embedded.Board.{BoardI2c, BoardGpio}
+import Embedded.I2c
+import Embedded.Gpio
+import Embedded.Interrupt.{Normal}
+
+@external(c, "i2c_test_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "i2c_test_wait")
+fn wait_stage(stage: Int) -> () use {}
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+
+pub fn main() -> () {
+  with BoardI2c {
+    bus = use I2c.I2c
+    check(1, {
+      bus.master_transmit(I2c.I2c1, 80, [1], 20)
+      False
+    } escape { I2c.I2cError(I2c.NotConfigured) -> True
+      I2c.I2cError(_) -> False })
+    check(2, {
+      bus.configure(I2c.I2c2, I2c.I2cConfig(100000, I2c.Standard))
+      False
+    } escape { I2c.I2cError(I2c.Unsupported) -> True
+      I2c.I2cError(_) -> False })
+    check(3, {
+      bus.configure(I2c.I2c1, I2c.I2cConfig(0, I2c.Standard))
+      False
+    } escape { I2c.I2cError(I2c.InvalidArgument) -> True
+      I2c.I2cError(_) -> False })
+    bus.configure(I2c.I2c1, I2c.I2cConfig(100000, I2c.Standard))
+    bus.master_transmit(I2c.I2c1, 80, [16, 170, 187], 20)
+    check(4, bus.write_read(I2c.I2c1, 80, [16], 2, 20) == [170, 187])
+    bus.master_transmit(I2c.I2c1, 80, [112], 20)
+    check(5, bus.write_read(I2c.I2c1, 80, [], 2, 20) == [240, 241])
+    check(6, bus.write_read(I2c.I2c1, 80, [160, 177, 2], 3, 20) == [130, 131, 132])
+    bus.memory_write(I2c.I2c1, 80, 32, I2c.Bits8, [68, 85], 20)
+    check(7, bus.write_read(I2c.I2c1, 80, [32], 2, 20) == [68, 85])
+    bus.memory_write(I2c.I2c1, 80, 304, I2c.Bits16, [102, 119], 20)
+    check(8, bus.write_read(I2c.I2c1, 80, [48], 2, 20) == [102, 119])
+    check(9, bus.is_device_ready(I2c.I2c1, 80, 2, 20))
+    check(10, !bus.is_device_ready(I2c.I2c1, 81, 2, 20))
+    check(11, {
+      bus.master_transmit(I2c.I2c1, 81, [1], 20)
+      False
+    } escape { I2c.I2cError(I2c.Nack) -> True
+      I2c.I2cError(_) -> False })
+    check(12, {
+      bus.master_transmit(I2c.I2c1, 80, [256], 20)
+      False
+    } escape { I2c.I2cError(I2c.InvalidArgument) -> True
+      I2c.I2cError(_) -> False })
+    check(13, {
+      bus.write_read(I2c.I2c1, 80, [], 0, 20)
+      False
+    } escape { I2c.I2cError(I2c.InvalidArgument) -> True
+      I2c.I2cError(_) -> False })
+    check(14, {
+      bus.recover(I2c.I2c1, 0)
+      False
+    } escape { I2c.I2cError(I2c.InvalidArgument) -> True
+      I2c.I2cError(_) -> False })
+    with BoardGpio {
+      check(15, {
+        (use Gpio.Gpio).configure(Gpio.GpioPin(24), Gpio.Input(Gpio.NoPull))
+        False
+      } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+        Gpio.GpioError(_) -> False })
+    }
+    bus.enable_interrupt(I2c.I2c1, Normal)
+    check(16, bus.write_read(I2c.I2c1, 80, [16], 2, 20) == [170, 187])
+    bus.disable_interrupt(I2c.I2c1)
+    check(17, bus.write_read(I2c.I2c1, 80, [113], 2, 20) == [241, 242])
+    wait_stage(1)
+    check(18, {
+      bus.write_read(I2c.I2c1, 80, [], 4, 2)
+      False
+    } escape { I2c.I2cError(I2c.Timeout) -> True
+      I2c.I2cError(_) -> False })
+    wait_stage(2)
+    bus.recover(I2c.I2c1, 20)
+    check(19, bus.write_read(I2c.I2c1, 80, [16], 2, 20) == [170, 187])
+    # The old model clears ADDR on SR2 alone and unconditionally sets BTF,
+    # preventing HAL's single-byte sequence. This is not a hardware contract.
+    check(20, {
+      bus.write_read(I2c.I2c1, 80, [16], 1, 2)
+      False
+    } escape { I2c.I2cError(I2c.Timeout) -> True
+      I2c.I2cError(_) -> False })
+    wait_stage(3)
+  } escape { I2c.I2cError(_) -> raw_check(99, 0) }
+}

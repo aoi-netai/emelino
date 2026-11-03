@@ -1,0 +1,160 @@
+"""Host utilities shared by firmware scenarios and standalone model checks."""
+from contextlib import contextmanager
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+from firmware.build.profiles import identifier, load_profiles
+
+ROOT = Path(__file__).resolve().parents[3]
+TESTS = ROOT / "tests/embedded"
+MODELS = ROOT / "tests/renode/models"
+
+
+def run(command, timeout=60, **kwargs):
+    process = subprocess.Popen(list(map(str, command)), stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, text=True, errors="replace",
+                               start_new_session=True, **kwargs)
+    try:
+        log, _ = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        os.killpg(process.pid, signal.SIGKILL)
+        log, _ = process.communicate()
+        raise ValueError("command timed out: " + str(command[0]) + "\n" + log)
+    return process.returncode, log
+
+
+def value(log, label):
+    match = re.search(r"^" + re.escape(label) + r"\s*\n\s*(0x[0-9a-fA-F]+)\s*$", log, re.M)
+    if not match:
+        raise ValueError("missing Renode metric: " + label)
+    return int(match[1], 16)
+
+
+def load_module(path, name):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_target(board, path=None):
+    board = identifier(board, "board name")
+    path = path or TESTS / "targets" / (board + ".json")
+    target = json.loads(Path(path).read_text())
+    if not isinstance(target, dict) or target.get("schema_version") != 1 or target.get("board") != board:
+        raise ValueError("test target does not match the selected board")
+    profile, chip, _ = load_profiles(board)
+    port = profile["port"]
+    if target["renode_port"] != port:
+        raise ValueError("test target and firmware port disagree")
+    target.update(profile=profile, chip=chip, port=port)
+    if not isinstance(target.get("scenarios"), dict) or not target["scenarios"]:
+        raise ValueError("test target must select at least one scenario")
+    for name, settings in target["scenarios"].items():
+        identifier(name, "scenario name")
+        if not isinstance(settings, dict):
+            raise ValueError("invalid scenario settings: " + name)
+        if settings.get("port", port) != port:
+            raise ValueError("scenario does not support this firmware port: " + name)
+    return target
+
+
+def target_source(settings):
+    """Generate a separate configuration module; the scenario source is unchanged."""
+    imports, lines = [], []
+    for kind, type_name in (("i2c", "I2c"), ("spi", "Spi")):
+        if kind not in settings:
+            continue
+        bus = settings[kind]
+        if type(bus) is not int or not 0 <= bus <= 7:
+            raise ValueError("invalid test bus ID")
+        imports.append(f"import Embedded.{type_name}")
+        lines.append(f"pub fn {kind}() -> {type_name}.{type_name}Id {{ {type_name}.{type_name}{bus} }}")
+    if "cs_pin" in settings:
+        pin = settings["cs_pin"]
+        if type(pin) is not int or not 0 <= pin <= 65535:
+            raise ValueError("invalid test chip-select pin")
+        imports.append("import Embedded.Gpio")
+        lines.append(f"pub fn chip_select() -> Gpio.GpioPin {{ Gpio.GpioPin({pin}) }}")
+    for key in ("address", "missing_address"):
+        if key in settings:
+            address = settings[key]
+            if type(address) is not int or not 0 <= address <= 127:
+                raise ValueError("invalid I2C test address")
+            lines += [f"pub fn {key}() -> Int {{ {address} }}"]
+    return "\n".join(imports + lines) + "\n"
+
+
+def build_firmware(args, report, scenario):
+    output = args.output_dir.resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    for name in ("model.log", "renode.log", "uart.log", "report.json"):
+        (output / name).unlink(missing_ok=True)
+    found = shutil.which(str(Path(args.renode or os.environ.get("RENODE") or "renode").expanduser()))
+    if not found:
+        raise ValueError("Renode not found; pass --renode or set RENODE")
+    renode = Path(found).resolve()
+    fixture = TESTS / "scenarios" / scenario
+    settings = args.target["scenarios"][scenario]
+    source, config = fixture / "main.emel", fixture / "config.json"
+    config_data = json.loads(config.read_text())
+    if settings.get("bindings"):
+        inputs = output / "inputs"
+        inputs.mkdir(exist_ok=True)
+        shutil.copyfile(source, inputs / "main.emel")
+        (inputs / "test").mkdir(exist_ok=True)
+        (inputs / "test/target.emel").write_text(target_source(settings))
+        config_data["sources"] = ["test/target.emel"]
+        source, config = inputs / "main.emel", inputs / "config.json"
+        config.write_text(json.dumps(config_data, indent=2) + "\n")
+    generated, firmware = output / "generated", output / "firmware"
+    commands = [[args.emelino.resolve(), "build", source, "--config", config, "--out-dir", generated],
+                [sys.executable, ROOT / "tools/build_firmware.py", "--board", args.board,
+                 "--generated-dir", generated, "--output-dir", firmware,
+                 "--optimization", args.optimization]]
+    probe = fixture / "probe.c" if settings.get("bindings") else TESTS / "ports" / args.target["port"] / (scenario + "_probe.c")
+    commands[1] += ["--source", probe]
+    for symbol in settings.get("wrap", []):
+        commands[1].append("--link-arg=-Wl,--wrap=" + symbol)
+    for flag, value_ in (("--cc", args.cc), ("--sdk-dir", args.sdk_dir)):
+        if value_:
+            commands[1] += [flag, value_]
+    for index, command in enumerate(commands):
+        status, log = run(command, cwd=ROOT, timeout=120)
+        (output / f"build-{index}.log").write_text(log)
+        if status:
+            raise ValueError("firmware generation failed:\n" + log)
+    manifest = json.loads((firmware / "firmware.json").read_text())
+    symbols = json.loads((firmware / "symbols.json").read_text())
+    report.update({"board": manifest["board"], "port": args.target["port"],
+                   "resources": manifest["resources"], "firmware_sha256": manifest["sha256"]["firmware.bin"],
+                   "compiler": manifest["compiler"], "sdk": manifest["sdk"],
+                   "test_settings": settings})
+    return output, renode, manifest, symbols
+
+
+@contextmanager
+def renode_workspace(output):
+    # Renode @paths have no shell quoting. Alias also handles paths with spaces.
+    with tempfile.TemporaryDirectory(prefix="emelino-renode-", dir="/tmp") as temporary:
+        alias = Path(temporary) / "run"
+        alias.symlink_to(output, target_is_directory=True)
+        yield alias, temporary
+
+
+def run_renode(renode, output, alias, temporary, script, report, timeout):
+    (output / "run.resc").write_text("\n".join(script) + "\n")
+    status, log = run([renode, "--disable-xwt", "--console", "--plain", "-e", f"include @{alias}/run.resc"],
+                      cwd=ROOT, env=dict(os.environ, XDG_CONFIG_HOME=str(output / "renode-config"), TMPDIR=temporary),
+                      timeout=timeout)
+    (output / "renode.log").write_text(log)
+    version = re.search(r"Renode, version (\S+)", log)
+    report["renode_version"] = version[1] if version else "unknown"
+    return status, log

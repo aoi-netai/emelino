@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "board": "nucleo-f446re",
+  "chip": "stm32f446re",
+  "physical_board": "NUCLEO-F446RE",
+  "pins": {
+    "led_green": 5
+  },
+  "peripherals": {
+    "uart2": {
+      "tx_pin": 2,
+      "rx_pin": 3,
+      "af": 7
+    },
+    "spi1": {
+      "sck_pin": 5,
+      "miso_pin": 6,
+      "mosi_pin": 7,
+      "af": 5
+    },
+    "i2c1": {
+      "scl_pin": 24,
+      "sda_pin": 25,
+      "af": 4
+    }
+  },
+  "port": "stm32f4",
+  "clock": {
+    "source": "hsi",
+    "frequency_hz": 16000000
+  }
+}
