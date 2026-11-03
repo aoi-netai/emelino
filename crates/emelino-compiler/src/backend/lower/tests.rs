@@ -1157,7 +1157,17 @@ fn runtime_const_program(defect: bool) -> Program {
     p.functions.alloc(answer);
     p
 }
-
+#[test]
+fn monomorphic_runtime_const_initializes_once() {
+    let output =
+        crate::backend::compile_saved_program(runtime_const_program(false), &Options::default())
+            .unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int reads;\nint32_t read_once(void) { ++reads;return INT32_C(21); }\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { (void)k;(void)m;(void)n;exit(9); }\nint main(void) { return answer()==42 && answer()==42 && reads==1 ? 0 : 1; }\n",
+        0,
+    );
+}
 #[test]
 fn evaluated_const_does_not_emit_unused_initializer_helpers() {
     let mut p = runtime_const_program(false);
@@ -1172,6 +1182,90 @@ fn evaluated_const_does_not_emit_unused_initializer_helpers() {
     assert!(!lowered.emitted_functions.contains(&helper_id));
     let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
+}
+#[test]
+fn runtime_const_defect_is_cached_with_context() {
+    let output =
+        crate::backend::compile_saved_program(runtime_const_program(true), &Options::default())
+            .unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include <setjmp.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int reads; static jmp_buf target;\nint32_t read_once(void) { ++reads;return INT32_C(21); }\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { const char expected[]=\"while evaluating const Once: division by zero\"; if (k!=EMELA_DEFECT_DIVISION_BY_ZERO || n!=sizeof expected-1 || memcmp(m,expected,n)!=0) exit(9); longjmp(target,1); }\nint main(void) { for (int i=0;i<2;i++) { if (setjmp(target)==0) { (void)answer();return 1; } } return reads==1 ? 0 : 2; }\n",
+        0,
+    );
+}
+#[test]
+fn static_const_and_aggregate_runtime_const_execute() {
+    let mut p = program(vec![]);
+    let tuple_ty = p
+        .core
+        .types
+        .intern(Type::Tuple(vec![TypeId::INT, TypeId::BOOL]));
+    let mut aggregate = Function::new("Pair");
+    aggregate.ret = tuple_ty;
+    aggregate.constant = true;
+    let tuple = aggregate_variable(&mut aggregate, tuple_ty);
+    let make = binding(
+        &mut aggregate,
+        Some(tuple),
+        Value::Tuple(vec![Const::Int(42).into(), Const::Bool(true).into()]),
+    );
+    aggregate.body = Some(aggregate.seqs.alloc(Seq {
+        stmts: vec![make],
+        term: Term::Return(Some(tuple.into())),
+    }));
+    let aggregate_id = p.functions.alloc(aggregate);
+    let mut answer = simple();
+    let returned = aggregate_variable(&mut answer, tuple_ty);
+    let result = variable(&mut answer, TypeId::INT);
+    let call = binding(
+        &mut answer,
+        Some(returned),
+        Value::Call {
+            callee: Callee::Direct(aggregate_id),
+            args: vec![],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let get = binding(
+        &mut answer,
+        Some(result),
+        Value::TupleGet {
+            base: returned,
+            index: 0,
+        },
+    );
+    answer.seqs[answer.body.unwrap()] = Seq {
+        stmts: vec![call, get],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(answer);
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    execute(&output, DEFECT_HARNESS, 0);
+    let mut answer = simple();
+    answer.constant = true;
+    let result = variable(&mut answer, TypeId::INT);
+    let add = binding(
+        &mut answer,
+        Some(result),
+        Value::Prim {
+            op: PrimOp::Add,
+            ty: PrimTy::I32,
+            args: vec![Const::Int(i32::MAX).into(), Const::Int(1).into()],
+        },
+    );
+    answer.seqs[answer.body.unwrap()] = Seq {
+        stmts: vec![add],
+        term: Term::Return(Some(result.into())),
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![answer]), &Options::default()).unwrap();
+    execute(
+        &output,
+        &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_MIN"),
+        0,
+    );
 }
 
 #[test]

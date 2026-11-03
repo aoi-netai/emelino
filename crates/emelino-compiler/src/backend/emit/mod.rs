@@ -72,7 +72,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     source.blank();
     c::emit_unused_attribute(&mut source);
     source.blank();
-
+    if !runtime_consts.is_empty() {
+        crate::backend::emit::const_runtime::emit_runtime(
+            plan.const_emergency_bytes,
+            options,
+            &mut source,
+        )?;
+    }
     if has_scheduler {
         if !task_value_types.is_empty() || plan.has_failing_tasks {
             source.line("#define EMELA_TASK_CONTEXT_RUNTIME 1");
@@ -299,9 +305,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         };
         let sequence = &function.seqs[body];
 
-        let _initializer_name = format!("{}_const_init", names[&id]);
+        let initializer_name = format!("{}_const_init", names[&id]);
         let is_runtime_const = runtime_consts.contains(&id);
-        let name = &names[&id];
+        let name = if is_runtime_const {
+            &initializer_name
+        } else {
+            &names[&id]
+        };
         let is_static = is_runtime_const || !function.exported || function.fails;
         let takes_string_output = string_output_functions.contains(&id);
         let function_signature = if closures.functions.contains_key(&id) {
@@ -366,7 +376,6 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
             source.blank();
             continue;
         }
-
         if layouts.runtime.has_cause_raise && layouts.runtime.has_unwind {
             source.line("unsigned emela_entry_holds = emela_current_fiber == NULL ? 0 : emela_current_fiber->holds;");
             source.line("(void)emela_entry_holds;");
@@ -422,6 +431,16 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         )?;
         source.end_block();
         source.blank();
+        if is_runtime_const {
+            emit_const_getter(
+                layouts,
+                id,
+                function,
+                &names[&id],
+                &initializer_name,
+                &mut source,
+            );
+        }
     }
     for adapter in function_ref_adapters {
         let target = adapter.target;
@@ -531,9 +550,9 @@ use functions::signature;
 use functions::{
     closure_signature, emit_any_ownership, emit_any_ownership_declarations,
     emit_closure_capture_loads, emit_closure_environment_declarations,
-    emit_closure_string_copy_helper, emit_fallible_wrapper, emit_function_coerce_adapter,
-    emit_function_ref_adapter, emit_local_declarations, emit_owned_cleanup,
-    emit_public_string_ownership, emit_release_if_owned, emit_retain_operand,
+    emit_closure_string_copy_helper, emit_const_getter, emit_fallible_wrapper,
+    emit_function_coerce_adapter, emit_function_ref_adapter, emit_local_declarations,
+    emit_owned_cleanup, emit_public_string_ownership, emit_release_if_owned, emit_retain_operand,
     function_ref_adapter_signature,
 };
 use values::{
@@ -583,6 +602,8 @@ mod heap;
 mod float_parse;
 
 mod float_to_string;
+
+mod const_runtime;
 
 use crate::semantics::operands::operand_type;
 

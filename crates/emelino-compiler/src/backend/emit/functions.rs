@@ -1,9 +1,9 @@
 //! Function signatures, ownership helpers, closures, and public wrappers.
 use super::{
     StringBufferPlan, TypeLayouts,
-    c::{function_coerce_adapter_name, owned_variable_name, variable_name},
+    c::{c_string_literal, function_coerce_adapter_name, owned_variable_name, variable_name},
 };
-use crate::contract::ir::{Function, Operand, Repr, Stmt, VarId};
+use crate::contract::ir::{FnId, Function, Operand, Repr, Stmt, VarId};
 use crate::contract::ir::{Type, TypeId};
 use crate::semantics::abi::LayoutRead;
 use crate::writer::Writer;
@@ -210,6 +210,82 @@ pub(in crate::backend::emit) fn emit_owned_cleanup(
             "if (emela_current_fiber != NULL) emela_current_fiber->holds = emela_entry_holds;",
         );
     }
+}
+
+pub(in crate::backend::emit) fn emit_const_getter(
+    layouts: &TypeLayouts<'_>,
+    id: FnId,
+    function: &Function,
+    name: &str,
+    initializer: &str,
+    writer: &mut Writer,
+) {
+    let index = u32::from(id.into_raw());
+    let state = format!("emela_const_state_{index}");
+    let cache = format!("emela_const_value_{index}");
+    writer.line(&format!("static EmelaConstState {state};"));
+    let is_void = matches!(layouts.shapes.types[function.ret], Type::Unit | Type::Never);
+    if !is_void {
+        writer.line(&format!("static {} {cache};", layouts.c_type(function.ret)));
+    }
+    writer.begin_block(&signature(
+        layouts,
+        function,
+        name,
+        !function.exported,
+        false,
+        false,
+    ));
+    writer.begin_block(&format!("if ({state}.status == 3)"));
+    writer.line(&format!(
+        "emela_embedded_report_defect({state}.kind, {state}.message, {state}.length);"
+    ));
+    writer.end_block();
+    writer.begin_block(&format!("if ({state}.status == 1)"));
+    let message = format!(
+        "const {} refers to itself while being evaluated",
+        function.name
+    );
+    writer.line(&format!(
+        "emela_const_self_reference(EMELA_DEFECT_PANIC, {}, UINT16_C({}));",
+        c_string_literal(message.as_bytes()),
+        message.len()
+    ));
+    writer.end_block();
+    writer.begin_block(&format!("if ({state}.status == 0)"));
+    let prefix = format!("while evaluating const {}: ", function.name);
+    writer.line(&format!(
+        "EmelaConstContext context = {{ emela_const_current, &{state}, {}, UINT16_C({}) }};",
+        c_string_literal(prefix.as_bytes()),
+        prefix.len()
+    ));
+    writer.line(&format!("{state}.status = 1;"));
+    writer.line("emela_const_current = &context;");
+    if is_void {
+        writer.line(&format!("{initializer}();"));
+    } else {
+        writer.line(&format!("{cache} = {initializer}();"));
+        if layouts.has_borrowed_views(function.ret) {
+            layouts.emit_freeze_value_in_place(function.ret, &cache, writer);
+        }
+    }
+    writer.line("emela_const_current = context.previous;");
+    writer.line(&format!("{state}.status = 2;"));
+    writer.end_block();
+    if is_void {
+        if matches!(layouts.shapes.types[function.ret], Type::Never) {
+            writer.line(
+                "emela_board_defect(EMELA_DEFECT_PANIC, \"Never const returned\", UINT16_C(20));",
+            );
+        } else {
+            writer.ret(None);
+        }
+    } else {
+        layouts.emit_retain_value_expression(function.ret, &cache, writer);
+        writer.ret(Some(&cache));
+    }
+    writer.end_block();
+    writer.blank();
 }
 
 pub(in crate::backend::emit) fn emit_any_ownership_declarations(

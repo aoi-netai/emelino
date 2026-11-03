@@ -45,6 +45,7 @@ use validation::{
 };
 
 mod adapters;
+mod const_runtime;
 pub(in crate::backend::plan) mod task_values;
 
 use crate::contract::auxiliary::{ConstBridgePlan, DerivationPlan};
@@ -143,7 +144,7 @@ pub(super) fn prepare<'a>(
         })
         .map(|(_, f)| f.name.clone())
         .collect();
-    let empty_list_functions = HashSet::new();
+    let empty_list_functions = const_runtime::empty_list_functions(flow);
     let heap_functions: HashSet<_> = flow
         .functions
         .iter()

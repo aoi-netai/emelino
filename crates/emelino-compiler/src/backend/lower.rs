@@ -126,7 +126,7 @@ pub(crate) fn lower_program(
                 const_outcomes.insert(id, Ok(outcome));
             }
             Err(_) => {
-                return Err(unsupported(&function.name, "runtime const initialization"));
+                runtime_consts.insert(id);
             }
         }
     }
