@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "source_revision": "70dfbe6b3da306dfe62ed26fad1ba798890c71a9",
+  "code_trees": {
+    "crates/emelino-cli": "0b487b6f895978d1e848b0eff885fb4e409484f9",
+    "crates/emelino-compiler": "1ac4104ec3590a9d9329378cf729c83ae13e601a"
+  },
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "cargo_lock_sha256": "486bf318f0bb24449728e03cd0499a5b07fa904821d4412bba7dda0e262b6f43",
+  "environment": {
+    "Rust": "1.99.1",
+    "C": "GCC 11.4.0",
+    "host": "Linux x86_64",
+    "C_optimizations": [
+      "-O0",
+      "-O2"
+    ],
+    "test_tools": [
+      "C11 compiler",
+      "sha256sum"
+    ],
+    "optional_filesystem_trace": "strace was attempted but sandbox ptrace is prohibited; no trace-based isolation claim"
+  },
+  "workspace": {
+    "format": {
+      "command": "cargo fmt --all -- --check",
+      "result": "passed"
+    },
+    "clippy": {
+      "command": "cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+      "result": "passed"
+    },
+    "test": {
+      "command": "cargo test --workspace --locked --offline",
+      "result": "passed",
+      "passed": 377,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "binaries_including_empty_and_doctests": 32,
+      "log_sha256": "33616bfda8d592e642e6ddf588d01c7c5324aff3e5f2fc1f81d301f741ee4b17"
+    }
+  },
+  "isolated_checkout": {
+    "method": "git archive of the recorded commit extracted into a new /tmp directory, with an empty separate CARGO_TARGET_DIR; no sibling repositories copied",
+    "cargo_cache": "Existing cache of the pinned official git dependency and crates.io packages was reused with --locked --offline. No network acquisition was tested.",
+    "test": {
+      "command": "cargo test --workspace --locked --offline",
+      "result": "passed",
+      "passed": 377,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "binaries_including_empty_and_doctests": 32,
+      "log_sha256": "55d4045aa26badc2ba8106ce7eb1a3071c6e704be6f0a37b4d06f947c49d25f3"
+    },
+    "source_and_replay": {
+      "source_removed": true,
+      "source_flow": "passed",
+      "saved_replay": "passed",
+      "strict_C_O0": "passed",
+      "strict_C_O2": "passed",
+      "filesystem_trace": "Unavailable: the sandbox rejects ptrace. No traced absence of filesystem access is claimed.",
+      "dependency_audit": "Archive contains no sibling repository; manifests and product-code review found no sibling path dependencies. Cargo build intentionally uses the pinned official dependency cache."
+    },
+    "commands": [
+      "cargo build --locked --offline -p emelino-cli",
+      "emelino flow answer.emel --config config.json --out-dir saved",
+      "remove answer.emel and config.json",
+      "emelino build --input saved/program.backend.json --config saved/program.config.json --out-dir c",
+      "cc -std=c11 -Wall -Wextra -Werror -pedantic -O0/-O2 -I c c/emela_embedded.c host.c; execute host"
+    ]
+  },
+  "interpretation": [
+    "377 Rust test functions are current executions, not the previous 607 tests relabelled. Compiler/backend tests, source runtime observations, artifact-only checks, and known-issue reproductions remain distinct in the coverage ledger.",
+    "Raw IR or explicit post-lowering test seams are not counted as normal source runtime paths.",
+    "UPSTREAM-001 reproductions count as passing regression tests while their original once-only initialization expectations retain upstream_known_issue status.",
+    "Supplemental TestClock frame_bytes is 2048 instead of 1024 (measured frame 1624); honest effect-handler evaluation-order probe uses heap_bytes4096 instead of0. Their reports preserve both old and current settings.",
+    "BSP/startup/linker/toolchain/flash and hardware validation remain future work."
+  ]
+}
