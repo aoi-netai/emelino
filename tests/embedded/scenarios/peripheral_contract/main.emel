@@ -1,0 +1,144 @@
+import Test.Target
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+import Embedded.Interrupt.{Normal}
+
+@external(c, "contract_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "contract_wait")
+fn wait_stage(stage: Int) -> () use {}
+@external(c, "contract_masked_check")
+fn masked_check() -> Int use {}
+@external(c, "contract_in_isr")
+fn in_isr() -> () use {}
+fn on_pin(event: Gpio.GpioEvent) -> () { in_isr() }
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn uart_config(direction: Uart.UartDirection) -> Uart.UartConfig {
+  Uart.UartConfig(115200, Uart.Bits8, Uart.One, Uart.NoParity,
+    direction, Uart.NoFlowControl, Uart.Native)
+}
+fn spi_config() -> Spi.SpiConfig {
+  Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits8, Spi.IdleLow,
+    Spi.FirstEdge, 1000000, Spi.MostSignificantFirst)
+}
+
+pub fn main() -> () {
+  with BoardGpio {
+    with BoardUart {
+      with BoardSpi {
+        with BoardI2c {
+          gpio = use Gpio.Gpio
+          uart = use Uart.Uart
+          spi = use Spi.Spi
+          i2c = use I2c.I2c
+          uart.configure(Target.uart(), uart_config(Uart.Both))
+          spi.configure(Target.spi(), spi_config())
+          i2c.configure(Target.i2c(), I2c.I2cConfig(100000, I2c.Standard))
+          flash = spi.create_device(Spi.SpiDeviceConfig(Target.spi(), spi_config(),
+            Target.chip_select(), Gpio.Low, 1, 1))
+          check(1, i2c.write_read(Target.i2c(), Target.address(), [208], 1, 20) == [85])
+          check(2, spi.transaction(flash, [Spi.Write([159]), Spi.Read(3)], 20) == [[], [32, 187, 23]])
+          check(3, {
+            gpio.configure(Target.uart_tx(), Gpio.Input(Gpio.NoPull))
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          check(4, {
+            gpio.read(Target.spi_sck())
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          check(5, {
+            gpio.write(Target.i2c_sda(), Gpio.Low)
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          check(6, {
+            gpio.configure(Target.chip_select(), Gpio.OutputPushPull(Gpio.NoPull, Gpio.Low))
+            False
+          } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+            Gpio.GpioError(_) -> False })
+          check(7, {
+            spi.create_device(Spi.SpiDeviceConfig(Target.spi(), spi_config(), Target.uart_tx(), Gpio.Low, 0, 0))
+            False
+          } escape {
+            Spi.SpiTransactionError(Some(Spi.GpioFailure(Gpio.ResourceConflict)), None) -> True
+            Spi.SpiTransactionError(_, _) -> False
+          })
+          check(8, masked_check() == 1)
+          gpio.configure(Target.input0(), Gpio.Input(Gpio.Down))
+          gpio.enable_interrupt(Target.input0(), Gpio.Rising, Normal, on_pin)
+          uart.transmit(Target.uart(), [66, 79, 79, 84, 10], 20)
+          wait_stage(1)
+          check(9, uart.receive(Target.uart(), 2, 20) == [65, 66])
+          check(10, {
+            uart.receive(Target.uart(), 1, 1)
+            False
+          } escape { Uart.UartError(Uart.Timeout) -> True
+            Uart.UartError(_) -> False })
+          check(11, {
+            uart.transmit(Target.uart(), [256], 20)
+            False
+          } escape { Uart.UartError(Uart.InvalidArgument) -> True
+            Uart.UartError(_) -> False })
+          check(12, {
+            i2c.write_read(Target.i2c(), Target.address(), [208], 0, 20)
+            False
+          } escape { I2c.I2cError(I2c.InvalidArgument) -> True
+            I2c.I2cError(_) -> False })
+          check(13, {
+            i2c.master_transmit(Target.i2c(), Target.address(), [256], 20)
+            False
+          } escape { I2c.I2cError(I2c.InvalidArgument) -> True
+            I2c.I2cError(_) -> False })
+          check(14, {
+            spi.transmit(Target.spi(), [256], 20)
+            False
+          } escape { Spi.SpiError(Spi.InvalidArgument) -> True
+            Spi.SpiError(_) -> False })
+          uart.enable_interrupt(Target.uart(), Normal, True)
+          uart.set_receive_mode(Target.uart(), Uart.InterruptReceive)
+          uart.transmit(Target.uart(), [73, 82, 81, 10], 20)
+          wait_stage(2)
+          check(15, uart.receive_some(Target.uart(), 8, 20) == [67, 68, 69])
+          i2c.enable_interrupt(Target.i2c(), Normal)
+          check(16, i2c.write_read(Target.i2c(), Target.address(), [208], 1, 20) == [85])
+          check(17, spi.transaction(flash, [Spi.Write([159]), Spi.Read(3)], 20) == [[], [32, 187, 23]])
+          wait_stage(3)
+          check(18, uart.discard_input(Target.uart(), 1) == 1)
+          check(19, uart.receive_some(Target.uart(), 8, 20) == [71])
+          check(20, uart.discard_input(Target.uart(), 4) == 0)
+          uart.disable_interrupt(Target.uart())
+          uart.set_receive_mode(Target.uart(), Uart.Polling)
+          gpio.disable_interrupt(Target.input0())
+          uart.configure(Target.uart(), uart_config(Uart.Transmit))
+          gpio.configure(Target.uart_rx(), Gpio.OutputPushPull(Gpio.NoPull, Gpio.High))
+          check(21, {
+            uart.configure(Target.uart(), uart_config(Uart.Both))
+            False
+          } escape { Uart.UartError(Uart.ResourceConflict) -> True
+            Uart.UartError(_) -> False })
+          uart.transmit(Target.uart(), [79, 75, 10], 20)
+          check(22, {
+            uart.receive(Target.uart(), 1, 2)
+            False
+          } escape { Uart.UartError(Uart.InvalidState) -> True
+            Uart.UartError(_) -> False })
+          i2c.recover(Target.i2c(), 20)
+          spi.recover(Target.spi())
+          check(23, i2c.write_read(Target.i2c(), Target.address(), [208], 1, 20) == [85])
+          check(24, spi.transaction(flash, [Spi.Write([159]), Spi.Read(3)], 20) == [[], [32, 187, 23]])
+        }
+      }
+    }
+  } escape {
+    Gpio.GpioError(_) -> raw_check(96, 0)
+    Uart.UartError(_) -> raw_check(97, 0)
+    Spi.SpiError(_) -> raw_check(98, 0)
+    Spi.SpiTransactionError(_, _) -> raw_check(99, 0)
+    I2c.I2cError(_) -> raw_check(100, 0)
+  }
+}

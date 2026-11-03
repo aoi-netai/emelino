@@ -1,0 +1,112 @@
+import Test.Target
+import Embedded.Board.{BoardGpio}
+import Embedded.Gpio
+import Embedded.Interrupt.{Normal, High}
+
+@external(c, "callbacks_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "callbacks_record")
+fn record(tag: Int, pin: Int, level: Int) -> () use {}
+@external(c, "callbacks_wait")
+fn wait_stage(stage: Int) -> () use {}
+@external(c, "callbacks_seed")
+fn seed() -> Int use {}
+
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn is_high(state: Gpio.PinState) -> Bool {
+  state match { Gpio.High -> True
+    Gpio.Low -> False }
+}
+fn received(tag: Int, event: Gpio.GpioEvent) -> () {
+  event match {
+    Gpio.GpioEvent(Gpio.GpioPin(pin), level) -> {
+      record(tag, pin, level match { Gpio.Low -> 0
+        Gpio.High -> 1 })
+    }
+  }
+  with BoardGpio { (use Gpio.Gpio).toggle(Target.output()) }
+  escape { Gpio.GpioError(_) -> raw_check(90, 0) }
+}
+fn original(event: Gpio.GpioEvent) -> () { received(10, event) }
+fn replacement(event: Gpio.GpioEvent) -> () { received(30, event) }
+fn install_capture(pin: Gpio.GpioPin) -> () fails Gpio.GpioError {
+  with BoardGpio {
+    tag = seed()
+    (use Gpio.Gpio).enable_interrupt(pin, Gpio.Rising, Normal,
+      fn(event: Gpio.GpioEvent) { received(tag, event) })
+  }
+}
+fn configure_input(pin: Gpio.GpioPin) -> () fails Gpio.GpioError use Gpio.Gpio {
+  (use Gpio.Gpio).configure(pin, Gpio.Input(Gpio.Down))
+}
+fn install(pin: Gpio.GpioPin) -> () fails Gpio.GpioError use Gpio.Gpio {
+  configure_input(pin)
+  (use Gpio.Gpio).enable_interrupt(pin, Gpio.Rising, Normal, original)
+}
+
+pub fn main() -> () {
+  with BoardGpio {
+    gpio = use Gpio.Gpio
+    gpio.configure(Target.output(), Gpio.OutputPushPull(Gpio.NoPull, Gpio.Low))
+    check(1, !is_high(gpio.read(Target.output())))
+    gpio.write(Target.output(), Gpio.High)
+    check(2, is_high(gpio.read(Target.output())))
+    gpio.toggle(Target.output())
+    check(3, !is_high(gpio.read(Target.output())))
+    configure_input(Target.input0())
+    configure_input(Target.input1())
+    gpio.enable_interrupt(Target.input0(), Gpio.Both, Normal, original)
+    install_capture(Target.input1())
+    check(4, {
+      gpio.configure(Target.input0(), Gpio.Input(Gpio.Up))
+      False
+    } escape { Gpio.GpioError(Gpio.Busy) -> True
+      Gpio.GpioError(_) -> False })
+    check(5, {
+      gpio.enable_interrupt(Target.input0(), Gpio.Both, High, replacement)
+      False
+    } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+      Gpio.GpioError(_) -> False })
+    install(Target.input2())
+    install(Target.input3())
+    install(Target.input4())
+    install(Target.input5())
+    install(Target.input6())
+    install(Target.input7())
+    configure_input(Target.input8())
+    check(6, {
+      gpio.enable_interrupt(Target.input8(), Gpio.Rising, Normal, original)
+      False
+    } escape { Gpio.GpioError(Gpio.ResourceConflict) -> True
+      Gpio.GpioError(_) -> False })
+    check(7, {
+      gpio.write(Target.input0(), Gpio.High)
+      False
+    } escape { Gpio.GpioError(Gpio.InvalidState) -> True
+      Gpio.GpioError(_) -> False })
+    check(8, {
+      gpio.configure(Gpio.GpioPin(64), Gpio.Input(Gpio.NoPull))
+      False
+    } escape { Gpio.GpioError(Gpio.InvalidArgument) -> True
+      Gpio.GpioError(_) -> False })
+    wait_stage(1)
+    gpio.enable_interrupt(Target.input0(), Gpio.Falling, Normal, replacement)
+    gpio.disable_interrupt(Target.input1())
+    # A freed hardware slot must be reusable by a different pin.
+    gpio.enable_interrupt(Target.input8(), Gpio.Rising, Normal, original)
+    check(9, True)
+    wait_stage(2)
+    gpio.disable_interrupt(Target.input0())
+    gpio.disable_interrupt(Target.input1())
+    gpio.disable_interrupt(Target.input2())
+    gpio.disable_interrupt(Target.input3())
+    gpio.disable_interrupt(Target.input4())
+    gpio.disable_interrupt(Target.input5())
+    gpio.disable_interrupt(Target.input6())
+    gpio.disable_interrupt(Target.input7())
+    gpio.disable_interrupt(Target.input8())
+    gpio.disable_interrupt(Target.input8())
+    check(10, True)
+    wait_stage(3)
+  } escape { Gpio.GpioError(_) -> raw_check(99, 0) }
+}

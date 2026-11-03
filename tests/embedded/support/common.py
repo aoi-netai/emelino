@@ -69,11 +69,12 @@ def load_target(board, path=None):
 def target_source(settings):
     """Generate a separate configuration module; the scenario source is unchanged."""
     imports, lines = [], []
-    for kind, type_name in (("i2c", "I2c"), ("spi", "Spi")):
+    for kind, type_name in (("i2c", "I2c"), ("spi", "Spi"), ("uart", "Uart")):
         if kind not in settings:
             continue
         bus = settings[kind]
-        if type(bus) is not int or not 0 <= bus <= 7:
+        lower, upper = {"uart": (0, 7), "spi": (1, 6), "i2c": (1, 3)}[kind]
+        if type(bus) is not int or not lower <= bus <= upper:
             raise ValueError("invalid test bus ID")
         imports.append(f"import Embedded.{type_name}")
         lines.append(f"pub fn {kind}() -> {type_name}.{type_name}Id {{ {type_name}.{type_name}{bus} }}")
@@ -83,6 +84,17 @@ def target_source(settings):
             raise ValueError("invalid test chip-select pin")
         imports.append("import Embedded.Gpio")
         lines.append(f"pub fn chip_select() -> Gpio.GpioPin {{ Gpio.GpioPin({pin}) }}")
+    pins = settings.get("pins", {})
+    if not isinstance(pins, dict):
+        raise ValueError("invalid test pin bindings")
+    if pins and "import Embedded.Gpio" not in imports:
+        imports.append("import Embedded.Gpio")
+    for name, pin in pins.items():
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", name) or type(pin) is not int or not 0 <= pin <= 65535:
+            raise ValueError("invalid test pin binding")
+        if name in {"chip_select", "spi", "i2c", "uart", "address", "missing_address"}:
+            raise ValueError("reserved test binding name")
+        lines.append(f"pub fn {name}() -> Gpio.GpioPin {{ Gpio.GpioPin({pin}) }}")
     for key in ("address", "missing_address"):
         if key in settings:
             address = settings[key]
@@ -131,6 +143,12 @@ def build_firmware(args, report, scenario):
         (output / f"build-{index}.log").write_text(log)
         if status:
             raise ValueError("firmware generation failed:\n" + log)
+        if index == 0:
+            # C probes use the same logical bus selection as their Emela fixture.
+            ids = {"UART": settings.get("uart", 0), "SPI": settings.get("spi", 1) - 1,
+                   "I2C": settings.get("i2c", 1) - 1}
+            (generated / "test_target.h").write_text("\n".join(
+                f"#define EMELINO_TEST_{kind}_ID {number}" for kind, number in ids.items()) + "\n")
     manifest = json.loads((firmware / "firmware.json").read_text())
     symbols = json.loads((firmware / "symbols.json").read_text())
     report.update({"board": manifest["board"], "port": args.target["port"],

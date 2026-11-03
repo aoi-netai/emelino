@@ -59,13 +59,17 @@ def test(args, report):
             started = True
         if "[WARNING]" not in line:
             continue
-        allowed = not started and any(line.endswith(text) for text in (
+        port_warning = getattr(args.platform, "known_model_warning", lambda line, settings: False)
+        allowed = port_warning(line, settings) or (not started and any(line.endswith(text) for text in (
             f"[WARNING] {bus}: Slave mode is not supported",
-            f"[WARNING] {bus}.serialFlash: Transmission finished in the unexpected state: RecognizeOperation"))
+            f"[WARNING] {bus}.serialFlash: Transmission finished in the unexpected state: RecognizeOperation")))
         if not allowed:
             raise ValueError("unexpected model warning: " + line)
         known.append(line)
     metrics = {name: value(log, "FLASH_FINAL_" + name) for name in names}
+    validate_configuration = getattr(args.platform, "validate_mt25q_configuration", None)
+    if validate_configuration:
+        report.update(validate_configuration(model, settings))
     expected = {"emela_board_completed": 1, "emela_board_failures": 0, "emela_board_last_defect": 0,
                 "emela_board_boot_initialized": 1, "spi_device_test_checks": 14,
                 "spi_device_test_failures": 0, "spi_device_test_last_failure": 0}
@@ -101,4 +105,4 @@ def test(args, report):
         raise ValueError(f"command/CS trace mismatch: {frames}, CS {cs}")
     report.update({"status": "passed", "metrics": metrics, "command_frames": frames,
                    "chip_select_writes": cs, "after_program": "00 55 AA FF", "after_erase": "FF FF FF FF",
-                   "known_startup_warnings": known})
+                   "known_model_warnings": known})
