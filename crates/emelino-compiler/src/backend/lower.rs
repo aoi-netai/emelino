@@ -12,9 +12,12 @@ mod effects;
 mod error_types;
 mod exports;
 mod failures;
+mod fiber_failures;
 mod fibers;
 mod function_abi;
 mod handler;
+mod scope_abi;
+mod suspend;
 mod types;
 mod values;
 use values::value_type;
@@ -48,7 +51,8 @@ pub(crate) fn lower_program(
     effects::normalize(&mut program)?;
     types::normalize_catalog(&mut program)?;
     error_types::normalize(&mut program)?;
-
+    scope_abi::normalize(&mut program)?;
+    scope_abi::normalize_calls(&mut program)?;
     function_abi::normalize(&mut program);
     let mut symbols = HashSet::new();
     for (id, function) in program.functions.iter() {
@@ -80,9 +84,11 @@ pub(crate) fn lower_program(
     }
     exports::normalize(&mut program);
     let mut const_groups: Vec<crate::contract::lowered::ConstGroup> = Vec::new();
-    let (mut program, closures) = closure::lower(&program, options)?;
-
-    let deferred_pool = false;
+    let (mut program, mut closures) = closure::lower(&program, options)?;
+    fiber_failures::erase(&mut program, &mut closures, options)?;
+    suspend::normalize_handlers(&mut program);
+    fibers::normalize_values(&mut program);
+    let deferred_pool = fibers::needs_deferred_pool(&program, &closures, options);
     handler::lower(&mut program, options);
     let mut const_outcomes: HashMap<
         FnId,
@@ -194,7 +200,7 @@ pub(crate) fn lower_program(
         .collect();
     let emitted_functions =
         closure::runtime_reachable_without_initializers(&program, options, &resolved_constants);
-    let has_scopes = false;
+    let has_scopes = fibers::runtime_metadata(&program, &emitted_functions);
     program.has_scopes |= has_scopes;
     runtime_consts.retain(|id| emitted_functions.contains(id));
     const_outcomes.retain(|id, _| emitted_functions.contains(id));
@@ -212,7 +218,7 @@ pub(crate) fn lower_program(
     program
         .const_function_groups
         .retain(|group| group.len() > 1);
-    let suspensions = HashMap::new();
+    let suspensions = suspend::prepare(&program);
     Ok(LoweredModule {
         lowered: program,
         suspensions,

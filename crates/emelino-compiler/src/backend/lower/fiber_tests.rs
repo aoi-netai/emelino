@@ -1,7 +1,30 @@
-#[path = "fiber_unit_tests.rs"]
-mod unit;
 use super::*;
 
+#[path = "p7_fiber_edge_tests.rs"]
+mod p7_edges;
+#[path = "fiber_unit_tests.rs"]
+mod unit;
+
+fn function_type(p: &mut Program, params: Vec<TypeId>, ret: TypeId, fails: bool) -> TypeId {
+    p.core.types.intern(Type::Fn(FnType {
+        params,
+        ret,
+        fails,
+        suspends: true,
+        ev: false,
+        sets: None,
+    }))
+}
+fn handle_type(p: &mut Program, name: &str, value: TypeId) -> TypeId {
+    let id = p.core.enums.alloc(EnumDef {
+        name: name.into(),
+        params: 1,
+        variants: vec![],
+        error: false,
+        external: true,
+    });
+    p.core.types.intern(Type::Enum(id, vec![value]))
+}
 fn audit_heap(output: &mut Output) {
     output.files.iter_mut().find(|file| file.path == "emela_embedded.c").unwrap().contents.push_str(
         "\nint test_heap_empty(void){for(unsigned char*p=emela_heap_storage;emela_heap_initialized&&p<emela_heap_end();){emela_heap_block*b=(emela_heap_block*)(void*)p;if(!b->is_free)return 0;p+=b->size;}return 1;}\n");
@@ -13,6 +36,34 @@ fn execute_answer(mut output: Output) {
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint test_heap_empty(void);\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){for(int i=0;i<1000;i++){int32_t result=0;EmelaFiber f=answer_start(&result);while(!emela_fiber_done(f))if(!emela_scheduler_run(1))return 1;emela_fiber_release(f);if(result!=42||!test_heap_empty())return 2;}return 0;}\n",
         0,
     );
+}
+fn scope_function(p: &mut Program, f: &mut Function, scope_body: SeqId, scope: VarId) {
+    let ty = function_type(p, vec![TypeId::FIBER_SCOPE], TypeId::INT, false);
+    let body = aggregate_variable(f, ty);
+    let result = variable(f, TypeId::INT);
+    let make = binding(
+        f,
+        Some(body),
+        Value::Closure(Box::new(Closure {
+            params: vec![scope],
+            captures: vec![],
+            body: scope_body,
+            suspends: true,
+        })),
+    );
+    let enter = binding(
+        f,
+        Some(result),
+        Value::Fiber {
+            op: FiberOp::Scope { fails: false },
+            args: vec![body.into()],
+            on_fail: None,
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![make, enter],
+        term: Term::Return(Some(result.into())),
+    };
 }
 
 fn check_bool(f: &mut Function, value: VarId, expected: bool) -> StmtId {
@@ -29,6 +80,53 @@ fn check_bool(f: &mut Function, value: VarId, expected: bool) -> StmtId {
         cond: value.into(),
         then: if expected { good } else { bad },
         else_: if expected { bad } else { good },
+    })
+}
+
+fn check_option(f: &mut Function, value: VarId, option: EnumId, expected: Option<i32>) -> StmtId {
+    let bad = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Defect(Const::String("unexpected Deferred poll".into()).into()),
+    });
+    let mut stmts = vec![];
+    if let Some(expected) = expected {
+        let payload = variable(f, TypeId::INT);
+        let equal = variable(f, TypeId::BOOL);
+        stmts.push(binding(
+            f,
+            Some(payload),
+            Value::Field {
+                base: value,
+                ctor: CtorRef {
+                    enum_id: option,
+                    variant: 0,
+                },
+                index: 0,
+            },
+        ));
+        stmts.push(binding(
+            f,
+            Some(equal),
+            Value::Prim {
+                op: PrimOp::Eq,
+                ty: PrimTy::I32,
+                args: vec![payload.into(), Const::Int(expected).into()],
+            },
+        ));
+        stmts.push(check_bool(f, equal, true));
+    }
+    let good = f.seqs.alloc(Seq {
+        stmts,
+        term: Term::Yield(None),
+    });
+    f.stmts.alloc(Stmt::Switch {
+        dst: None,
+        on: SwitchOn::Tag(value),
+        cases: vec![Case {
+            key: CaseKey::Variant(if expected.is_some() { 0 } else { 1 }),
+            body: good,
+        }],
+        default: Some(bad),
     })
 }
 
@@ -325,4 +423,32 @@ fn attempts_preserve_success_and_typed_cause_failures_across_raise() {
             }
         }
     }
+}
+
+fn wait_task(p: &mut Program) -> FnId {
+    let mut f = Function::new("wait");
+    f.suspends = true;
+    f.ret = TypeId::UNIT;
+    let argument = variable(&mut f, TypeId::INT);
+    f.params.push(argument);
+    f.external = Some(External {
+        bindings: vec![ExternalBinding {
+            target: "c".into(),
+            host: HostRef::Global("wait".into()),
+        }],
+    });
+    p.functions.alloc(f)
+}
+
+fn wait_at(f: &mut Function, wait: FnId, marker: i32) -> StmtId {
+    binding(
+        f,
+        None,
+        Value::Call {
+            callee: Callee::Direct(wait),
+            args: vec![Const::Int(marker).into()],
+            suspends: true,
+            on_fail: None,
+        },
+    )
 }

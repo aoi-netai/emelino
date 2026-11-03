@@ -2,6 +2,16 @@ use super::*;
 use crate::ExternalResult;
 use crate::contract::bindings::{ExternalBindingPlan as Binding, ExternalBindings as Bindings};
 
+pub(super) fn validate_adapter_symbol(function: &Function, symbol: &str) -> Result<(), Vec<Error>> {
+    if !is_c_identifier(symbol) || c::is_reserved_alias(symbol) {
+        return Err(unsupported(
+            &function.name,
+            &format!("external adapter symbol `{symbol}` is invalid or reserved"),
+        ));
+    }
+    Ok(())
+}
+
 fn symbol(function: &Function) -> Result<String, Vec<Error>> {
     let binding = function
         .external
@@ -135,7 +145,24 @@ pub(in crate::backend::plan) fn resolve(
         }
         bindings.insert(id, binding);
     }
-
+    for (_id, f) in flow
+        .functions
+        .iter()
+        .filter(|(id, f)| emitted.contains(id) && f.external.is_some() && f.suspends)
+    {
+        let symbol = suspend::external_symbol(f, options)?;
+        let mut abi = vec!["void".into(), "EmelaTask".into()];
+        abi.extend(f.params.iter().map(|&p| layouts.c_type(f.vars[p].ty)));
+        match declarations.insert(symbol, (abi.clone(), ExternalResult::Owned)) {
+            Some(previous) if previous != (abi, ExternalResult::Owned) => {
+                return Err(unsupported(
+                    &f.name,
+                    "external symbol is instantiated with incompatible synchronous and task signatures",
+                ));
+            }
+            _ => {}
+        }
+    }
     layouts.runtime.managed_error_payloads = layouts
         .runtime
         .error_types

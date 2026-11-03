@@ -29,9 +29,9 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let names = &plan.names;
     let public_names = &plan.public_names;
     let runtime = &plan.runtime;
-    let _has_scheduler = plan.has_scheduler;
+    let has_scheduler = plan.has_scheduler;
     let has_tasks = plan.has_tasks;
-    let _task_value_types = &plan.task_value_types;
+    let task_value_types = &plan.task_value_types;
     let heap_required = !heap_functions.is_empty();
     let main_entry = plan.main_entry.map(|id| (id, &flow.functions[id]));
     let target_headers: Vec<GeneratedFile> = Vec::new();
@@ -41,9 +41,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         layouts,
         emitted_functions,
 
+        names,
         public_names,
         string_output_functions,
-
+        task_value_types,
+        has_scheduler,
+        has_tasks,
+        has_failing_tasks: plan.has_failing_tasks,
         heap_required,
         entry_declaration: main_entry.map(|_| "void emela_embedded_start(void);"),
     });
@@ -68,6 +72,36 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     c::emit_unused_attribute(&mut source);
     source.blank();
 
+    if has_scheduler {
+        if !task_value_types.is_empty() || plan.has_failing_tasks {
+            source.line("#define EMELA_TASK_CONTEXT_RUNTIME 1");
+        }
+        if !task_value_types.is_empty() {
+            task_values::emit_union(task_value_types, &mut source);
+        }
+        if plan.has_failing_tasks {
+            source.line("#define EMELA_TASK_FAILURE_RUNTIME 1");
+        }
+        suspend::emit_runtime(
+            &mut source,
+            options,
+            has_tasks,
+            layouts.runtime.has_resumes,
+            layouts.runtime.has_unwind,
+            layouts.runtime.has_scopes,
+            layouts.runtime.deferred_pool,
+            layouts.runtime.has_error_abi,
+        );
+    }
+    if layouts.runtime.has_scopes {
+        if layouts.has_child_waits() {
+            source.line("#define EMELA_CHILD_WAIT_RUNTIME");
+        }
+        source.line(include_str!("runtime/scope_types.c"));
+    }
+    if layouts.runtime.deferred_pool {
+        source.line(include_str!("runtime/deferred_types.c"));
+    }
     cause::emit_types(layouts, &mut source);
     error_runtime::emit_types(layouts, &mut source);
     emit_closure_environment_declarations(layouts, closures, &mut source);
@@ -87,7 +121,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         owned::emit_helpers(layouts, &mut source);
         error_runtime::emit_ownership(layouts, true, &mut source);
         emit_any_ownership(layouts, true, &mut source);
-
+        if layouts.runtime.deferred_pool {
+            source.line(&format!(
+                "#define EMELA_DEFERRED_KIND UINT32_C({})",
+                layouts.deferred_kind()
+            ));
+            source.line(include_str!("runtime/deferred.c"));
+        }
         layouts.emit_heap_destroy_switch(&closures.environments, &mut source);
         layouts.emit_public_release_helpers(&mut source);
         layouts.emit_public_function_ownership_helpers(&mut source);
@@ -106,12 +146,29 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         layouts.emit_noheap_ownership_stubs(&mut source);
         source.blank();
     }
-
+    if plan.has_failing_tasks {
+        suspend::emit_task_failure_ownership(layouts, &mut source);
+    }
+    task_values::emit_dispatch(layouts, task_value_types, &mut source);
     cause::emit_runtime(layouts, &mut source);
-
+    if layouts.runtime.has_resumes {
+        suspend::emit_resume_runtime(layouts, &mut source);
+    }
+    if layouts.runtime.has_unwind {
+        source.line(include_str!("runtime/unwind.c"));
+    }
+    if layouts.runtime.has_scopes {
+        if layouts.has_child_waits() {
+            source.line(include_str!("runtime/child_wait.c"));
+            child::emit_runtime(layouts, &mut source)?;
+        }
+        suspend::emit_scope_runtime(layouts, &mut source)?;
+    }
     cause::emit_attempts(layouts, &mut source)?;
     cause::emit_infallible_raise(layouts, &mut source);
-
+    if layouts.runtime.deferred_pool {
+        deferred::emit_runtime(layouts, &mut source)?;
+    }
     runtime.emit_helpers(&mut source);
     derived_plan.emit(layouts, &mut source);
 
@@ -122,7 +179,15 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     {
         let name = &names[&id];
         let takes_string_output = string_output_functions.contains(&id);
-        if function.external.is_some() {
+        if function.suspends {
+            suspend::emit_declarations(
+                layouts,
+                function,
+                name,
+                closures.functions.get(&id).copied(),
+                &mut source,
+            )?;
+        } else if function.external.is_some() {
             let prefix = if external_bindings[&id].adapted {
                 ""
             } else {
@@ -194,6 +259,23 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         .iter()
         .filter(|(id, _)| emitted_functions.contains(id))
     {
+        if function.suspends {
+            suspend::emit_function(
+                flow,
+                layouts,
+                id,
+                function,
+                &names[&id],
+                names,
+                string_output_functions,
+                closures.functions.get(&id).copied(),
+                options,
+                &mut source,
+                plan.suspensions.get(&id),
+            )?;
+            continue;
+        }
+
         if function.external.is_some() {
             if function.body.is_some() {
                 return Err(vec![Error {
@@ -424,13 +506,18 @@ mod features;
 use crate::writer::Writer;
 use crate::{GeneratedFile, Output};
 use features::builtins::string_split::emit_string_split_push;
+use features::values::coerce::emit_coerce;
 mod c;
 mod cause;
+mod child;
+mod deferred;
 mod error_runtime;
 mod numeric_runtime;
 mod owned;
 mod platform;
 mod string_runtime;
+mod suspend;
+mod task_values;
 use crate::contract::operations as analysis;
 use c::*;
 use layouts::LayoutEmission;

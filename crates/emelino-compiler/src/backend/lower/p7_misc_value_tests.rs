@@ -216,6 +216,66 @@ fn debug_print_passes_the_original_string_view_to_the_board_hook() {
 }
 
 #[test]
+fn unreachable_terms_raise_the_native_or_scheduler_defect_when_reached() {
+    for suspends in [false, true] {
+        let mut f = simple();
+        f.ret = TypeId::NEVER;
+        f.suspends = suspends;
+        f.seqs[f.body.unwrap()].term = Term::Unreachable;
+        let output =
+            crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+        let (message, call) = if suspends {
+            (
+                "invalid scheduler state",
+                "(void)answer_start();while(emela_scheduler_run(1)){}",
+            )
+        } else {
+            ("unreachable code", "answer();")
+        };
+        let harness = format!(
+            "#include <stdlib.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nuint32_t emela_board_event_lock(void){{return 0;}}\nvoid emela_board_event_unlock(uint32_t n){{(void)n;}}\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){{exit(k==EMELA_DEFECT_ASSERT&&n=={}&&!memcmp(m,\"{message}\",n)?0:2);}}\nint main(void){{{call}return 1;}}\n",
+            message.len()
+        );
+        execute(&output, &harness, 0);
+    }
+}
+
+#[test]
+fn discarded_integer_division_and_remainder_keep_defects_in_native_and_suspend_callers() {
+    for suspends in [false, true] {
+        for ty in [PrimTy::I32, PrimTy::I64] {
+            for op in [PrimOp::Div, PrimOp::Rem] {
+                let mut f = simple();
+                f.ret = TypeId::UNIT;
+                f.suspends = suspends;
+                let args = if ty == PrimTy::I32 {
+                    vec![Const::Int(7).into(), Const::Int(0).into()]
+                } else {
+                    vec![Const::Int64(7).into(), Const::Int64(0).into()]
+                };
+                let operation = binding(&mut f, None, Value::Prim { op, ty, args });
+                f.seqs[f.body.unwrap()] = Seq {
+                    stmts: vec![operation],
+                    term: Term::Return(None),
+                };
+                let output =
+                    crate::backend::compile_saved_program(program(vec![f]), &Options::default())
+                        .unwrap();
+                let call = if suspends {
+                    "(void)answer_start();while(emela_scheduler_run(1)){}"
+                } else {
+                    "answer();"
+                };
+                let harness = format!(
+                    "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nuint32_t emela_board_event_lock(void){{return 0;}}\nvoid emela_board_event_unlock(uint32_t n){{(void)n;}}\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){{(void)m;(void)n;exit(k==EMELA_DEFECT_DIVISION_BY_ZERO?0:2);}}\nint main(void){{{call}return 1;}}\n"
+                );
+                execute(&output, &harness, 0);
+            }
+        }
+    }
+}
+
+#[test]
 fn derived_bytes_equality_and_display_keep_unsigned_values_at_the_c_boundary() {
     let mut p = program(vec![]);
     let mut eq = Function::new("bytes_eq");
@@ -284,6 +344,40 @@ int main(void){for(int i=0;i<1000;i++){uint8_t a[]={0,128,255},b[]={0,128,254};E
 "#,
         0,
     );
+}
+
+#[test]
+fn dynamic_defect_preserves_an_offset_string_view_and_embedded_nul() {
+    for suspends in [false, true] {
+        let mut f = simple();
+        f.ret = TypeId::NEVER;
+        f.suspends = suspends;
+        let text = aggregate_variable(&mut f, TypeId::STRING);
+        f.params.push(text);
+        f.seqs[f.body.unwrap()].term = Term::Defect(text.into());
+        let options = if suspends {
+            Options::default().with_heap_bytes(2048)
+        } else {
+            Options::default()
+        };
+        let output = crate::backend::compile_saved_program(program(vec![f]), &options).unwrap();
+        let call = if suspends {
+            "(void)answer_start((EmelaString){data+1,3,NULL});while(emela_scheduler_run(1)){}"
+        } else {
+            "answer((EmelaString){data+1,3,NULL});"
+        };
+        let harness = r#"
+#include <stdlib.h>
+#include <string.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+uint32_t emela_board_event_lock(void){return 0;}
+void emela_board_event_unlock(uint32_t n){(void)n;}
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){const char expected[]={'a',0,'b'};exit(k==EMELA_DEFECT_PANIC&&n==3&&!memcmp(m,expected,3)?0:2);}
+int main(void){const char data[]={'x','a',0,'b','y'};{call}return 1;}
+"#.replace("{call}",call);
+        execute(&output, &harness, 0);
+    }
 }
 
 #[test]

@@ -134,3 +134,55 @@ pub(in crate::backend::emit) fn emit(
         OnFail::Handle { .. } => handle_edge(context, edge, error_name),
     }
 }
+
+pub(in crate::backend::emit) fn emit_check(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let writer = &mut *context.writer;
+    let Node::CheckError {
+        normal,
+        failed,
+        slot,
+    } = node
+    else {
+        unreachable!("frame state dispatch")
+    };
+    {
+        writer . line (& format ! ("if (frame->call_error.tag == 0) base->pc = {normal}; else {{ emela_error_clear(&frame->pending_error[{slot}]); frame->pending_error[{slot}] = frame->call_error; frame->call_error = (EmelaError){{0}}; base->pc = {failed}; }} continue;")) ;
+    };
+    Ok(())
+}
+
+pub(in crate::backend::emit) fn emit_catch(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let Node::Catch(dst, next, slot) = node else {
+        unreachable!("frame state dispatch")
+    };
+    {
+        if !matches!(layouts.shapes.types[function.vars[*dst].ty], Type::Any) {
+            return Err(invalid_flow_ir(
+                &function.name,
+                "failure Block destination is not Any",
+            ));
+        }
+        emit_release_if_owned(layouts, function, *dst, writer);
+        writer.assign(
+            &variable_name(*dst),
+            &format!("frame->pending_error[{slot}]"),
+        );
+        writer.line(&format!(
+            "frame->pending_error[{slot}] = (EmelaError){{0}};"
+        ));
+        if layouts.is_managed_value(function.vars[*dst].ty) {
+            writer.assign(&owned_variable_name(*dst), "1");
+        }
+        writer.line(&format!("base->pc = {next}; continue;"));
+    };
+    Ok(())
+}

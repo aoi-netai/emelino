@@ -39,3 +39,20 @@ pub(in crate::backend::emit) fn emit(
         crate::contract::ir::FiberOp::CauseRaise => cause_raise::emit(context, dst, value),
     }
 }
+
+pub(in crate::backend::emit) fn emit_waiting(
+    context: &mut SuspendContext<'_, '_>,
+    _statement: &Stmt,
+    op: crate::contract::ir::FiberOp,
+) -> Result<(), Vec<Error>> {
+    match op {
+        crate::contract::ir::FiberOp::Join => Err(unsupported(&context.function.name, "join")),
+        crate::contract::ir::FiberOp::Await { .. } => {
+            Err(unsupported(&context.function.name, "await"))
+        }
+        crate::contract::ir::FiberOp::Interrupt => {
+            Err(unsupported(&context.function.name, "interrupt"))
+        }
+        _ => unreachable!("waiting Fiber selector"),
+    }
+}

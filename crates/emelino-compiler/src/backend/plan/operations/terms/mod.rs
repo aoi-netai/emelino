@@ -1,5 +1,23 @@
 use super::*;
 
+pub(in crate::backend::plan) fn lower(
+    context: &mut LoweringContext<'_>,
+    term: &Term,
+    dst: Option<VarId>,
+    next: usize,
+) -> Result<usize, Vec<Error>> {
+    match term {
+        Term::Yield(..) => r#yield::lower(context, term, dst, next),
+        Term::Return(..) => return_::lower(context, term, dst, next),
+        Term::Fail(..) => fail::lower(context, term, dst, next),
+        Term::Break { .. } => r#break::lower(context, term, dst, next),
+        Term::Recur(..) => recur::lower(context, term, dst, next),
+        Term::Defect(..) => defect::lower(context, term, dst, next),
+        Term::Unwind => unwind::lower(context, term, dst, next),
+        Term::Unreachable => unreachable::lower(context, term, dst, next),
+    }
+}
+
 pub(in crate::backend::plan) fn require_runtime(
     flow: &crate::contract::ir::Program,
     function: &Function,

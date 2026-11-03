@@ -1,5 +1,23 @@
 use super::*;
 
+pub(in crate::backend::plan) fn lower(
+    context: &mut LoweringContext<'_>,
+    id: StmtId,
+    statement: &Stmt,
+    next: usize,
+) -> Result<usize, Vec<Error>> {
+    match statement {
+        Stmt::Let { .. } => let_::lower(context, id, statement, next),
+        Stmt::If { .. } => if_::lower(context, id, statement, next),
+        Stmt::Switch { .. } => switch::lower(context, id, statement, next),
+        Stmt::Loop { .. } => loop_::lower(context, id, statement, next),
+        Stmt::Block { .. } => block::lower(context, id, statement, next),
+        Stmt::Protect { .. } => protect::lower(context, id, statement, next),
+        Stmt::Dup(..) => dup::lower(context, id, statement, next),
+        Stmt::Drop(..) => drop::lower(context, id, statement, next),
+    }
+}
+
 pub(in crate::backend::plan) fn require_runtime(
     statement: &Stmt,
     active: bool,

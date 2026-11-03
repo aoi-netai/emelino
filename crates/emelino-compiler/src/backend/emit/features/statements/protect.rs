@@ -34,6 +34,36 @@ pub(in crate::backend::emit) fn emit(
     }
 }
 
+pub(in crate::backend::emit) fn emit_enter(
+    writer: &mut Writer,
+    cleanup: usize,
+    body: usize,
+    max_depth: usize,
+) {
+    {
+        writer.line(&format!(
+            "if (frame->guard_depth >= {}) emela_scheduler_invalid();",
+            max_depth
+        ));
+        writer.line(&format!(
+            "frame->guards[frame->guard_depth++] = (emela_protection){{.cleanup = {cleanup}}};"
+        ));
+        writer.line(&format!("base->pc = {body}; continue;"));
+    }
+}
+pub(in crate::backend::emit) fn emit_leave(writer: &mut Writer, keep: usize, next: usize) {
+    {
+        writer . line (& format ! ("emela_protection_leave(fiber, frame->guards, frame->guard_depth, {keep}, {next}, &base->pc);")) ;
+        writer.line("continue;");
+    }
+}
+pub(in crate::backend::emit) fn emit_finish(writer: &mut Writer) {
+    {
+        writer . line ("if (!emela_protection_finish(fiber, frame->guards, &frame->guard_depth, &base->pc)) return;") ;
+        writer.line("continue;");
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(in crate::backend::emit) fn emit_protect(
     layouts: &TypeLayouts<'_>,

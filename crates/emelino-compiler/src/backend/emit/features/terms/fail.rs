@@ -66,3 +66,50 @@ pub(in crate::backend::emit) fn emit_function(
     };
     Ok(())
 }
+
+pub(in crate::backend::emit) fn emit_suspend(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let writer = &mut *context.writer;
+    let Node::Fail(slot) = node else {
+        unreachable!("frame state dispatch")
+    };
+    {
+        writer . line ("if (frame->error_out == NULL) emela_board_defect(EMELA_DEFECT_UNHANDLED_ERROR, \"unhandled error\", UINT16_C(15));") ;
+        writer.line(&format!(
+            "*frame->error_out = frame->pending_error[{slot}];"
+        ));
+        writer.line(&format!(
+            "frame->pending_error[{slot}] = (EmelaError){{0}};"
+        ));
+        writer.line("emela_frame_return(fiber); return;");
+    };
+    Ok(())
+}
+
+pub(in crate::backend::emit) fn emit_set_error(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let Node::SetError(error, next, slot) = node else {
+        unreachable!("frame state dispatch")
+    };
+    {
+        writer.line(&format!(
+            "emela_error_clear(&frame->pending_error[{slot}]);"
+        ));
+        emit_error_assignment(
+            layouts,
+            function,
+            error,
+            &format!("frame->pending_error[{slot}]"),
+            writer,
+        )?;
+        writer.line(&format!("base->pc = {next}; continue;"));
+    };
+    Ok(())
+}

@@ -60,3 +60,21 @@ pub(in crate::backend::emit) fn emit(
         other => Err(unsupported(&function.name, statement_name(other))),
     }
 }
+
+pub(in crate::backend::emit) fn emit_suspend(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let Node::Branch(cond, yes, no) = node else {
+        unreachable!("frame state dispatch")
+    };
+    {
+        writer.line(&format!(
+            "frame->base.pc = {} ? {yes} : {no}; continue;",
+            operand_expression(cond).map_err(|why| unsupported(&function.name, why))?
+        ));
+    };
+    Ok(())
+}

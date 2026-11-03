@@ -180,7 +180,17 @@ pub(in crate::backend::emit) fn emit_op(
             if on_fail.is_some() {
                 writer.line("EmelaError operation_error = {0};");
             }
-            Err(unsupported(&function.name, "suspending operations"))?;
+            suspend::emit_sync_operation(
+                layouts,
+                function,
+                *dst,
+                *handler,
+                *effect,
+                *op,
+                args,
+                on_fail.map(|_| "&operation_error"),
+                writer,
+            )?;
             if let Some(edge) = on_fail {
                 writer.begin_block("if (operation_error.tag != 0)");
                 emit_call_failure_edge(
@@ -248,6 +258,215 @@ pub(in crate::backend::emit) fn emit(
         Callee::Indirect(_) => emit_indirect(context, dst, value),
         Callee::Op { .. } => emit_op(context, dst, value),
     }
+}
+
+pub(in crate::backend::emit) fn emit_suspend_op(
+    context: &mut SuspendContext<'_, '_>,
+    statement: &Stmt,
+) -> Result<(), Vec<Error>> {
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let next = &context.next;
+    match statement {
+        Stmt::Let {
+            dst,
+            value:
+                Value::Call {
+                    callee:
+                        Callee::Op {
+                            handler,
+                            effect,
+                            op,
+                        },
+                    args,
+                    on_fail,
+                    ..
+                },
+            ..
+        } if layouts.shapes.core.effects[*effect].ops[*op].suspend => {
+            writer.line(&format!("frame->base.pc = {next};"));
+            let result = dst
+                .map(|id| format!("&{}", variable_name(id)))
+                .unwrap_or_else(|| "NULL".to_owned());
+            emit_operation(
+                layouts,
+                function,
+                *dst,
+                *handler,
+                *effect,
+                *op,
+                args,
+                "fiber",
+                &result,
+                if on_fail.is_some() {
+                    Some("&frame->call_error")
+                } else {
+                    None
+                },
+                writer,
+            )?;
+            writer.begin_block("if (fiber->state == EMELA_FIBER_READY)");
+            writer.line("emela_ready_remove(fiber); fiber->state = EMELA_FIBER_RUNNING; continue;");
+            writer.end_block();
+            writer.line("return;");
+        }
+        _ => {
+            unreachable!("suspend operation entry")
+        }
+    };
+    Ok(())
+}
+pub(in crate::backend::emit) fn emit_suspend_indirect(
+    context: &mut SuspendContext<'_, '_>,
+    statement: &Stmt,
+) -> Result<(), Vec<Error>> {
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let next = &context.next;
+    match statement {
+        Stmt::Let {
+            dst,
+            value:
+                Value::Call {
+                    callee: Callee::Indirect(callee),
+                    args,
+                    on_fail,
+                    ..
+                },
+            ..
+        } if matches ! (& layouts.shapes.types [function . vars [* callee] . ty] , Type :: Fn (ft) if ft . suspends) =>
+        {
+            let Type::Fn(ft) = &layouts.shapes.types[function.vars[*callee].ty] else {
+                unreachable!()
+            };
+            prepare_result(layouts, function, *dst, writer);
+            let callee = variable_name(*callee);
+            writer.line(&format!(
+                "if ({callee}.call == NULL) emela_scheduler_invalid();"
+            ));
+            let mut arguments = vec!["fiber".to_owned(), format!("{callee}.env")];
+            arguments.extend(
+                args.iter()
+                    .map(operand_expression)
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|why| unsupported(&function.name, why))?,
+            );
+            if on_fail.is_some() {
+                arguments.push("&frame->call_error".into());
+            }
+            if layouts.type_repr(ft.ret) != Repr::Void {
+                arguments.push(
+                    dst.map(|dst| format!("&{}", variable_name(dst)))
+                        .unwrap_or_else(|| "NULL".to_owned()),
+                );
+            }
+            writer.line(&format!("frame->base.pc = {next};"));
+            writer.line(&format!("{callee}.call({}); return;", arguments.join(", ")));
+        }
+        _ => {
+            unreachable!("suspend operation entry")
+        }
+    };
+    Ok(())
+}
+pub(in crate::backend::emit) fn emit_suspend_direct(
+    context: &mut SuspendContext<'_, '_>,
+    statement: &Stmt,
+) -> Result<(), Vec<Error>> {
+    let flow = context.flow;
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let names = context.names;
+    let strings = context.strings;
+    let next_temp = &mut *context.next_temp;
+    let next = &context.next;
+    let index = context.index;
+    let failing = context.failing;
+    let call_error_var = context.call_error_var;
+    let call_error_label = context.call_error_label;
+    if let Stmt::Let {
+        dst,
+        value:
+            Value::Call {
+                callee: Callee::Direct(target),
+                args,
+                suspends: true,
+                on_fail,
+                ..
+            },
+        ..
+    } = statement
+    {
+        let target_fn = &flow.functions[*target];
+        match dst {
+            Some(dst) if target_fn.suspends => {
+                emit_release_if_owned(layouts, function, *dst, writer);
+                if layouts.is_managed_value(function.vars[*dst].ty) {
+                    writer.assign(
+                        &variable_name(*dst),
+                        &format!("({}){{0}}", layouts.c_type(function.vars[*dst].ty)),
+                    );
+                    writer.assign(&owned_variable_name(*dst), "INT32_C(1)");
+                }
+            }
+            _ => {}
+        }
+        if target_fn.suspends {
+            let mut arguments = vec!["fiber".to_owned()];
+            arguments.extend(
+                args.iter()
+                    .map(operand_expression)
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|why| unsupported(&function.name, why))?,
+            );
+            if on_fail.is_some() {
+                arguments.push("&frame->call_error".into());
+            }
+            if layouts.type_repr(target_fn.ret) != Repr::Void {
+                arguments.push(
+                    dst.map(|dst| format!("&{}", variable_name(dst)))
+                        .unwrap_or_else(|| "NULL".to_owned()),
+                );
+            }
+            writer.line(&format!("frame->base.pc = {next};"));
+            writer.line(&format!(
+                "{}_push({});",
+                names[target],
+                arguments.join(", ")
+            ));
+        } else {
+            let mut statement = statement.clone();
+            if let Stmt::Let {
+                value: Value::Call { suspends, .. },
+                ..
+            } = &mut statement
+            {
+                *suspends = false;
+            }
+            emit_sync_statement(
+                layouts,
+                function,
+                &statement,
+                failing,
+                call_error_var,
+                call_error_label,
+                index,
+                *next,
+                writer,
+                names,
+                strings,
+                next_temp,
+            )?;
+            writer.line(&format!("frame->base.pc = {next};"));
+        }
+        writer.line("return;");
+    } else {
+        unreachable!("suspend operation entry")
+    };
+    Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
