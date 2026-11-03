@@ -20,14 +20,13 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
             return Ok(());
         }
         match program.core.ty(id) {
-            Type::String | Type::Bytes | Type::Any => require(function, "owned values")?,
+            Type::Any => require(function, "owned values")?,
             Type::Tuple(fields) => {
                 for id in fields {
                     ty(program, function, *id, seen)?;
                 }
             }
             Type::List(item) => {
-                require(function, "List values")?;
                 ty(program, function, *item, seen)?;
             }
             Type::Enum(id, args) => {
