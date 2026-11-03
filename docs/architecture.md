@@ -103,7 +103,51 @@ heapの回収量をC harnessで確認する。試験が生成Cに追加するhea
 実装は`contract/ir.rs`、`semantics/{types.rs,representations.rs,derived.rs}`、
 `backend/plan/heap.rs`、`backend/emit/heap.rs`と値・dropのlower/emitが担当する。
 pathは`crates/emelino-compiler/src/`からの相対指定である。
-`crates/emelino-cli/tests/legacy_more.rs`の`legacy_recursive_4bd3bbef2dbb773478d2`と
-`legacy_recursive_8f6003cb6b231900471a`が型引数を変える再帰型と公開値を観測する。
-CLIの`upstream_adapter::tests::upstream_calls_branches_and_composite_type_ids_execute`はscalar・tuple・Listを確認する。
+`crates/emelino-cli/tests/legacy_ownership.rs`と`reused_pipeline.rs`はデータの寿命を検査する。
 record更新にeffectを組み合わせた観測と、error payloadを含む所有値の観測はPR4で追加する。
+
+<a id="numeric-text-bytes"></a>
+## 数値・String・Unicode・Bytes（PR3）
+
+Int、Int64、Floatの演算・比較・parse・表示は型ごとの表現を保つ。
+Intは符号付き32 bit、Int64は符号付き64 bitとし、加減乗算とnegateはその幅でwrapする。
+Cの符号付きoverflowや不定な`long`幅へ意味を依存させない。
+整数の除算は0方向へ丸め、剰余は被除数と同符号とする。
+0除算はdefect、最小値/-1は最小値、同じ組合せの剰余は0とする。
+負のshift量はdefectとし、幅以上の左shift・unsigned右shiftは0、算術右shiftは符号に応じ0または-1とする。
+Floatはbinary64の表現を使い、保存・adapter境界ではbit patternを維持する。
+FloatからIntへのfloor/ceil/round/truncateはそれぞれの丸めを行い、roundの中間値は0から遠ざける。
+NaN・Infinityや丸め後のInt範囲超過は変換defectとする。
+境界値、NaN等のFloat観測、演算の異常条件、parse失敗をCの最適化有無で確認する。
+評価順、短絡評価、引数の副作用順もsourceから検査し、C compilerの最適化へ意味を委ねない。
+
+Stringは長さ付きのbyte viewであり、埋込みNULをC文字列終端と混同しない。
+静的・borrowed文字列の比較は不要なheapやscratchを要求しない。
+動的Stringの出力は`string_capacity`で制限し、範囲は1〜512 byte、既定は256 byteとする。
+入力と出力のviewが重なるappend/concatやsubviewで、元ownerの寿命・byte列・容量検査を保つ。
+`String.length`はgrapheme cluster数、`String.byte_size`はUTF-8 byte数を返す。
+Unicode scalarとgrapheme clusterを区別し、
+scalar変換・grapheme分割・Unicodeを含むList変換は各演算の意味に従う。
+不正UTF-8のStringをgrapheme走査へ渡した場合はdefectとする。
+Unicode graphemeの期待値はrepo内の公式test vectorでも検査する。
+
+Bytesのソース・型・8個のbuiltinはv0.26.1の`Std.Bytes`を使う。
+独自の`Emelino.Bytes`やexternal名によるmarker、Bytes専用の型ID振り直しは設けない。
+本体のcanonical型IDと同名のユーザー型を区別し、8 builtinを所有IRへ直接投影する。
+要素はunsigned byte、viewの長さはu32で保持し、Stringへ変換する前に長さとUTF-8を検証する。
+16進変換、Eq/Ord/Show、Listとの変換、borrowed snapshot、Owned結果と取消時の解放を扱う。
+所有Bytesが必要な演算は、結果を捨てる場合でも必要heapの検証を省略しない。
+
+実装は`crates/emelino-compiler/src/semantics/{numeric.rs,strings.rs,unicode_grapheme.rs}`と
+`backend/emit/{numeric_runtime.rs,string_runtime.rs,unicode_grapheme.rs}`、
+`backend/emit/features/builtins/bytes.rs`、CLIのbuiltin投影が担当する。
+source観測は`crates/emelino-cli/tests/source_semantics.rs`、
+`legacy_string_alias.rs`、`legacy_bytes.rs`にある。
+中断と取消を含むBytes観測はPR5、const Stringのfold観測はPR6で追加する。
+`legacy_bytes::bytes_decode_checks_the_full_u32_length_before_narrowing_to_string`は長さの切詰めを防ぎ、
+`legacy_string_alias::append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits`はaliasと容量境界を確認する。
+Unicode vectorは`crates/emelino-compiler/tests/data/GraphemeBreakTest-18.0.0.txt`に保持する。
+
+failureを含むparseとeffectによる評価順のsource統合観測はPR4、ISRでのString比較はPR7で追加する。
+Std.Bytesのto_hex等、高階関数を通る標準ライブラリーのsource観測はPR4で追加する。
+PR3ではBytesの所有権・UTF-8変換・u32長の境界と、raw IRの導出Eq/Showを確認する。
