@@ -1,0 +1,53 @@
+{
+  "exports": [
+    {
+      "function": "message",
+      "symbol": "message"
+    },
+    {
+      "function": "eq",
+      "symbol": "string_eq"
+    },
+    {
+      "function": "ne",
+      "symbol": "string_ne"
+    },
+    {
+      "function": "lt",
+      "symbol": "string_lt"
+    },
+    {
+      "function": "le",
+      "symbol": "string_le"
+    },
+    {
+      "function": "gt",
+      "symbol": "string_gt"
+    },
+    {
+      "function": "ge",
+      "symbol": "string_ge"
+    },
+    {
+      "function": "repeated",
+      "symbol": "string_repeated"
+    },
+    {
+      "function": "length",
+      "symbol": "string_length"
+    },
+    {
+      "function": "byte_size",
+      "symbol": "string_byte_size"
+    },
+    {
+      "function": "predicates",
+      "symbol": "string_predicates"
+    },
+    {
+      "function": "trimmed",
+      "symbol": "string_trimmed"
+    }
+  ],
+  "string_capacity": 64
+}
