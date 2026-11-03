@@ -132,6 +132,22 @@
         {
           "kind": "run_report",
           "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_string_alias.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_static_strings.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-static-alias-strings.json"
         }
       ],
       "records": [
@@ -187,6 +203,10 @@
         {
           "kind": "run_report",
           "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
         }
       ],
       "records": [
@@ -244,6 +264,10 @@
         {
           "kind": "run_report",
           "path": "docs/reports/reuse-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
         }
       ],
       "records": [
@@ -389,6 +413,10 @@
         {
           "kind": "run_report",
           "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
         }
       ],
       "records": [

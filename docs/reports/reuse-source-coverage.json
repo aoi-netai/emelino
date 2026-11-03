@@ -20,15 +20,13 @@
   "counts": {
     "normal_cases": 174,
     "normal_statuses": {
-      "verified": 147,
-      "pending": 19,
+      "verified": 166,
       "upstream_known_issue": 8
     },
     "additional_nonruntime_cases": 3,
     "additional_statuses": {
       "replaced": 1,
-      "verified": 1,
-      "pending": 1
+      "verified": 2
     }
   },
   "cases": [
@@ -58,6 +56,15 @@
             "Side-effecting mark and mutate_input remain ordinary C externals without a pure use {} declaration. Each original call is routed through a test-owned HostProbe effect/handler and local with; host symbols, C bodies, evaluation trace and input mutation remain unchanged.",
             "counter wraps its escaped reader invocations in State.run(0, ...); owned and bytes wrap the original short-circuit comparison/reader expression in State.run with a concrete empty String/Bytes initial value. This discharges the public effect boundary without changing captured original State cells. Original named-argument order test, failure case and nested State bodies are unchanged.",
             "The shared test-only legacy helper parses old @export(c,...) annotations into configuration and removes the annotations before official compilation. It changes only import Std.Bytes to import Emelino.Bytes for the ordinary validated extension."
+          ],
+          "observations": [
+            "counter returns 83 through an escaped captured State reader.",
+            "String state snapshots preserve a\\0b while host mutate_input overwrites the borrowed source buffer with zzz.",
+            "Failure payloads and nested State runs retain the original results and release all allocations.",
+            "Named argument evaluation keeps state_order()==42 and host trace==132.",
+            "Bytes state saved/final/read values retain a\\0b / a\\0b! after host mutation.",
+            "A returned Bytes-capturing closure keeps its owner after the host input is overwritten; shared_bytes doubles captured bytes and remains valid after the caller releases the original.",
+            "The exact original C harness checks heap emptiness over 1000 iterations at each C optimization level."
           ]
         }
       ]
@@ -71,9 +78,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:e7a338aa5771b67698db",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+            "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+          },
+          "observation_kind": "broader-source-observation-replacement"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_external_adapters_snapshot_borrowed_data_and_transfer_owned_data",
@@ -84,9 +102,24 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:738c3317d1a9dca5984d",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+            "symbol": "bytes_external_adapters_snapshot_borrowed_data_and_transfer_owned_data"
+          },
+          "observation_kind": "broader-source-observation-replacement",
+          "source_adjustments": [
+            "Side-effecting raw_bytes calls use the test-owned NativeBytes effect and ReadNativeBytes handler; no pure use {} contract is asserted. Native C body, external adapters and assertions are unchanged.",
+            "The owned native result uses the same public owned_bytes exporter as the reused compiler test."
+          ]
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_external_tasks_snapshot_arguments_and_results_and_release_cancelled_contexts",
@@ -97,9 +130,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:b2f1d9d68d3fa5696d8c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+            "symbol": "legacy_bytes_tasks_release_contexts_after_queued_completion_or_cancellation"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_list_round_trips_and_invalid_elements_reclaim_every_allocation",
@@ -110,9 +154,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:ee5ba136321c839df89e",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+            "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+          },
+          "observation_kind": "broader-source-observation-replacement"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_require_a_fixed_heap_and_defect_when_its_capacity_is_exhausted",
@@ -123,9 +178,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:36dfa29b6881b628bddb",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+            "symbol": "bytes_owned_results_require_a_heap_even_when_the_result_is_discarded"
+          },
+          "observation_kind": "broader-source-observation-replacement"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_returns_lists_and_aliases_preserve_ownership_and_release_the_heap",
@@ -136,9 +202,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:831e8ca3bfd2e879fe38",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+            "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+          },
+          "observation_kind": "broader-source-observation-replacement"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_size_and_get_are_heapless_and_keep_lengths_above_u16",
@@ -149,9 +226,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:bb4cfa4d0a45d9128d84",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+            "symbol": "bytes_views_keep_u32_lengths_and_unsigned_elements_without_a_heap"
+          },
+          "observation_kind": "broader-source-observation-replacement"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_std_corpus_matches_other_targets_including_const_traits_and_invalid_utf8",
@@ -162,9 +250,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:0e4c492fa71240d47260",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+            "symbol": "full_legacy_bytes_corpus_preserves_const_traits_and_every_debug_observation"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::bytes_survive_suspension_and_release_on_completion_and_cancellation",
@@ -175,9 +274,20 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:896c718072ff9a14cba6",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+            "symbol": "legacy_bytes_keep_owned_snapshots_across_suspend_null_output_and_cancellation"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::bytes::discarded_bytes_still_check_capacity_and_release_owned_results",
@@ -188,9 +298,26 @@
       "families": [
         "bytes"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:e002041e4a426285da18",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+            "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+          },
+          "observation_kind": "broader-source-observation-replacement",
+          "additional_current_tests": [
+            {
+              "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+              "symbol": "bytes_owned_results_require_a_heap_even_when_the_result_is_discarded"
+            }
+          ]
+        }
+      ]
     },
     {
       "legacy_test": "emit::captured_sync_string_producers_return_owned_bytes_with_inferred_scratch",
@@ -214,6 +341,25 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_formatter",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": [],
+            "heapless_observer": true,
+            "c_contains": [
+              "[11]"
+            ],
+            "c_not_contains": [
+              "char emela_string_buffer_0[256]"
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-f9a6b6eea98c9abe5d11"
         }
       ]
@@ -240,6 +386,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-e805431f1035638cad96"
         }
       ]
@@ -268,6 +421,13 @@
           "source_changes": [
             "The returned callback carries State[Int] in upstream typing; escaped_result supplies State.run around the same reader calls to make its public boundary concrete. Original C assertions, including the captured state result 83, remain unchanged."
           ],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": true,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-45d10a963a24d47032c7"
         }
       ]
@@ -294,6 +454,15 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true,
+            "error_show_count": 1,
+            "max_concrete_functions": 63
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-3e99d1b04faf8e90bba0"
         }
       ]
@@ -320,6 +489,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-4bd3bbef2dbb773478d2"
         }
       ]
@@ -969,6 +1145,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_preserves_string_and_list_results_past_frame_and_scope_reuse"
         }
       ]
@@ -995,6 +1177,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_resumes_all_waiters_in_fifo_order_after_completer_finishes"
         }
       ]
@@ -1021,6 +1209,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-complete_copies_borrowed_string_and_poll_retains_it_past_scope_end"
         }
       ]
@@ -1047,6 +1241,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-complete_stores_once_and_scope_end_breaks_cycles_through_captured_deferreds"
         }
       ]
@@ -1074,6 +1274,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "c_contains": [
+              "#define EMELA_DEFERRED_CAPACITY 1"
+            ],
+            "reject_options": [
+              {
+                "override": {
+                  "deferred_capacity": 0
+                },
+                "diagnostic": "deferred_capacity must be positive"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_constructor_reuses_slots_and_scope_only_programs_omit_the_pool"
         },
         {
@@ -1086,6 +1303,15 @@
           },
           "observation_kind": "artifact_only",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "c_not_contains": [
+              "#define EMELA_DEFERRED_CAPACITY"
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-scope_only_omits_deferred_pool"
         }
       ]
@@ -1112,6 +1338,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_pool_exhaustion_uses_the_defined_defect"
         }
       ]
@@ -1138,6 +1370,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_round_trips_int64_and_float_bits_through_await_and_poll"
         }
       ]
@@ -1164,6 +1402,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_transfers_tuple_values_and_boolean_flags"
         }
       ]
@@ -1190,6 +1434,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_wait_is_a_real_resume_boundary_and_root_end_reclaims_pending_operation"
         }
       ]
@@ -1217,6 +1467,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_leak_start",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_poll"
         },
         {
@@ -1229,6 +1491,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_leak_start",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_await"
         }
       ]
@@ -1255,6 +1529,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_leak_start",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-leaked_complete_callback_checks_scope_before_recycled_slot"
         }
       ]
@@ -1281,6 +1567,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries"
         }
       ]
@@ -1307,6 +1599,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-poll_observes_empty_and_first_value_for_scalar_and_unit_without_yielding"
         }
       ]
@@ -1335,6 +1633,13 @@
           "source_changes": [
             "Same private main root made public as in old source helper; body unchanged."
           ],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-31c21eecada04937f501"
         }
       ]
@@ -1359,7 +1664,12 @@
             "path": "crates/emelino-cli/tests/legacy_services.rs",
             "symbol": "board_clock_sleep_clamps_boundaries_and_notifies_before_main_resumes"
           },
-          "observation_kind": "runtime"
+          "observation_kind": "runtime",
+          "observations": [
+            "Same Clock.sleep body and every original C assertion; syntax whitespace/C alias differ only.",
+            "Full oldOptions8192heap/String96/peripheral4/fiber4/frame12x2048/task2/event2/deferred1 preserved.",
+            "Int32.MIN/-1/0/7/MAX clamps, task macro, main-thread resume after queued notification, duplicate/stale rejection and lock release across1000 iterations."
+          ]
         }
       ]
     },
@@ -1383,7 +1693,12 @@
             "path": "crates/emelino-cli/tests/board_boundary.rs",
             "symbol": "embedded_handlers_preserve_services_buffers_errors_and_cancellation"
           },
-          "observation_kind": "runtime"
+          "observation_kind": "runtime",
+          "observations": [
+            "Original complete source matches byte-for-byte after removing added C exports.",
+            "Old8192heap/String96/peripheral4/fiber4/frame12x2048/task2/event2/deferred1.",
+            "All7 service headers, all23 board operations, errors and bounded receive lists; exact oldC harness with C alias substitution."
+          ]
         }
       ]
     },
@@ -1408,7 +1723,10 @@
             "symbol": "source_handler_can_call_native_external_int64_and_float_with_mixed_arguments"
           },
           "observation_kind": "runtime",
-          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+          "observations": [
+            "Int64.MIN and exact negative NaN payload through the ordinary effect handler, 1000 rounds, old heap1024 option; no heap emitted."
+          ]
         }
       ]
     },
@@ -1434,6 +1752,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_head",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-deferred_complete_poll_and_await_share_owned_string_aggregates_past_scope_end"
         }
       ]
@@ -1460,6 +1795,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "callback",
+                "function": "legacy_maker",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_closure_captures_string_tuple_enum_and_list_after_factory_stack_returns"
         }
       ]
@@ -1487,6 +1834,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_identity",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_borrowed"
         },
         {
@@ -1499,6 +1858,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_encoded",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_owned"
         }
       ]
@@ -1525,6 +1901,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": true,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_make",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-string_aggregates_own_borrowed_inputs_and_native_results_across_suspend_and_cancellation"
         }
       ]
@@ -1551,6 +1944,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_make",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-suspended_child_captures_and_scope_results_keep_string_aggregates_until_last_release"
         }
       ]
@@ -1577,6 +1987,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": true,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-both_propagates_managed_failure_from_aggregate_callbacks_and_reclaims_its_sibling"
         }
       ]
@@ -1603,6 +2019,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": true,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_both_start",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-both_returns_nested_string_aggregates_and_cancels_pending_children_without_leaks"
         }
       ]
@@ -1629,6 +2062,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": true,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_echoed_start",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-handler_resume_accepts_a_string_enum_and_reclaims_it_when_cancelled_in_either_wait"
         }
       ]
@@ -1655,6 +2105,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": true,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_terminal_start",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-scope_returns_string_enum_exits_after_success_or_interruption_and_frame_reuse"
         }
       ]
@@ -1681,6 +2148,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_captures_sync_failure_and_returns_owned_cause"
         }
       ]
@@ -1707,6 +2180,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect"
         }
       ]
@@ -1733,6 +2212,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_owns_managed_success_and_releases_discarded_results"
         }
       ]
@@ -1759,6 +2244,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_waits_for_async_cleanup_before_catching_failure"
         }
       ]
@@ -1785,6 +2276,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame"
         }
       ]
@@ -1811,6 +2308,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_and_join_share_fifo_waiters_and_transfer_each_result"
         }
       ]
@@ -1837,6 +2340,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_keeps_owned_list_results_after_the_scope_ends"
         }
       ]
@@ -1863,6 +2372,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_preserves_int64_float_bits_and_bool_payloads"
         }
       ]
@@ -1889,6 +2404,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_returns_success_and_can_mix_with_repeated_join_without_yielding"
         }
       ]
@@ -1915,6 +2436,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_with_a_string_exit_keeps_owned_backing_after_scope_and_frame_reuse"
         }
       ]
@@ -1942,6 +2469,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_await"
         },
         {
@@ -1954,6 +2487,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_join"
         }
       ]
@@ -1980,6 +2519,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-closing_a_scope_drops_ready_join_and_await_frames_before_result_delivery"
         }
       ]
@@ -2006,6 +2551,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_leak_start",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-leaked_await_callback_checks_the_ended_scope_before_using_the_child_result"
         }
       ]
@@ -2032,6 +2589,23 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_terminal_start",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "ty"
+              }
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-returning_await_exit_through_scope_owns_the_exit_after_scope_end"
         }
       ]
@@ -2058,6 +2632,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-scope_end_breaks_cycles_when_a_child_result_closure_captures_its_own_handle"
         }
       ]
@@ -2084,6 +2664,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-cause_kind_reads_failure_without_consuming_the_cause"
         }
       ]
@@ -2110,6 +2696,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-cause_raise_preserves_the_error_and_runs_native_cleanup_before_escape"
         }
       ]
@@ -2136,6 +2728,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-cause_to_string_uses_error_show_and_caller_output_buffer"
         }
       ]
@@ -2268,6 +2866,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-raised_interruption_crosses_sync_calls_and_attempt_without_becoming_a_value"
         }
       ]
@@ -2294,6 +2898,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "instrumentation_file": "instrument.c"
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-discard"
         }
       ]
@@ -2320,6 +2931,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "instrumentation_file": "instrument.c"
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-child-handleless"
         }
       ]
@@ -2346,6 +2964,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "instrumentation_file": "instrument.c"
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-kept"
         }
       ]
@@ -2372,6 +2997,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "instrumentation_file": "instrument.c"
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-rounds"
         }
       ]
@@ -2398,6 +3030,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-children_can_fork_siblings_and_inherit_the_scope_call_evidence"
         }
       ]
@@ -2424,6 +3062,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-closing_outer_scope_reclaims_nested_scopes_and_their_tasks"
         }
       ]
@@ -2450,6 +3094,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-completed_children_and_queued_events_do_not_leak_across_scope_reuse"
         }
       ]
@@ -2476,6 +3126,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-child_failure_closes_scope_and_waits_for_sibling_release_before_escape"
         }
       ]
@@ -2502,6 +3158,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-delayed_failure_after_resume_formats_owned_error_after_the_call_frame_returns"
         }
       ]
@@ -2528,6 +3190,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-failing_and_infallible_scopes_share_the_fork_operation_abi"
         }
       ]
@@ -2554,6 +3222,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-failing_suspend_closure_keeps_error_through_suspending_release"
         }
       ]
@@ -2608,6 +3282,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-operation_failure_after_resume_stops_without_writing_a_stale_error_pointer"
         }
       ]
@@ -2634,6 +3314,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-suspend_failures_cross_calls_and_preserve_cleanup_before_escape"
         }
       ]
@@ -2660,6 +3346,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-suspend_operation_failure_before_resume_reaches_its_call_edge"
         }
       ]
@@ -2686,6 +3378,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-uncaught_suspend_failure_stops_at_public_boundary_after_release"
         }
       ]
@@ -2712,6 +3410,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-fork_exhaustion_is_a_fixed_pool_defect_before_children_start"
         }
       ]
@@ -2738,6 +3442,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-failing_indirect_aggregate_calls_release_discarded_successes_and_preserve_string_errors"
         }
       ]
@@ -2764,6 +3474,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_work",
+                "prefix": "emela_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-heapless_callbacks_accept_and_return_aggregates_containing_function_values"
         }
       ]
@@ -2790,6 +3512,33 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "packet",
+                "function": "legacy_native",
+                "prefix": "emela_type_"
+              },
+              {
+                "placeholder": "callback",
+                "function": "legacy_maker",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": [
+              {
+                "placeholder": "release",
+                "type_placeholder": "packet"
+              }
+            ],
+            "callback_result_binding": {
+              "placeholder": "pair",
+              "callback_placeholder": "callback",
+              "prefix": "emela_type_"
+            }
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_aggregate_callbacks_own_results_after_captures_and_arguments_are_released"
         }
       ]
@@ -2876,6 +3625,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-await_of_interrupted_children_returns_owned_failures_repeatedly_and_for_unit"
         }
       ]
@@ -2902,6 +3657,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-await_waiters_receive_failure_after_interrupt_cleanup_before_interrupt_waiters"
         }
       ]
@@ -2928,6 +3689,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-interrupt_cancels_unstarted_children_and_does_not_yield_for_ended_children"
         }
       ]
@@ -2954,6 +3721,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-interrupt_waits_for_suspending_cleanup_and_ignores_old_task_notifications"
         }
       ]
@@ -3036,6 +3809,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-interruption_causes_survive_scope_and_heap_reuse_and_can_be_released_by_the_caller"
         }
       ]
@@ -3062,6 +3841,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-join_of_an_interrupted_child_is_the_defined_panic_defect"
         }
       ]
@@ -3088,6 +3873,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_leak_start",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-leaked_interrupt_callback_reports_ended_scope_after_slot_reuse"
         }
       ]
@@ -3114,6 +3911,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-multiple_interrupt_waiters_resume_fifo_after_release_finishes"
         }
       ]
@@ -3140,6 +3943,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-operation_tails_do_not_keep_a_copy_of_an_expired_cleanup_mask"
         }
       ]
@@ -3194,6 +4003,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-closing_nested_scopes_unlinks_join_waiters_before_the_target_completes"
         }
       ]
@@ -3220,6 +4035,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_preserves_int64_float_bits_and_bool"
         }
       ]
@@ -3246,6 +4067,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_results_own_strings_and_lists_after_scope_and_frame_reuse"
         }
       ]
@@ -3272,6 +4099,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_reuses_completed_results_without_yielding_and_waits_for_discarded_unit"
         }
       ]
@@ -3298,6 +4131,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_wakes_multiple_waiters_in_fifo_after_the_childs_last_breath"
         }
       ]
@@ -3324,6 +4163,18 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [
+              {
+                "placeholder": "ty",
+                "function": "legacy_leak_start",
+                "prefix": "emela_function_type_"
+              }
+            ],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-leaked_join_callback_rejects_an_ended_scope_after_reusing_execution_slots"
         }
       ]
@@ -3491,6 +4342,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": true,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-list_error_payloads_survive_suspending_cleanup_and_are_dropped_on_cancellation"
         }
       ]
@@ -3517,6 +4374,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-native_failure_channels_own_formatted_parse_errors_and_list_payloads"
         }
       ]
@@ -3543,6 +4406,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-operation_failure_before_resume_transfers_and_releases_its_string_payload"
         }
       ]
@@ -3597,6 +4466,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-a_root_waits_for_cleanup_of_its_resumed_operation_tail"
         }
       ]
@@ -3623,6 +4498,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-cancellation_preserves_a_suspending_release_and_its_pending_task"
         }
       ]
@@ -3649,6 +4530,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-defects_in_suspend_protect_keep_the_configured_immediate_stop_policy"
         }
       ]
@@ -3675,6 +4562,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-scope_cancellation_runs_nested_releases_before_the_parent_continues"
         }
       ]
@@ -3701,6 +4594,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-scope_cancels_unstarted_children_before_running_their_function"
         }
       ]
@@ -3727,6 +4626,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-scope_keeps_managed_captures_and_boxes_reference_results_without_leaks"
         }
       ]
@@ -3753,6 +4658,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-scope_starts_children_at_real_suspension_and_reclaims_waiting_tasks"
         }
       ]
@@ -3837,6 +4748,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-2e02752865a6418a1e52"
         }
       ]
@@ -3850,9 +4768,24 @@
       "families": [
         "strings-owned"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:b1c877211529f5d06063",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+            "symbol": "strings_in_nested_lists_and_error_payloads_outlive_their_original_owners"
+          },
+          "observation_kind": "broader-source-observation-replacement",
+          "source_adjustments": [
+            "Stack mutation runs through the test-owned StackProbe effect and ProbeStack handler. The external C symbol board_smash, its body and all ownership assertions are unchanged.",
+            "Legacy Unit type spelling becomes official ()."
+          ]
+        }
+      ]
     },
     {
       "legacy_test": "emit::passes_dynamic_effect_evidence_to_a_captured_closure",
@@ -3876,6 +4809,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-9fa3708f819ff8b76dc2"
         }
       ]
@@ -3889,9 +4829,20 @@
       "families": [
         "standard-traits-and-data"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:dc3d2de098f1b7e80a21",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_traits.rs",
+            "symbol": "full_legacy_traits_preserve_structural_display_debug_and_typed_causes"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::release_0_24::derived_and_written_traits_keep_static_dispatch_and_escaped_display",
@@ -3902,9 +4853,20 @@
       "families": [
         "standard-traits-and-data"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:dc3d2de098f1b7e80a21",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_traits.rs",
+            "symbol": "full_legacy_traits_preserve_structural_display_debug_and_typed_causes"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::release_0_24::lambda_patterns_and_new_core_helpers_keep_dynamic_semantics",
@@ -3915,9 +4877,20 @@
       "families": [
         "standard-traits-and-data"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:5fd9a0434fc95af6ecf6",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_collections_helpers.rs",
+            "symbol": "full_legacy_helper_source_preserves_lambda_patterns_numerics_and_nul_ascii"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::release_0_24::ordered_maps_sets_and_rotations_reclaim_persistent_values",
@@ -3928,9 +4901,20 @@
       "families": [
         "standard-traits-and-data"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:ad481b3ab9e723eb715a",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_collections_helpers.rs",
+            "symbol": "full_legacy_collection_source_preserves_updates_custom_keys_and_rotations"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::release_0_24::public_failure_entry_keeps_the_embedded_immediate_defect_contract",
@@ -3941,9 +4925,20 @@
       "families": [
         "standard-traits-and-data"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:dc3d2de098f1b7e80a21",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_traits.rs",
+            "symbol": "full_legacy_traits_keep_public_failure_as_an_immediate_defect"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::state_run_shares_owned_cell_storage_with_its_handler",
@@ -3967,6 +4962,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-903a9b99cfdf07a02684"
         }
       ]
@@ -3996,7 +4998,22 @@
             "stack_mark is retained as a test-only C stack observation seam with explicit source use {}. Its C implementation reads a local address and updates harness-private first_stack; it has no Emela arguments/result or access to Emela state. No C pure attribute is emitted. This tests the generated C stack behavior for this pinned route and is not evidence for ordinary source side-effect handling.",
             "The original heap_bytes=0 requirement and source string operations are unchanged. The helper moves export annotations into configuration. Every C raw fragment, including the internal append probes, remains byte-identical."
           ],
-          "legacy_id_note": "Supplies the explicit append overlap/literal-copy matrix used by the established replacement of the readonly-prefix canonical case; does not replace the separate original-source readonly-prefix fixture."
+          "legacy_id_note": "Supplies the explicit append overlap/literal-copy matrix used by the established replacement of the readonly-prefix canonical case; does not replace the separate original-source readonly-prefix fixture.",
+          "observations": [
+            "The original explicit internal append probe covers prefix/suffix/self-overlap, partial overlaps, shifted output, both literal-copy flag values, a512-byte maximum result and a1-byte exact-fit buffer.",
+            "Runtime capacities0 and513 raise EMELA_DEFECT_STRING_CAPACITY; the compiler rejects both corresponding Options values.",
+            "The ordinary source containing append is compiled through upstream before adding the unchanged C-only internal observation probe."
+          ]
+        },
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:0024997995323a7d6563",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/reused_pipeline.rs",
+            "symbol": "string_views_and_bounded_returns"
+          },
+          "observation_kind": "broader-source-observation-replacement"
         }
       ]
     },
@@ -4009,9 +5026,20 @@
       "families": [
         "strings-owned"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:de1b4707ec70dd24789b",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+            "symbol": "owned_string_subviews_compare_without_allocating_or_changing_their_owner"
+          },
+          "observation_kind": "broader-source-observation-replacement"
+        }
+      ]
     },
     {
       "legacy_test": "emit::string_comparison::source_comparisons_are_heapless_and_allow_isr_and_constant_space_tail_loops",
@@ -4022,9 +5050,26 @@
       "families": [
         "strings-owned"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "existing-source-C-observations-match",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:e220b55ef04773e1daaa",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_strings.rs",
+            "symbol": "original_string_comparisons_remain_heapless_without_scratch_and_allow_isr"
+          },
+          "observation_kind": "original-source-artifact-plus-broader-runtime",
+          "additional_current_tests": [
+            {
+              "path": "crates/emelino-cli/tests/reused_pipeline.rs",
+              "symbol": "string_views_and_bounded_returns"
+            }
+          ]
+        }
+      ]
     },
     {
       "legacy_test": "emit::string_comparison::suspend_source_comparisons_preserve_captured_bytes_and_release_on_completion_and_cancel",
@@ -4035,9 +5080,20 @@
       "families": [
         "strings-owned"
       ],
-      "status": "pending",
+      "status": "verified",
       "original_expectation": "original-body-runtime-evidence",
-      "evidence": []
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-values-strings.json",
+          "program": "program:b325a80621f2be6c4300",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_strings.rs",
+            "symbol": "legacy_string_comparisons_preserve_captured_bytes_through_completion_and_cancel"
+          },
+          "observation_kind": "original-source-runtime"
+        }
+      ]
     },
     {
       "legacy_test": "emit::suspend::completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events",
@@ -4061,6 +5117,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events"
         }
       ]
@@ -4087,6 +5149,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-delayed_resume_runs_the_caller_until_its_next_suspension"
         }
       ]
@@ -4113,6 +5181,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": false,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-duplicate_resume_reports_the_operation_and_handler"
         }
       ]
@@ -4139,6 +5213,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-immediate_resume_finishes_the_operation_body_before_the_caller_continues"
         }
       ]
@@ -4165,6 +5245,12 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": []
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-suspend_handler_source_waits_and_resumes_into_the_callers_result"
         }
       ]
@@ -4190,7 +5276,10 @@
             "symbol": "source_string_adapters_snapshot_borrowed_results_and_board_held_arguments"
           },
           "observation_kind": "runtime",
-          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+          "observations": [
+            "Borrowed String result and board-held argument independently snapshot embedded NUL before input overwrite; direct/indirect/discard paths release all heap at old1024 bytes."
+          ]
         }
       ]
     },
@@ -4215,7 +5304,10 @@
             "symbol": "source_tuple_and_list_external_values_keep_all_managed_fields_alive"
           },
           "observation_kind": "runtime",
-          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+          "observations": [
+            "Borrowed tuple(String,List[String]) fields survive caller input overwrite and tuple release; extracted String remains owned; 1000 rounds at old1024 bytes."
+          ]
         }
       ]
     },
@@ -4241,6 +5333,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-09dfd633dcd1f95f6a18"
         }
       ]
@@ -4266,7 +5365,12 @@
             "symbol": "source_tasks_own_packet_arguments_and_successes_through_scope_deferred_cancel_and_null_results"
           },
           "observation_kind": "runtime",
-          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+          "observations": [
+            "Original exchange/Scope/Deferred paths preserve nested packet fields and typed completion owners, producer/release outside ISR/lock, queued cancellation/NULL output/wrong-kind/duplicate completion.",
+            "String task captures caller input before mutation, snapshots NUL bytes before context poison, runs release exactly once and skips producer when cancelled.",
+            "Old heap4096/String64/fiber8/frame24x1024/task2/event2/deferred2; 1000 outer iterations, all heap reclaimed."
+          ]
         }
       ]
     },
@@ -4291,7 +5395,12 @@
             "symbol": "string_successes_snapshot_nul_bytes_before_the_context_is_released"
           },
           "observation_kind": "runtime",
-          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+          "observations": [
+            "Original exchange/Scope/Deferred paths preserve nested packet fields and typed completion owners, producer/release outside ISR/lock, queued cancellation/NULL output/wrong-kind/duplicate completion.",
+            "String task captures caller input before mutation, snapshots NUL bytes before context poison, runs release exactly once and skips producer when cancelled.",
+            "Old heap4096/String64/fiber8/frame24x1024/task2/event2/deferred2; 1000 outer iterations, all heap reclaimed."
+          ]
         }
       ]
     },
@@ -4317,6 +5426,13 @@
           },
           "observation_kind": "artifact_only",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-8f6003cb6b231900471a"
         }
       ]
@@ -4342,7 +5458,11 @@
             "symbol": "fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations"
           },
           "observation_kind": "frontend_and_artifact_only",
-          "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration."
+          "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration.",
+          "observations": [
+            "Original BoardClock/BoardConsole source accepts and generates emela_clock.h/emela_console.h at old heap4096/frame2048.",
+            "Old concrete main becomes Options::with_entry(\"main\"); source bytes unchanged. No runtime execution was required by the fixed-old test."
+          ]
         }
       ]
     },
@@ -4367,7 +5487,11 @@
             "symbol": "fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations"
           },
           "observation_kind": "frontend_and_artifact_only",
-          "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration."
+          "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration.",
+          "observations": [
+            "Original Embedded.Local project module and main resolve/typecheck successfully, preserving both original filenames and bytes.",
+            "The new pipeline also generates C; the old observation is frontend success only."
+          ]
         }
       ]
     },
@@ -4393,6 +5517,13 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-c587ef1e19686afdfe06"
         }
       ]
@@ -4419,6 +5550,16 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true,
+            "c_not_contains": [
+              "emela_heap_storage"
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-3bee0ac6dc33827ec422"
         }
       ]
@@ -4445,6 +5586,16 @@
           },
           "observation_kind": "runtime",
           "source_changes": [],
+          "observations": {
+            "heap_observer": true,
+            "cancel_root": false,
+            "type_bindings": [],
+            "release_bindings": [],
+            "heapless_observer": true,
+            "c_not_contains": [
+              "emela_heap_storage"
+            ]
+          },
           "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-8e7fb878276e03451814"
         }
       ]
@@ -4469,7 +5620,12 @@
             "path": "crates/emelino-cli/tests/legacy_services.rs",
             "symbol": "original_native_clock_console_and_timer_use_generated_common_services"
           },
-          "observation_kind": "runtime"
+          "observation_kind": "runtime",
+          "observations": [
+            "Original main Clock.sleep2/Console.connected/42 uses generated common bridges and the exact old native C service provider.",
+            "Oldheap4096/frame2048; result42 and wholeheap reclamation asserted.",
+            "C fixture only; no platform Rust/package/build/dependency subsystem introduced."
+          ]
         }
       ]
     },
@@ -4493,7 +5649,12 @@
             "path": "crates/emelino-cli/tests/legacy_services.rs",
             "symbol": "original_native_timer_slots_survive_cancellation_and_repeated_reuse"
           },
-          "observation_kind": "runtime"
+          "observation_kind": "runtime",
+          "observations": [
+            "Original source forks10000ms child, sleeps0, interrupts child and returns42.",
+            "Old native idle/timer polling and recycled task slot handling; scheduler not ready before idle and ready afterwards without synchronous Emela reentry.",
+            "Oldheap4096/frame2048 and original eight native timer slots; old100 rounds increased to1000 with heapempty after every release."
+          ]
         }
       ]
     }
@@ -4534,7 +5695,10 @@
             "path": "crates/emelino-cli/tests/board_boundary.rs",
             "symbol": "upstream_standard_namespace_and_reserved_compatibility_namespace_are_distinct"
           },
-          "observation_kind": "input_rejection"
+          "observation_kind": "input_rejection",
+          "observations": [
+            "An unimported user file named embedded/gpio.emel is rejected as conflicting with the compatibility module; normalized alternate paths are covered separately by frontend::tests::normalized_paths_cannot_replace_user_or_extension_sources."
+          ]
         }
       ]
     },
@@ -4543,8 +5707,19 @@
       "legacy_classes": [
         "source-parse-only-expectation"
       ],
-      "status": "pending",
-      "evidence": []
+      "status": "verified",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-boundary-fixtures.json",
+          "program": null,
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/src/bundled.rs",
+            "symbol": "embedded_compatibility_sources_match_fixed_legacy_hashes"
+          },
+          "observation_kind": "artifact_only"
+        }
+      ]
     }
   ]
 }
