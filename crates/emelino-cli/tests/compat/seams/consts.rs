@@ -1,6 +1,7 @@
 //! Fixed original const corpus through official Flow; optional explicit legacy GC seam.
 //! Reused from emela-emb b0a367bc0a29227fae62cee2def75ed925a5218f (Apache-2.0).
 use super::*;
+use emelino_compiler::{ExternalAdapter, ExternalResult};
 
 fn original(id: &str, exports: &[&str]) -> String {
     let manifest: serde_json::Value = serde_json::from_str(include_str!(
@@ -163,6 +164,106 @@ int main(void){{size_t baseline=0;for(unsigned i=0;i<1001;i++){{assert(integer()
 }
 
 #[test]
+fn original_external_string_const_keeps_one_snapshot_for_all_policies_and_gc_modes() {
+    for policy in [
+        ExternalResult::Borrowed,
+        ExternalResult::Owned,
+        ExternalResult::StringBuffer,
+    ] {
+        for gc in [false, true] {
+            let mut output = fixture(
+                "d81aa6294c52e64c91a5",
+                &["text", "size", "discard"],
+                &Options::default()
+                    .with_heap_bytes(2048)
+                    .with_external_adapter(
+                        "host_value",
+                        ExternalAdapter::new("board_value", policy),
+                    ),
+                gc,
+            );
+            heap_probe(&mut output, gc, true);
+            let board = match policy {
+                ExternalResult::Borrowed => {
+                    "EmelaString board_value(void){calls++;return(EmelaString){.data=bytes,.length=3};}"
+                }
+                ExternalResult::Owned => {
+                    "EmelaString board_value(void){calls++;return test_const_owned((EmelaString){.data=bytes,.length=3});}"
+                }
+                ExternalResult::StringBuffer => {
+                    "EmelaString board_value(char*out,uint16_t capacity){calls++;assert(capacity>=3);memcpy(out,bytes,3);return(EmelaString){.data=out,.length=3};}"
+                }
+            };
+            execute(
+                &output,
+                &format!(
+                    r#"{BOARD}
+static char bytes[]={{'4',0,'2'}};static int calls;
+size_t test_const_heap(void);EmelaString test_const_owned(EmelaString);
+{board}
+int main(void){{discard();memset(bytes,'x',3);size_t baseline=test_const_heap();assert(baseline&&calls==1);for(int i=0;i<1000;i++){{EmelaString v=text();assert(v.length==3&&v.owner&&!memcmp(v.data,"4\0" "2",3));emela_embedded_release_string(&v);assert(size()==3&&test_const_heap()==baseline);}}assert(calls==1);return 0;}}
+"#
+                ),
+                0,
+            );
+        }
+    }
+}
+
+#[test]
+fn original_external_aggregate_const_owns_fields_after_the_board_releases_its_value() {
+    for gc in [false, true] {
+        let mut output = fixture(
+            "a7326c76e24e2c628792",
+            &["read", "make", "first"],
+            &Options::default()
+                .with_heap_bytes(4096)
+                .with_external_adapter(
+                    "host_packet",
+                    ExternalAdapter::new("board_packet", ExternalResult::Borrowed),
+                ),
+            gc,
+        );
+        let cty = output
+            .header
+            .lines()
+            .find(|line| line.contains(" board_packet("))
+            .unwrap()
+            .split(" board_packet(")
+            .next()
+            .unwrap()
+            .to_owned();
+        let release = output
+            .header
+            .lines()
+            .find(|line| {
+                line.starts_with("void emela_external_release_")
+                    && line.contains(&format!("({cty} *value)"))
+            })
+            .unwrap()
+            .strip_prefix("void ")
+            .unwrap()
+            .split('(')
+            .next()
+            .unwrap()
+            .to_owned();
+        heap_probe(&mut output, gc, false);
+        execute(
+            &output,
+            &format!(
+                r#"{BOARD}
+static int calls;static char bytes[]={{'a',0,'b'}};static {cty} held;
+size_t test_const_heap(void);
+{cty} board_packet(void){{calls++;held=make((EmelaString){{.data=bytes,.length=3}});return held;}}
+int main(void){{{cty} value=read();{release}(&value);{release}(&held);memset(bytes,'x',3);size_t baseline=test_const_heap();for(int i=0;i<1000;i++){{value=read();assert(value.f0.length==3&&!memcmp(value.f0.data,"a\0b",3));{release}(&value);EmelaString text=first();assert(text.length==3&&!memcmp(text.data,"a\0b",3));emela_embedded_release_string(&text);assert(test_const_heap()==baseline);}}assert(calls==1);return 0;}}
+"#
+            ),
+            0,
+        );
+    }
+}
+
+#[test]
 fn original_const_sources_keep_recursive_closures_aggregates_and_discarded_first_reads() {
     for (id, expected, heap) in [
         ("12c836689dcf8fbdefcc", 42, 4096),
@@ -231,6 +332,57 @@ int main(void){for(volatile int i=0;i<1000;i++)if(setjmp(target)==0){bad();abort
 }
 
 #[test]
+fn original_const_heap_and_adapter_defects_are_cached_with_the_source_name() {
+    let cases = [
+        (
+            "c52f04cf604c46c53d58",
+            "read",
+            Options::default().with_heap_bytes(64),
+            "",
+            "EMELA_DEFECT_HEAP_EXHAUSTED",
+            "while evaluating const VALUE: fixed heap exhausted",
+            "",
+        ),
+        (
+            "bd83fac6076474dfdacf",
+            "size",
+            Options::default()
+                .with_heap_bytes(1024)
+                .with_string_capacity(16)
+                .with_external_adapter(
+                    "host_value",
+                    ExternalAdapter::new("board_value", ExternalResult::StringBuffer),
+                ),
+            "static int calls;EmelaString board_value(char*out,uint16_t n){calls++;return (EmelaString){.data=out,.length=(uint16_t)(n+1)};}",
+            "EMELA_DEFECT_STRING_CAPACITY",
+            "while evaluating const VALUE: invalid external String buffer",
+            "assert(calls==1);",
+        ),
+    ];
+    for (id, root, options, producer, kind, message, after) in cases {
+        let output = fixture(id, &[root], &options, false);
+        execute(
+            &output,
+            &format!(
+                r#"
+#include <assert.h>
+#include <setjmp.h>
+#include <stdlib.h>
+#include <string.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+static jmp_buf target;
+{producer}
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){{assert(k=={kind}&&n==strlen("{message}")&&!memcmp(m,"{message}",n));longjmp(target,1);}}
+int main(void){{for(volatile int i=0;i<1000;i++)if(setjmp(target)==0){{{root}();abort();}}{after}return 0;}}
+"#
+            ),
+            0,
+        );
+    }
+}
+
+#[test]
 fn original_exponential_static_string_uses_bounded_runtime_evaluation() {
     let output = fixture(
         "2f21eb2017b3f0b1d760",
@@ -252,4 +404,68 @@ int main(void){size();return 1;}
 "#,
         0,
     );
+}
+
+#[test]
+fn original_opaque_const_caches_one_nullable_host_pointer_without_heap() {
+    for policy in [ExternalResult::Borrowed, ExternalResult::Owned] {
+        let output = fixture(
+            "fce8e7b6b3eba553963a",
+            &["read"],
+            &Options::default()
+                .with_external_adapter("host_token", ExternalAdapter::new("board_token", policy)),
+            false,
+        );
+        assert!(!output.c_source.contains("emela_heap_storage"));
+        for pointer in ["NULL", "&object"] {
+            execute(
+                &output,
+                &format!(
+                    r#"
+#include <stdlib.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+static int object, calls;
+void *board_token(void){{(void)&object;calls++;return {pointer};}}
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){{(void)k;(void)m;(void)n;abort();}}
+int main(void){{for(int i=0;i<1000;i++)if(read()!={pointer}||calls!=1)return 1;return 0;}}
+"#
+                ),
+                0,
+            );
+        }
+    }
+}
+
+#[test]
+fn upstream_001_opaque_const_caches_each_received_specialization_without_heap() {
+    // Fixed-old initialized the generic HANDLE family once. Raw official Flow
+    // has separate HANDLE[Int] and HANDLE[String] identities (UPSTREAM-001).
+    for policy in [ExternalResult::Borrowed, ExternalResult::Owned] {
+        let output = fixture(
+            "c8599a8fbf13ac6c2ec8",
+            &["work"],
+            &Options::default()
+                .with_external_adapter("host_handle", ExternalAdapter::new("board_handle", policy)),
+            false,
+        );
+        assert!(!output.c_source.contains("emela_heap_storage"));
+        for pointer in ["NULL", "&object"] {
+            execute(
+                &output,
+                &format!(
+                    r#"
+#include <stdlib.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+static int object, calls;
+void *board_handle(void){{(void)&object;calls++;return {pointer};}}
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){{(void)k;(void)m;(void)n;abort();}}
+int main(void){{for(int i=0;i<1000;i++)if(work()!=42||calls!=2)return 1;return 0;}}
+"#
+                ),
+                0,
+            );
+        }
+    }
 }
