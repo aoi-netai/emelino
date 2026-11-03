@@ -14,7 +14,7 @@
     {
       "contract": "IR variants and references",
       "implementation": "crates/emelino-cli/src/upstream_adapter.rs",
-      "result": "Exhaustive Rust matches cover all variants in the pinned upstream Builtin, Type, Term, Stmt, Value, FiberOp, RuntimeOp and supporting enums. Function/local/sequence/label/enum/effect IDs preserve arena order. TypeMap translates producer IDs explicitly instead of assuming shared builtin numbering. Rust exhaustiveness establishes structural handling only; runtime evidence is separate."
+      "result": "Exhaustive Rust matches cover all variants in the pinned upstream Builtin, Type, Term, Stmt, Value, FiberOp, RuntimeOp and supporting enums. Function/local/sequence/label/enum/effect IDs preserve arena order. The v0.26.1 canonical primitive table, including Bytes at index 10, matches the owned table; type_id preserves indexes and definitions verifies canonical interning. The former extension-specific TypeMap is removed. Rust exhaustiveness establishes structural handling only; runtime evidence is separate."
     },
     {
       "contract": "Flow input stage",
@@ -42,9 +42,13 @@
       "result": "Keeps each received const function as a distinct upstream identity. No const family tracing, canonical initializer reconstruction or extra monomorphization. UPSTREAM-001 remains a known upstream behavioral exception, not a completed sharing test."
     },
     {
-      "contract": "Bytes extension",
-      "implementation": "crates/emelino-cli/src/upstream_adapter/bytes.rs",
-      "result": "Official pinned upstream has no Bytes primitive. Emelino.Bytes is supplied as an ordinary external module. The adapter verifies opaque type shape, exact function identities, channels and all eight signatures before connecting existing backend byte intrinsics. Input source receives no core privilege; pure methods and byte runtime are reused."
+      "contract": "Standard Bytes",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs",
+      "result": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "tests": [
+        "crates/emelino-cli/src/upstream_adapter/tests.rs::standard_bytes_preserve_canonical_ids_and_project_intrinsics",
+        "crates/emelino-cli/src/upstream_adapter/tests.rs::user_bytes_name_keeps_its_nominal_type"
+      ]
     },
     {
       "contract": "Erased Unit callback result",
@@ -98,8 +102,8 @@
     },
     {
       "id": "LEGACY-BYTES-IMPORT",
-      "status": "documented_extension_namespace",
-      "observation": "Eleven original corpus programs import the fork-only Std.Bytes module. Their compile acceptance test changes only import Std.Bytes to import Emelino.Bytes, then uses official frontend APIs and the explicit extension ABI."
+      "status": "upstream_standard_library",
+      "observation": "Eleven original corpus programs import Std.Bytes. With v0.26.1 those imports pass unchanged to the official standard library. The earlier Emelino.Bytes namespace rewrite and external extension are removed; fixed source files and their original SHA256 values remain unchanged."
     },
     {
       "id": "CONCRETE-PUBLIC-STATE-ENTRY",
@@ -132,5 +136,21 @@
     "meaning": "The source corpus test verifies frontend acceptance, Flow adaptation and C artifact generation under explicit ample capacities. It does not execute C or replace old runtime assertions. Runtime verification uses separate reused source/C harnesses and their original capacities.",
     "completion_status": "source corpus1/1 passed with169 programs (168 direct after documented module/path adaptation,1 diagnosed original entry plus concrete wrapper); source-seam runtime35/35 passed; broad runtime coverage is recorded by the separately linked reports",
     "source_integrity": "All170 unique fixture SHA256 values verified against the fixed original manifest."
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "semantic_review": {
+      "const_identity": "Core mono.rs changed only Bytes Eq/Show handling; UPSTREAM-001 remains open.",
+      "flow_adaptation": "Standard from_core.rs changed only Sig::Bytes mapping. Unit-to-Any callback and infallible Cause.raise still require the owned backend ABI adaptations.",
+      "separate_upstream_backend": "The upstream emela-codegen-emb crate has private const origin and normalization passes. They are not part of the standard Core/Flow APIs adopted here and are not added as dependencies."
+    },
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
   }
 }

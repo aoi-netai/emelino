@@ -12,7 +12,8 @@
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "compatibility_path": "embedded/board.emel",
       "upstream_module": "Std.Embedded.Board",
-      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
       "path": "crates/emelino-cli/src/bundled.rs",
@@ -25,7 +26,8 @@
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "compatibility_path": "embedded/gpio.emel",
       "upstream_module": "Std.Embedded.Gpio",
-      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
       "path": "crates/emelino-cli/src/bundled.rs",
@@ -38,7 +40,8 @@
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "compatibility_path": "embedded/i2c.emel",
       "upstream_module": "Std.Embedded.I2c",
-      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
       "path": "crates/emelino-cli/src/bundled.rs",
@@ -51,7 +54,8 @@
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "compatibility_path": "embedded/peripheral.emel",
       "upstream_module": "Std.Embedded.Peripheral",
-      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
       "path": "crates/emelino-cli/src/bundled.rs",
@@ -64,7 +68,8 @@
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "compatibility_path": "embedded/spi.emel",
       "upstream_module": "Std.Embedded.Spi",
-      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
       "path": "crates/emelino-cli/src/bundled.rs",
@@ -77,14 +82,23 @@
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "compatibility_path": "embedded/uart.emel",
       "upstream_module": "Std.Embedded.Uart",
-      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
-      "path": "crates/emelino-cli/lib/emelino/bytes.emel",
-      "source_path": "crates/emela-emb-compiler/lib/std/bytes.emel",
+      "path": "crates/emelino-cli/src/frontend.rs",
+      "source_path": "crates/emela-core/lib/std/bytes.emel",
       "source_sha256": "1d45b6c1c73373433337e65d89211abed5dea32bd21f13006511bc34e1a83d63",
-      "sha256": "13b37182cfca52bdbb04373e0588e57da7547b40a1c649989346829ab7ea6e17",
-      "changes": "intrinsic型と8演算を通常のexternal型・pure external宣言へ変更。module名はEmelino.Bytes。その他のEmela実装を再利用。"
+      "upstream_module": "Std.Bytes",
+      "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+      "changes": "v0.26.1のcore_sources()から無変更で供給する。local Bytes sourceとexternal marker置換を削除し、公式Type::Bytesと8 intrinsicをbackendへ投影する。",
+      "previous_local_extension": {
+        "path": "crates/emelino-cli/lib/emelino/bytes.emel",
+        "source_path": "crates/emela-emb-compiler/lib/std/bytes.emel",
+        "source_sha256": "1d45b6c1c73373433337e65d89211abed5dea32bd21f13006511bc34e1a83d63",
+        "sha256": "13b37182cfca52bdbb04373e0588e57da7547b40a1c649989346829ab7ea6e17",
+        "changes": "intrinsic型と8演算を通常のexternal型・pure external宣言へ変更。module名はEmelino.Bytes。その他のEmela実装を再利用。"
+      }
     }
   ],
   "fixtures": [
@@ -97,7 +111,11 @@
       },
       "validation": "source→本体→Flow→C、ソース削除後の保存入力再生成、C O0/O2実行成功",
       "source_reference": "crates/emela-emb-compiler/tests/p7_services.rs::embedded_handlers_preserve_all_services_errors_buffers_and_owned_receive_lists",
-      "adaptation": "C export属性を設定へ移動。Bytes importをEmelino.Bytesへ変更。embedded harnessには同じheap観測用helperの別名だけ追加。"
+      "adaptation": "C export属性を設定へ移動。Bytesを使用するfixtureはv0.26.1のStd.Bytesをそのままimport。embedded harnessには同じheap観測用helperの別名だけ追加。",
+      "previous_adaptation": {
+        "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+        "adaptation": "C export属性を設定へ移動。Bytes importをEmelino.Bytesへ変更。embedded harnessには同じheap観測用helperの別名だけ追加。"
+      }
     },
     {
       "id": "p7-isr-adapters",
@@ -108,18 +126,27 @@
       },
       "validation": "source→本体→Flow→C、ソース削除後の保存入力再生成、C O0/O2実行成功",
       "source_reference": "crates/emela-emb-compiler/tests/p7_isr.rs",
-      "adaptation": "C export属性を設定へ移動。Bytes importをEmelino.Bytesへ変更。embedded harnessには同じheap観測用helperの別名だけ追加。"
+      "adaptation": "C export属性を設定へ移動。Bytesを使用するfixtureはv0.26.1のStd.Bytesをそのままimport。embedded harnessには同じheap観測用helperの別名だけ追加。",
+      "previous_adaptation": {
+        "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+        "adaptation": "C export属性を設定へ移動。Bytes importをEmelino.Bytesへ変更。embedded harnessには同じheap観測用helperの別名だけ追加。"
+      }
     },
     {
       "id": "p7-isr-static",
       "files": {
         "crates/emelino-cli/tests/compat/reused/p7-isr-static/config.json": "814bdf85b5e27d923bcf7f050ab40cfc3460e759323b78bcd021a4895ed36863",
         "crates/emelino-cli/tests/compat/reused/p7-isr-static/harness.c": "9ddfd70514a554639e0a4a32666e061fb017dbf8510934ac71a827bff2bd60bd",
-        "crates/emelino-cli/tests/compat/reused/p7-isr-static/main.emel": "25e622c4287e019d833d934e39b0ae0284fc4312db2968e6459255aaa39f28e9"
+        "crates/emelino-cli/tests/compat/reused/p7-isr-static/main.emel": "3b1f5834ceb1f10f1c0e356e30a3267fa01e6ad6a220acdbbdd505c0e06ee18a"
       },
       "validation": "source→本体→Flow→C、ソース削除後の保存入力再生成、C O0/O2実行成功",
       "source_reference": "crates/emela-emb-compiler/tests/p7_isr.rs",
-      "adaptation": "C export属性を設定へ移動。Bytes importをEmelino.Bytesへ変更。embedded harnessには同じheap観測用helperの別名だけ追加。"
+      "adaptation": "C export属性を設定へ移動。Bytesを使用するfixtureはv0.26.1のStd.Bytesをそのままimport。embedded harnessには同じheap観測用helperの別名だけ追加。",
+      "previous_adaptation": {
+        "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+        "adaptation": "C export属性を設定へ移動。Bytes importをEmelino.Bytesへ変更。embedded harnessには同じheap観測用helperの別名だけ追加。",
+        "source_sha256": "25e622c4287e019d833d934e39b0ae0284fc4312db2968e6459255aaa39f28e9"
+      }
     },
     {
       "id": "upstream-001",
@@ -159,5 +186,16 @@
         "symbol": "extension_modules_cannot_be_replaced_by_user_sources"
       }
     ]
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
   }
 }

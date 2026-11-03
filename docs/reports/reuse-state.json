@@ -25,7 +25,7 @@
     "Old Unit return spelling changed to official ().",
     "Side-effecting mark and mutate_input remain ordinary C externals without a pure use {} declaration. Each original call is routed through a test-owned HostProbe effect/handler and local with; host symbols, C bodies, evaluation trace and input mutation remain unchanged.",
     "counter wraps its escaped reader invocations in State.run(0, ...); owned and bytes wrap the original short-circuit comparison/reader expression in State.run with a concrete empty String/Bytes initial value. This discharges the public effect boundary without changing captured original State cells. Original named-argument order test, failure case and nested State bodies are unchanged.",
-    "The shared test-only legacy helper parses old @export(c,...) annotations into configuration and removes the annotations before official compilation. It changes only import Std.Bytes to import Emelino.Bytes for the ordinary validated extension."
+    "The shared test-only legacy helper parses old @export(c,...) annotations into configuration and removes the annotations before official compilation. Std.Bytes imports now pass unchanged to the v0.26.1 standard library; the previous Emelino.Bytes import rewrite is removed."
   ],
   "harness": {
     "byte_identical_to_original": true,
@@ -60,5 +60,16 @@
     "clippy": "cargo clippy -p emelino-cli --test legacy_state --locked --offline -- -D warnings"
   },
   "status": "verified",
-  "excluded": "The second p4_state test asserted independent-frontend diagnostics and private Cell/intrinsic syntax restrictions; it is not imported or counted as runtime evidence."
+  "excluded": "The second p4_state test asserted independent-frontend diagnostics and private Cell/intrinsic syntax restrictions; it is not imported or counted as runtime evidence.",
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
+  }
 }

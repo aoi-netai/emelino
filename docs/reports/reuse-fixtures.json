@@ -128,8 +128,8 @@
       "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "source_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-owned.emel",
       "source_sha256": "8d09252d8d749656b47a83390cf0d745c51d4318cb4d72da18f16bcae0b22f64",
-      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 旧独自frontendのUnit表記を本体の()へ変更。 固定版本体にBytesがないため、importをemelino所有のEmelino.Bytesへ変更。本体stdの差し替えではない。",
-      "adapted_source_sha256": "edd0dd3bc88c437a658ac23368cbde97155b9c707142b5c0ab56a78435d563a3",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 旧独自frontendのUnit表記を本体の()へ変更。 v0.26.1のStd.Bytesをそのままimportし、本体標準ライブラリーを使う。",
+      "adapted_source_sha256": "3c01071b539fbb9fd5aed9f4484ef824ac86a6c990e3e12d2cc608e0e1ba3434",
       "harness_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-owned-harness.c",
       "harness_sha256": "b8eed463296fcd4e296e041d84fe68eb5d3fe9edbc958184304f98ab8bc7967c",
       "harness_change": "なし（byte一致）",
@@ -147,6 +147,11 @@
           "-O0",
           "-O2"
         ]
+      },
+      "previous_adaptation": {
+        "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+        "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 旧独自frontendのUnit表記を本体の()へ変更。 固定版本体にBytesがないため、importをemelino所有のEmelino.Bytesへ変更。本体stdの差し替えではない。",
+        "adapted_source_sha256": "edd0dd3bc88c437a658ac23368cbde97155b9c707142b5c0ab56a78435d563a3"
       }
     },
     {
@@ -154,8 +159,8 @@
       "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
       "source_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-transform.emel",
       "source_sha256": "0d0b079ddf28e2f954dea24a0c917f4d4b46eb10ce0b0ba35d40a9096b95b598",
-      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 固定版本体にBytesがないため、importをemelino所有のEmelino.Bytesへ変更。本体stdの差し替えではない。",
-      "adapted_source_sha256": "4d433e7990cbc2c076c2f0e62a2cedc1f2b3df5ce9c2cdf70370511abd872989",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 v0.26.1のStd.Bytesをそのままimportし、本体標準ライブラリーを使う。",
+      "adapted_source_sha256": "c56fe62434b2dd2c68cc1374ba53e6b0410d50bdb70275a102956310d00be3ff",
       "harness_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-transform-harness.c",
       "harness_sha256": "4c8eae45b5c3fd0c713e95ec37292e0988270f985f6f33e7cb2b0d421dff264b",
       "harness_change": "なし（byte一致）",
@@ -173,6 +178,11 @@
           "-O0",
           "-O2"
         ]
+      },
+      "previous_adaptation": {
+        "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+        "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 固定版本体にBytesがないため、importをemelino所有のEmelino.Bytesへ変更。本体stdの差し替えではない。",
+        "adapted_source_sha256": "4d433e7990cbc2c076c2f0e62a2cedc1f2b3df5ce9c2cdf70370511abd872989"
       }
     },
     {
@@ -208,5 +218,16 @@
     "tests_failed": 0,
     "tests_ignored": 0,
     "scope": "8 source/C fixtures + fixed ledger ID integrity; no global parity completion claim"
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
   }
 }

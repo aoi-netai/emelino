@@ -28,9 +28,9 @@
   ],
   "source_adaptation": [
     "The test-only support/legacy.rs reads old @export(c, ...) annotations with the official syntax AST, removes those annotations and passes the aliases as configuration. Body parsing/type checking/lowering remain the official compiler responsibility.",
-    "The helper maps import Std.Bytes to import Emelino.Bytes, the validated ordinary extension required because Bytes is not an upstream primitive. No copied frontend or patched upstream standard library is used.",
+    "Std.Bytes imports now use the standard library supplied by Emela v0.26.1 without a namespace rewrite. The local Emelino.Bytes implementation and its external markers have been removed.",
     "Legacy Unit type spellings become official (). Actual native side effects in these fixtures are routed through explicit test effects and handlers, not a pure use {} declaration.",
-    "Original-source rows reuse the saved legacy-corpus bodies; export aliases and the stated module spelling are the only common adaptations. Broader-source replacements are explicitly marked.",
+    "Original-source rows reuse the saved legacy-corpus bodies; export aliases are the only common adaptation; Std.Bytes module spelling is preserved. Broader-source replacements are explicitly marked.",
     "Private C heap/cancellation inspection remains test-only generated-code instrumentation. It is not a new product API or an edit to Flow semantics."
   ],
   "entries": [
@@ -1219,5 +1219,16 @@
     "saved_input_replay": "Successful compilation compares all Output artifacts with compilation after BackendInput JSON save/load. Terminal compile diagnostics have no C output to replay.",
     "formatting": "The six new Rust test files were formatted with rustfmt --edition 2024 --config skip_children=true.",
     "workspace_validation": "Full workspace tests and strict clippy are owned by the integration report; this report does not claim their result."
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
   }
 }

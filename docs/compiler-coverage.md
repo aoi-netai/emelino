@@ -9,7 +9,8 @@
 - 比較する旧fork: `c34c0aeefdd966d854371b3110db00a47798751d`。
 - 再利用するbackend source: emela-emb `b0a367bc0a29227fae62cee2def75ed925a5218f`。
 - 対応表の取得元: emela-emb `2258716bab2e9e4bbaa5a2fd135f6999636125e2`。
-- 本体依存: `ec1031cb0b98386baf0e9b0ced67e8829bb2c529`。
+- 現在の本体依存: `v0.26.1` / `6021115103dd830e0efd9bb96a56a0ca97859329`。
+- S6完了時の本体依存: `ec1031cb0b98386baf0e9b0ced67e8829bb2c529`。
 - [固定参照表](reference/legacy-flow/README.md)、[今回の台帳](compiler-coverage.json)、
   [取得元とhash](reports/reuse-reference-import.json)。
 
@@ -121,7 +122,7 @@ source対応表は174試験・169program・170source fileと、追加3件の拒�
 今回の標準ライブラリー委譲により `replaced` とする。未使用importの処理順による差分ではない。
 `Std.Embedded.*` の名前解決を本体に従わせ、emelino側の `Embedded.*` の予約名上書き拒否とは分ける。
 
-## S6の確定結果
+## S6完了時の確定結果
 
 | 集合 | 検証済み | 本体既知問題 | 方針による置換 |
 | --- | ---: | ---: | ---: |
@@ -141,3 +142,25 @@ workspaceと独立archiveで各377試験成功、失敗・ignore・filteredと�
 最終帳票の分類変更は実装と試験のtree一致を確認し、台帳の整合試験を再実行した。
 ネットワークからの依存の新規取得は試していない。straceはsandboxのptrace制約で使えず、
 traceによるfilesystem access不在の証明は行っていない。
+
+## v0.26.1への更新
+
+現在の接続先は公式releaseの `v0.26.1` に固定する。
+`Std.Bytes` のソース・型・8個のintrinsicは本体が供給するため、独自の
+`Emelino.Bytes` とexternal markerの置換を削除した。旧sourceの `Std.Bytes` importも
+書き換えずに本体へ渡す。対応表のBytes行は公式Flowの型・演算への投影と、
+既存の所有権・UTF-8・公開ABI・task試験へ接続し直す。
+
+標準FlowのUnit callback表現とinfallible `Cause.raise` はこのreleaseでも変わらない。
+これらのbackend ABIへの変換と、Flowから所有するProgramへの投影は引き続き必要である。
+汎化constの単一初期化も未修正であり、UPSTREAM-001の8観測を解消済みには変更しない。
+
+更新後の実行結果は [release更新報告](reports/compiler-v0.26.1.md) に記録する。
+S6の377試験・隔離checkout結果は当時の履歴として保持し、新revisionの検証へ読み替えない。
+JSON台帳の `baseline_completion` はS6の完了記録、`completion` は現在の完了判定を表す。
+既存の個別reportも旧revisionと実行記録を保持し、`release_migration` で現在の実装参照・
+fixture hash・名前空間の変更を区別する。
+
+更新後も377試験が成功し、失敗・ignore・filteredは0。fmtとstrict clippyも通過した。
+既存の行別分類を維持し、UPSTREAM-001に該当する8観測は引き続き既知問題として扱う。
+検証した実装・試験revisionは `fce69bbb87e7c18ca556e099ae16c8ae828a550d`。

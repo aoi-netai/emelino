@@ -137,7 +137,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -154,10 +154,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -212,7 +212,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -229,10 +229,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -287,7 +287,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -304,10 +304,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -362,7 +362,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -379,10 +379,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -437,7 +437,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -454,10 +454,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -512,7 +512,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -529,10 +529,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -587,7 +587,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -604,10 +604,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -662,7 +662,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -679,10 +679,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3"
     },
     {
@@ -7165,7 +7165,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -7182,10 +7182,10 @@
         {
           "kind": "review",
           "path": "docs/reports/reuse-source-record-review.json",
-          "symbol": "bytes_extension"
+          "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P7"
     },
     {
@@ -33055,7 +33055,7 @@
           "path": "docs/reports/compiler-s6-validation.json"
         }
       ],
-      "reason": "本体と同一revisionのcore/stdを利用する。6個のEmbedded互換moduleは本体のStd.Embedded sourceからimport namespaceだけを変更して導出し、固定旧hash一致と予約名上書き拒否を確認した。6ソースの別コピーは削除した。本体にないBytesだけをEmelino.Bytesとして所有する。Std.Embedded namespaceの不在という旧拒否期待は本体std委譲へ置き換える。"
+      "reason": "本体と同一revisionのcore/stdを利用する。6個のEmbedded互換moduleは本体のStd.Embedded sourceからimport namespaceだけを変更して導出し、固定旧hash一致と予約名上書き拒否を確認した。6ソースの別コピーは削除した。v0.26.1ではStd.Bytesも本体から供給し、独自Bytesソースとexternal置換は削除した。Std.Embedded namespaceの不在という旧拒否期待は本体std委譲へ置き換える。"
     },
     {
       "id": "memory_ownership",
@@ -33298,7 +33298,7 @@
     }
   ],
   "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
   "known_upstream_issues": [
     {
       "id": "UPSTREAM-001",
@@ -33320,15 +33320,14 @@
     "finalized": true,
     "date": "2026-11-03",
     "scope": "fixed legacy fork under documented embedded constraints, upstream delegation, raw-input boundaries and known UPSTREAM-001 differences",
-    "implementation_and_test_revision": "70dfbe6b3da306dfe62ed26fad1ba798890c71a9",
-    "implementation_and_test_trees": {
-      "crates/emelino-cli": "0b487b6f895978d1e848b0eff885fb4e409484f9",
-      "crates/emelino-compiler": "1ac4104ec3590a9d9329378cf729c83ae13e601a"
-    },
-    "integration_report": "docs/reports/compiler-s6-validation.json",
+    "integration_report": "docs/reports/compiler-v0.26.1.md",
     "source_crosswalk": "docs/reports/reuse-source-coverage.json",
-    "classification_parent_revision": "d57c912926d28a9cdc3583621d29833a428dc3e7",
-    "note": "Final classification and evidence changes are documentation-only relative to the isolated implementation/test tree. Ledger integrity is rechecked after finalization; no copied old success status is inherited."
+    "note": "The release migration preserves the fixed observation classifications after 377 workspace tests, format and strict all-target clippy passed. Ledger integrity is rechecked after finalization. Prior S6 isolated-checkout results remain historical in baseline_completion.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "implementation_and_test_trees": {
+      "crates/emelino-cli": "c34db2c1487d2555e9959c78fc75bfea7f7298e5",
+      "crates/emelino-compiler": "260f39d1db5a69e280b110d686b0184c79d520d8"
+    }
   },
   "counts": {
     "records": {
@@ -33364,5 +33363,32 @@
         "verified": 2
       }
     }
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "The active upstream_revision and current evidence mappings target v0.26.1. baseline_completion preserves the S6 commit, upstream revision and historical isolated-checkout validation; those old executions are not relabelled as v0.26.1 results.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
+  },
+  "upstream_release": "v0.26.1",
+  "baseline_completion": {
+    "finalized": true,
+    "date": "2026-11-03",
+    "scope": "fixed legacy fork under documented embedded constraints, upstream delegation, raw-input boundaries and known UPSTREAM-001 differences",
+    "implementation_and_test_revision": "70dfbe6b3da306dfe62ed26fad1ba798890c71a9",
+    "implementation_and_test_trees": {
+      "crates/emelino-cli": "0b487b6f895978d1e848b0eff885fb4e409484f9",
+      "crates/emelino-compiler": "1ac4104ec3590a9d9329378cf729c83ae13e601a"
+    },
+    "integration_report": "docs/reports/compiler-s6-validation.json",
+    "source_crosswalk": "docs/reports/reuse-source-coverage.json",
+    "classification_parent_revision": "d57c912926d28a9cdc3583621d29833a428dc3e7",
+    "note": "Final classification and evidence changes are documentation-only relative to the isolated implementation/test tree. Ledger integrity is rechecked after finalization; no copied old success status is inherited.",
+    "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
   }
 }

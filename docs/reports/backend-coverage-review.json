@@ -50,7 +50,7 @@
   },
   "schema_review_groups": {
     "data_types": {
-      "reason": "Type/enum/constructor fields and nominal IDs are preserved with the explicit TypeMap offset for the backend Bytes slot. Declaration parameter/field arity is checked before substitution; recursive enum declarations remain supported while recursive TypeTable child references are rejected. Concrete runtime layouts are recomputed. FnSets/SetSummary metadata is copied and saved, but unresolved executable function sets and type parameters are diagnosed. Cause and Exit erase only non-runtime error-row arguments after declaration validation.",
+      "reason": "Type/enum/constructor fields and nominal IDs are preserved with canonical type indexes; the v0.26.1 primitive table includes the backend-compatible Bytes slot. Declaration parameter/field arity is checked before substitution; recursive enum declarations remain supported while recursive TypeTable child references are rejected. Concrete runtime layouts are recomputed. FnSets/SetSummary metadata is copied and saved, but unresolved executable function sets and type parameters are diagnosed. Cause and Exit erase only non-runtime error-row arguments after declaration validation.",
       "implementation": [
         {
           "kind": "implementation",
@@ -19412,8 +19412,19 @@
     "make_closure": "Value::MakeClosure is a later-stage raw node rejected at the Flow input boundary. Ordinary source Closure is implemented through FnRef plus ClosureMetadata; successful source closures do not prove acceptance of raw MakeClosure.",
     "on_fail_handle": "OnFail::Handle is an accepted owned-IR input form with a local handler normalization test; upstream from_core uses failure blocks/Break instead. Its direct operation coverage is IR-only.",
     "type_param": "Type::Param survives in generic declaration schemas; executable runtime-value parameters must be concrete after upstream specialization and backend substitution.",
-    "bytes": "Bytes operations come from validated Emelino.Bytes source declarations because the pinned official frontend has no primitive Bytes type.",
+    "bytes": "Bytes operations come directly from the v0.26.1 Std.Bytes standard module, canonical Type::Bytes and eight Builtin::Bytes variants; the local source extension and external markers are removed.",
     "evidence": "Source internal evidence is supported. High-level CLI source and replay configuration reject direct Evidence parameters/results on public roots. The lower-level owned-IR API deliberately retains explicit Evidence C-ABI fixtures that test lookup lifetime and invalid pointers; they are not evidence of source public-root support.",
     "retire": "RuntimeOp::Retire is emitted by the official from_core handler lowering and has source and owned-IR lifecycle observations."
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
   }
 }

@@ -242,8 +242,8 @@
         "emela_core::Builtin::IntCheckedAdd"
       ]
     },
-    "bytes_extension": {
-      "reason": "The pinned upstream has no Bytes primitive. The ordinary Emelino.Bytes module is validated before adapter substitution; old owned/wide-length/UTF8/traits/external/task observations execute using the existing runtime. This is an explicit extension, not copied upstream std.",
+    "bytes_standard_library": {
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "evidence": [
         {
           "kind": "source_test",
@@ -255,7 +255,7 @@
         },
         {
           "kind": "source_test",
-          "path": "crates/emelino-cli/src/upstream_adapter/bytes.rs"
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
         },
         {
           "kind": "run_report",
@@ -582,5 +582,16 @@
         "emela_lir::Value::Builtin"
       ]
     }
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
   }
 }
