@@ -27,6 +27,13 @@ closure・handler・suspendの変換は再利用backendで一度だけ行う。
 core/stdは `emela_core::core_sources()` から供給する。兄弟repoへのpath依存はない。
 前回の独自frontendや同梱core/stdは移入しない。
 
+互換namespaceの `Embedded.*` 6moduleも固定本体の `core_sources()` から取得する。
+`bundled.rs` は互換用コピーの `import Std.Embedded.` 行だけを `import Embedded.` へ
+機械的に置換し、通常のsourceとして公開APIへ渡す。本体の `Std.Embedded.*` とuser sourceの
+本文は変更せず、互換コピーへcore権限を付けない。派生した6moduleのbyte列は旧moduleの
+固定SHA256と一致することを試験し、独立した `lib/embedded` の実装は保持しない。
+固定本体に存在しない `Emelino.Bytes` は専用の通常external拡張として保持する。
+
 ## 公開入口と設定
 
 `Roots::Public` はentry moduleのmainと対象pub関数をrootにする。
@@ -49,6 +56,12 @@ user sourceにcore内部権限を付けない。Pome/project discoveryを独自�
 BackendInput。format、schema、producer revision、stage、必要featureを照合する。
 ID参照・型表・body構造を検査してからbackendへ渡し、Floatはbit patternとして保存する。
 到達性・位置・layout等の計算済みmetadataは保存入力として信用しない。
+
+高レベルCLIの `build --input` でも `Config::validate_entry` を通し、公開引数・戻り値の
+未処理Evidenceを拒否する。ソース入力と同じ具体的wrapperの契約を再生成にも適用する。
+明示Evidenceを扱う低レベル `BackendInput` / `compile_program` のraw IR ABIとは別の境界である。
+`pipeline::saved_raw_evidence_input_cannot_bypass_the_cli_entry_contract` は、raw IR単独では
+compileできる入力もCLIの保存再生成では拒否することを確認する。
 
 `program.config.json` は容量・入口・adapter等のOptionsを保存し、元ソース名・公開名指定を
 含めない。公開名はBackendInput内で確定する。再生成で元ソースを読むことはない。

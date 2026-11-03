@@ -2,46 +2,82 @@
   "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
   "modules": [
     {
-      "path": "crates/emelino-cli/lib/embedded/board.emel",
-      "source_path": "crates/emela-emb-compiler/lib/embedded/board.emel",
-      "source_sha256": "f86e8766b31c3611547428d7078b6c47cae44c7f924e4ee1aeba3c46774de2f5",
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "source_path": "crates/emela-core/lib/std/embedded/board.emel",
+      "source_sha256": "2ecc85c31a1edc5fa0c5cf1f3e59dad64351aef2ad7c5244ae9a987cc35a9448",
       "sha256": "f86e8766b31c3611547428d7078b6c47cae44c7f924e4ee1aeba3c46774de2f5",
-      "changes": "変更なし。公開moduleとして供給しcore権限は付けない。"
+      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "legacy_copy_path": "crates/emelino-cli/lib/embedded/board.emel",
+      "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/board.emel",
+      "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "compatibility_path": "embedded/board.emel",
+      "upstream_module": "Std.Embedded.Board",
+      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
-      "path": "crates/emelino-cli/lib/embedded/gpio.emel",
-      "source_path": "crates/emela-emb-compiler/lib/embedded/gpio.emel",
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "source_path": "crates/emela-core/lib/std/embedded/gpio.emel",
       "source_sha256": "b0628f656a4e25a67f10e4db89271a1e60cba3ee3c78f6bc0d45de3946ee4cda",
       "sha256": "b0628f656a4e25a67f10e4db89271a1e60cba3ee3c78f6bc0d45de3946ee4cda",
-      "changes": "変更なし。公開moduleとして供給しcore権限は付けない。"
+      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "legacy_copy_path": "crates/emelino-cli/lib/embedded/gpio.emel",
+      "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/gpio.emel",
+      "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "compatibility_path": "embedded/gpio.emel",
+      "upstream_module": "Std.Embedded.Gpio",
+      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
-      "path": "crates/emelino-cli/lib/embedded/i2c.emel",
-      "source_path": "crates/emela-emb-compiler/lib/embedded/i2c.emel",
-      "source_sha256": "89f38481c5f5513fa30007a0da8bbd28089b8d258888bf3a3a71f07b18291572",
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "source_path": "crates/emela-core/lib/std/embedded/i2c.emel",
+      "source_sha256": "8a1d6387b00aaad097f93c5e78919113785aa7848b74dad35be2615f4d5862d1",
       "sha256": "89f38481c5f5513fa30007a0da8bbd28089b8d258888bf3a3a71f07b18291572",
-      "changes": "変更なし。公開moduleとして供給しcore権限は付けない。"
+      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "legacy_copy_path": "crates/emelino-cli/lib/embedded/i2c.emel",
+      "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/i2c.emel",
+      "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "compatibility_path": "embedded/i2c.emel",
+      "upstream_module": "Std.Embedded.I2c",
+      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
-      "path": "crates/emelino-cli/lib/embedded/peripheral.emel",
-      "source_path": "crates/emela-emb-compiler/lib/embedded/peripheral.emel",
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "source_path": "crates/emela-core/lib/std/embedded/peripheral.emel",
       "source_sha256": "8f8c8587636a9cbbf8007e73b4e5306ffbfbf07630cfee84481805e1693278a8",
       "sha256": "8f8c8587636a9cbbf8007e73b4e5306ffbfbf07630cfee84481805e1693278a8",
-      "changes": "変更なし。公開moduleとして供給しcore権限は付けない。"
+      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "legacy_copy_path": "crates/emelino-cli/lib/embedded/peripheral.emel",
+      "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/peripheral.emel",
+      "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "compatibility_path": "embedded/peripheral.emel",
+      "upstream_module": "Std.Embedded.Peripheral",
+      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
-      "path": "crates/emelino-cli/lib/embedded/spi.emel",
-      "source_path": "crates/emela-emb-compiler/lib/embedded/spi.emel",
-      "source_sha256": "c39a3023e9c2258ecdcb01378011355e961b4140aa2ad11eb616e4357e1c25bc",
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "source_path": "crates/emela-core/lib/std/embedded/spi.emel",
+      "source_sha256": "a9f93ca1dbf89cb1ab3620dcafb882fc0a6c7ad85151c47b8740da8ad5ddceeb",
       "sha256": "c39a3023e9c2258ecdcb01378011355e961b4140aa2ad11eb616e4357e1c25bc",
-      "changes": "変更なし。公開moduleとして供給しcore権限は付けない。"
+      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "legacy_copy_path": "crates/emelino-cli/lib/embedded/spi.emel",
+      "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/spi.emel",
+      "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "compatibility_path": "embedded/spi.emel",
+      "upstream_module": "Std.Embedded.Spi",
+      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
-      "path": "crates/emelino-cli/lib/embedded/uart.emel",
-      "source_path": "crates/emela-emb-compiler/lib/embedded/uart.emel",
-      "source_sha256": "49679fa4b32535805c085c1434ed4dd0f99c50b39d83f6f79136277148dec2c5",
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "source_path": "crates/emela-core/lib/std/embedded/uart.emel",
+      "source_sha256": "86401040595c0170cf8f2e0282364ff9ac9c9e6c8baa4b3bcf11c6935448f5dc",
       "sha256": "49679fa4b32535805c085c1434ed4dd0f99c50b39d83f6f79136277148dec2c5",
-      "changes": "変更なし。公開moduleとして供給しcore権限は付けない。"
+      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "legacy_copy_path": "crates/emelino-cli/lib/embedded/uart.emel",
+      "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/uart.emel",
+      "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "compatibility_path": "embedded/uart.emel",
+      "upstream_module": "Std.Embedded.Uart",
+      "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
     },
     {
       "path": "crates/emelino-cli/lib/emelino/bytes.emel",
@@ -96,5 +132,32 @@
       "source_reference": "docs/upstream-known-issues.md UPSTREAM-001",
       "adaptation": "本体の既知問題として2初期化を観測し、正式仕様の1初期化とは分けて記録。"
     }
-  ]
+  ],
+  "module_derivation_test": "crates/emelino-cli/src/bundled.rs::tests::embedded_compatibility_sources_match_fixed_legacy_hashes",
+  "module_derivation_evidence": {
+    "legacy_tests": [
+      "sources::embedded_sources_are_supplied_by_the_backend_without_shadowing_core"
+    ],
+    "current_test": {
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "symbol": "embedded_compatibility_sources_match_fixed_legacy_hashes"
+    },
+    "observation_kind": "artifact_only",
+    "status": "verified",
+    "checks": [
+      "six compatibility modules match the previous fixed hashes byte-for-byte",
+      "six source modules match the adopted official revision hashes",
+      "missing source or hash mismatch fails; no skip or fallback copy"
+    ],
+    "related_tests": [
+      {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "upstream_standard_namespace_and_reserved_compatibility_namespace_are_distinct"
+      },
+      {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "extension_modules_cannot_be_replaced_by_user_sources"
+      }
+    ]
+  }
 }

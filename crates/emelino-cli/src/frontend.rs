@@ -42,8 +42,9 @@ pub fn generate_sources(
     // User files never receive ModuleMap::add_core privileges. Source names are
     // explicit module paths, not a locally reimplemented project/package loader.
     let root = Path::new("<emelino-input>");
+    let bundled = crate::bundled::sources()?;
     if inputs.iter().any(|input| {
-        crate::bundled::SOURCES
+        bundled
             .iter()
             .any(|(name, _)| Path::new(name) == Path::new(input.name))
     }) {
@@ -55,11 +56,7 @@ pub fn generate_sources(
             name: source.name,
             text: source.text,
         })
-        .chain(
-            crate::bundled::SOURCES
-                .iter()
-                .map(|(name, text)| Source { name, text }),
-        )
+        .chain(bundled.iter().map(|(name, text)| Source { name, text }))
         .collect();
     let mut names = std::collections::HashSet::new();
     for input in &inputs {

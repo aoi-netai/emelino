@@ -84,3 +84,20 @@ Emelino.Bytesへのimport変更とこのwrapperはfixtureの明示的な接続�
 frame_bytesを1024から2048へ変更し、短絡評価・引数順序のfixtureは副作用hookを
 正しいeffect/handlerで扱うためheapを0から4096へ変更した。
 [時計の記録](reuse-source-clock.json) と [数値・Unicodeの補足記録](reuse-source-semantics.json) を参照する。
+
+## 組み込み互換moduleの供給元
+
+`Embedded.Peripheral/Gpio/Uart/I2c/Spi/Board` は公式本体
+`ec1031cb0b98386baf0e9b0ced67e8829bb2c529` の `core_sources()` が返す
+`Std.Embedded.*` 6moduleから実行時に派生する。`bundled.rs` は互換コピーの
+`import Std.Embedded.` 行だけを `import Embedded.` へ置き換え、通常のsourceとして
+公開frontend APIに渡す。本体側moduleとuser sourceの本文は変更しない。
+旧 `crates/emelino-cli/lib/embedded/` の重複実装は削除した。
+
+[供給元とhash](reuse-boundary-fixtures.json) は本体ソースのSHA256と、派生後に一致すべき
+旧6moduleの固定SHA256を別々に保持する。`bundled` 単体試験で12個のhashを照合し、
+不一致やmodule欠落は失敗とする。hostの `sha256sum` を使い、Rust依存は追加していない。
+名前空間と置換不可の検査、および旧ボードC harnessのO0/O2実行も通過した。
+
+`Emelino.Bytes` は固定公式本体に存在しないため、専用の通常external拡張を維持する。
+この例外と、公式core/stdの二重管理は区別する。
