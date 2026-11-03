@@ -237,6 +237,87 @@ fn invalid_saved_input_config_and_arguments_fail_without_outputs() {
 }
 
 #[test]
+fn invalid_saved_function_sets_are_diagnosed_without_outputs() {
+    use serde_json::json;
+
+    let generated =
+        emelino_cli::frontend::generate("pub fn answer() -> Int { 42 }", Path::new("main.emel"))
+            .unwrap();
+    let program = emelino_cli::upstream_adapter::adapt(
+        &generated.module,
+        &[("answer".into(), "answer".into())],
+    )
+    .unwrap();
+    let saved = emelino_compiler::BackendInput::new(program)
+        .unwrap()
+        .to_json()
+        .unwrap();
+    let scratch = Scratch::new();
+    std::fs::write(scratch.0.join("config.json"), "{}").unwrap();
+    for (field, kind) in [("errors", "error"), ("effects", "effect")] {
+        let mut input: serde_json::Value = serde_json::from_str(&saved).unwrap();
+        let types = input["program"]["core"]["types"]["types"]
+            .as_array_mut()
+            .unwrap();
+        let empty_set = types.len();
+        types.push(json!({"Set": {
+            "fails": false, "suspends": false, "ev": false, "params": []
+        }}));
+        let callback = types.len();
+        let mut function = json!({"Fn": {
+            "params": [], "ret": 0,
+            "fails": false, "suspends": false, "ev": false,
+            "sets": {"errors": empty_set, "effects": empty_set}
+        }});
+        function["Fn"]["sets"][field] = json!(0); // Int is not a set.
+        types.push(function);
+        let wrapper_type = types.len();
+        let wrapper = input["program"]["core"]["enums"].as_array().unwrap().len();
+        input["program"]["core"]["enums"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({
+                "name": "Callback", "params": 0,
+                "variants": [{
+                    "name": "Callback", "fields": {"Positional": 1}, "tys": [callback]
+                }],
+                "error": false, "external": false
+            }));
+        input["program"]["core"]["types"]["types"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"Enum": [wrapper, []]}));
+        input["program"]["functions"][0]["vars"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"ty": wrapper_type, "repr": "Ref", "hint": "unused_callback"}));
+        std::fs::write(scratch.0.join("input.json"), input.to_string()).unwrap();
+        let result = cli(
+            &scratch.0,
+            &[
+                "build",
+                "--input",
+                "input.json",
+                "--config",
+                "config.json",
+                "--out-dir",
+                field,
+            ],
+        );
+        let diagnostic = String::from_utf8_lossy(&result.stderr);
+        assert_eq!(result.status.code(), Some(1), "{diagnostic}");
+        assert!(
+            diagnostic.contains(&format!(
+                "backend input: function {kind} set must reference a set type"
+            )),
+            "{diagnostic}"
+        );
+        assert!(!diagnostic.contains("panicked"), "{diagnostic}");
+        assert!(!scratch.0.join(field).exists());
+    }
+}
+
+#[test]
 fn unknown_config_and_duplicate_symbols_are_diagnosed() {
     let scratch = Scratch::new();
     std::fs::write(scratch.0.join("main.emel"), "pub fn answer() -> Int { 42 }").unwrap();

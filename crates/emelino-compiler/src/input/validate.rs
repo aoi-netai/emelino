@@ -53,6 +53,19 @@ pub(super) fn prepare(p: &mut Program) -> Result {
                 }
             }
             Type::Handler(id) => index(&p.core.effects, *id, "effect")?,
+            Type::Fn(f) => {
+                if let Some(sets) = f.sets {
+                    // Generic sets remain Set nodes containing Param children;
+                    // substitution requires the E/R references themselves to be sets.
+                    for (kind, id) in [("error", sets.errors), ("effect", sets.effects)] {
+                        if !matches!(p.core.ty(id), Type::Set(_)) {
+                            return Err(invalid(format!(
+                                "function {kind} set must reference a set type"
+                            )));
+                        }
+                    }
+                }
+            }
             _ => {}
         }
         edges.push(type_children(t).iter().map(|id| id.index()).collect());

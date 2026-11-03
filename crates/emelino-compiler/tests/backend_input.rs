@@ -199,6 +199,152 @@ fn invalid_references_and_cycles_are_rejected_before_lowering() {
     );
 }
 
+/// Keep the callback behind an enum field: catalog substitution reached a panic
+/// before runtime value validation could reject a malformed function set.
+fn callback_field_program() -> (Program, TypeId) {
+    let mut p = program();
+    let empty = p.core.types.intern(Type::Set(SetSummary::default()));
+    let callback = p.core.types.intern(Type::Fn(FnType {
+        params: vec![],
+        ret: TypeId::INT,
+        fails: false,
+        suspends: false,
+        ev: false,
+        sets: Some(FnSets {
+            errors: empty,
+            effects: empty,
+        }),
+    }));
+    let wrapper = p.core.enums.alloc(EnumDef {
+        name: "Callback".into(),
+        params: 0,
+        variants: vec![VariantDef {
+            name: "Callback".into(),
+            fields: VariantFields::Positional(1),
+            tys: vec![callback],
+        }],
+        error: false,
+        external: false,
+    });
+    let wrapper = p.core.types.intern(Type::Enum(wrapper, vec![]));
+    p.functions
+        .iter_mut()
+        .next()
+        .unwrap()
+        .1
+        .vars
+        .alloc(VarData {
+            ty: wrapper,
+            repr: Repr::Ref,
+            hint: "unused_callback".into(),
+        });
+    (p, callback)
+}
+
+#[test]
+fn invalid_function_sets_are_rejected_before_enum_field_substitution() {
+    let (mut p, callback) = callback_field_program();
+    let parameter = p.core.types.intern(Type::Param(0));
+    let input = BackendInput::new(p.clone()).unwrap();
+    let saved = input.to_json().unwrap();
+    let options = Options::default().with_entry("");
+    assert_eq!(
+        input.compile(&options).unwrap(),
+        BackendInput::from_json(&saved)
+            .unwrap()
+            .compile(&options)
+            .unwrap()
+    );
+    for (field, kind) in [("errors", "error"), ("effects", "effect")] {
+        for invalid_type in [TypeId::INT, parameter] {
+            let diagnostic = format!("function {kind} set must reference a set type");
+            let mut changed = p.clone();
+            let Type::Fn(function) = &mut changed.core.types.types[callback.index()] else {
+                unreachable!()
+            };
+            let sets = function.sets.as_mut().unwrap();
+            if field == "errors" {
+                sets.errors = invalid_type;
+            } else {
+                sets.effects = invalid_type;
+            }
+            let errors = BackendInput::new(changed).unwrap_err();
+            assert!(
+                errors
+                    .iter()
+                    .any(|error| error.message.contains(&diagnostic))
+            );
+
+            let mut changed: Json = serde_json::from_str(&saved).unwrap();
+            changed["program"]["core"]["types"]["types"][callback.index()]["Fn"]["sets"][field] =
+                json!(invalid_type);
+            let errors = BackendInput::from_json(&changed.to_string()).unwrap_err();
+            assert!(
+                errors
+                    .iter()
+                    .any(|error| error.message.contains(&diagnostic))
+            );
+        }
+    }
+}
+
+#[test]
+fn generic_function_set_declarations_survive_input_roundtrip() {
+    let mut p = program();
+    let parameter = p.core.types.intern(Type::Param(0));
+    let generic_set = p.core.types.intern(Type::Set(SetSummary {
+        params: vec![parameter],
+        ..SetSummary::default()
+    }));
+    let callback = p.core.types.intern(Type::Fn(FnType {
+        params: vec![],
+        ret: TypeId::INT,
+        fails: true,
+        suspends: true,
+        ev: true,
+        sets: Some(FnSets {
+            errors: generic_set,
+            effects: generic_set,
+        }),
+    }));
+    p.core.enums.alloc(EnumDef {
+        name: "GenericCallback".into(),
+        params: 1,
+        variants: vec![VariantDef {
+            name: "GenericCallback".into(),
+            fields: VariantFields::Positional(1),
+            tys: vec![callback],
+        }],
+        error: false,
+        external: false,
+    });
+    let input = BackendInput::new(p).unwrap();
+    let saved = input.to_json().unwrap();
+    let replay = BackendInput::from_json(&saved).unwrap();
+    assert_eq!(saved, replay.to_json().unwrap());
+    let options = Options::default().with_entry("");
+    assert_eq!(
+        input.compile(&options).unwrap(),
+        replay.compile(&options).unwrap()
+    );
+
+    // A generic set may specialize to either an explicit set or upstream's
+    // Unit placeholder. Neither changes the invariant that E/R are Set nodes.
+    for argument in [generic_set, TypeId::UNIT] {
+        let mut types = replay.program().core.types.clone();
+        let specialized = types.subst(callback, &[argument]);
+        let Type::Fn(function) = &types[specialized] else {
+            panic!("function type lost during substitution")
+        };
+        if argument == TypeId::UNIT {
+            assert!(function.sets.is_none());
+            assert!(function.fails && function.suspends && function.ev);
+        } else {
+            assert!(function.sets.is_some());
+        }
+    }
+}
+
 #[test]
 fn semantic_type_mismatches_remain_compile_errors_after_roundtrip() {
     let mut p = program();
