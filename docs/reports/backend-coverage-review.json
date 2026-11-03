@@ -19318,7 +19318,7 @@
     "No copied independent frontend or core/std source tree. Upstream owns parsing, name/type/effect inference and source builtin expansion.",
     "UPSTREAM-001 generic const family identity remains accepted upstream behavior; runtime per-specialization outcomes are tested but cross-specialization one-time sharing is not claimed.",
     "Precise assertion source location is not preserved by the inherited embedded contract, matching the fixed old adapter.",
-    "Concrete public roots are required; an unresolved Evidence parameter requires an explicit source wrapper.",
+    "High-level source/CLI replay public roots require concrete boundaries; direct Evidence parameters/results require an explicit source wrapper. Low-level owned-IR Evidence ABI tests remain a separate explicit contract.",
     "Raw later-stage nodes and arbitrary unresolved executable type/effect sets are rejected; verified diagnostic contexts do not mean C generation accepts them.",
     "Source operation completion and omitted mixed frontend tests must be reconciled against current source fixture/runtime reports."
   ],
@@ -19406,5 +19406,14 @@
     "source_contexts_requiring_crosswalk": 29,
     "canonical_legacy_tests": 115,
     "retained_backend_legacy_tests": 63
+  },
+  "source_crosswalk_boundary": {
+    "pending_meaning": "A pending row is deliberately not decided by this backend-only review. Final source status and current source evidence are merged separately in docs/compiler-coverage.json; this report does not override that final ledger.",
+    "make_closure": "Value::MakeClosure is a later-stage raw node rejected at the Flow input boundary. Ordinary source Closure is implemented through FnRef plus ClosureMetadata; successful source closures do not prove acceptance of raw MakeClosure.",
+    "on_fail_handle": "OnFail::Handle is an accepted owned-IR input form with a local handler normalization test; upstream from_core uses failure blocks/Break instead. Its direct operation coverage is IR-only.",
+    "type_param": "Type::Param survives in generic declaration schemas; executable runtime-value parameters must be concrete after upstream specialization and backend substitution.",
+    "bytes": "Bytes operations come from validated Emelino.Bytes source declarations because the pinned official frontend has no primitive Bytes type.",
+    "evidence": "Source internal evidence is supported. High-level CLI source and replay configuration reject direct Evidence parameters/results on public roots. The lower-level owned-IR API deliberately retains explicit Evidence C-ABI fixtures that test lookup lifetime and invalid pointers; they are not evidence of source public-root support.",
+    "retire": "RuntimeOp::Retire is emitted by the official from_core handler lowering and has source and owned-IR lifecycle observations."
   }
 }
