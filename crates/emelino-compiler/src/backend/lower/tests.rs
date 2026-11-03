@@ -10,6 +10,8 @@ mod cells;
 mod fibers;
 #[path = "function_tests.rs"]
 mod functions;
+#[path = "gpio_tests.rs"]
+mod gpio;
 #[path = "handler_tests.rs"]
 mod handlers;
 #[path = "isr_tests.rs"]

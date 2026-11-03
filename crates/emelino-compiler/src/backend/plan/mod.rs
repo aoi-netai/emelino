@@ -258,6 +258,8 @@ pub(super) fn prepare<'a>(
         &layouts,
         &names,
         options,
+        closures,
+        &services,
     )?;
     let main_entry = flow
         .functions

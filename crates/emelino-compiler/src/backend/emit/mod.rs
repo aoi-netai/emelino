@@ -35,7 +35,8 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let task_value_types = &plan.task_value_types;
     let heap_required = !heap_functions.is_empty();
     let main_entry = plan.main_entry.map(|id| (id, &flow.functions[id]));
-    let target_headers = services::headers(flow, &plan.services)?;
+    let target_headers =
+        services::headers(flow, &plan.services, options.peripheral_buffer_capacity())?;
     let function_ref_adapters = &plan.function_ref_adapters;
     let header = header::emit(header::Context {
         flow,
@@ -58,7 +59,11 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         const_defects: !runtime_consts.is_empty(),
         lifecycle: main_entry.is_some(),
         debug: runtime.debug,
-        event_lock: has_tasks,
+        event_lock: has_tasks
+            || plan
+                .services
+                .values()
+                .any(|op| op.peripheral == "gpio" && op.name == "enable_interrupt"),
     });
 
     let mut source = Writer::new();
@@ -157,6 +162,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     if plan.has_failing_tasks {
         suspend::emit_task_failure_ownership(layouts, &mut source);
     }
+    let gpio_callbacks = services::emit_gpio_runtime(&plan.services, layouts, &mut source);
     task_values::emit_dispatch(layouts, task_value_types, &mut source);
     cause::emit_runtime(layouts, &mut source);
     if layouts.runtime.has_resumes {
@@ -305,7 +311,10 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
                     layouts,
                     function,
                     &names[&id],
-                    options.peripheral_buffer_capacity(),
+                    services::AdapterOptions {
+                        capacity: options.peripheral_buffer_capacity(),
+                        gpio_callbacks,
+                    },
                     &mut source,
                 )?;
                 continue;
