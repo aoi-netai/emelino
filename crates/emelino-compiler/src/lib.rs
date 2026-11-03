@@ -9,3 +9,5 @@ pub use contract::{
     GeneratedFile, Options, Output,
 };
 pub use minimal::*;
+
+pub use input::BackendInput;
