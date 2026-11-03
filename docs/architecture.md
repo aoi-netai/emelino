@@ -103,8 +103,10 @@ heapの回収量をC harnessで確認する。試験が生成Cに追加するhea
 実装は`contract/ir.rs`、`semantics/{types.rs,representations.rs,derived.rs}`、
 `backend/plan/heap.rs`、`backend/emit/heap.rs`と値・dropのlower/emitが担当する。
 pathは`crates/emelino-compiler/src/`からの相対指定である。
-`crates/emelino-cli/tests/legacy_ownership.rs`と`reused_pipeline.rs`はデータの寿命を検査する。
-record更新にeffectを組み合わせた観測と、error payloadを含む所有値の観測はPR4で追加する。
+`crates/emelino-cli/tests/legacy_ownership.rs`は入れ子の所有値、borrowed subview、
+型を変える有限再帰とdeep releaseを観測する。
+`reused_pipeline::{recursive_types_and_deep_release,record_updates_order_and_ownership}`と
+`legacy_collections_helpers.rs`は再帰・更新順・collectionの構造を確認する。
 
 <a id="numeric-text-bytes"></a>
 ## 数値・String・Unicode・Bytes（PR3）
@@ -148,6 +150,37 @@ source観測は`crates/emelino-cli/tests/source_semantics.rs`、
 `legacy_string_alias::append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits`はaliasと容量境界を確認する。
 Unicode vectorは`crates/emelino-compiler/tests/data/GraphemeBreakTest-18.0.0.txt`に保持する。
 
-failureを含むparseとeffectによる評価順のsource統合観測はPR4、ISRでのString比較はPR7で追加する。
-Std.Bytesのto_hex等、高階関数を通る標準ライブラリーのsource観測はPR4で追加する。
-PR3ではBytesの所有権・UTF-8変換・u32長の境界と、raw IRの導出Eq/Showを確認する。
+<a id="functions-effects-failure"></a>
+## 関数値・effect・State・failure（PR4）
+
+closureは関数とcapture環境を組み合わせ、高階callの引数・戻り値・失敗経路へ同じABIを適用する。
+captureしたString、tuple、enum、Listはfactoryのstackが消えた後も必要な所有を保つ。
+handler/layerはoperationとevidenceの対応を保持し、labelの異なるhandlerを混同しない。
+State/Cellは逃げたclosureと共有する値を保持し、最終参照の解放まで生存させる。
+sourceから受信したclosureをbackendで一度だけlowerし、既に変換済みの`MakeClosure`を
+raw Flow入力として受理して変換を重ねることはしない。
+
+recover可能なfailure、escape、取消に関わるCauseと、即時停止するdefectを区別する。
+failureはerror payloadの所有を保ってcall・handler境界を伝播し、`protect`等のcleanupを実行する。
+defectは設定されたboard停止hookへ直行し、`Cause.attempt`でもrecover可能な値に変えない。
+公開C境界まで届いた未処理failureも停止方針に従う。
+Causeのkind参照は値を消費せず、表示はerrorのShowとcallerの出力bufferを使う。
+
+本体v0.26.1の標準Flowにはbackendが必要とするCause.raiseの失敗伝播と、
+Unit→Any callbackのUnit box補完が含まれないため、
+`crates/emelino-cli/src/upstream_adapter/{cause.rs,unit_any.rs}`で補う。
+空String placeholderをUnit値として扱う箇所を区別し、一般の空Stringを書き換えない。
+本体の別backendが持つ私的な補完は標準Flowの契約とはみなさない。
+`OnFail::Handle`はraw入力用の互換形式であり、本体sourceがそれを生成するとは主張しない。
+
+CLIの保存再生成も`Config::validate_entry`を通し、未処理Evidenceを公開引数・戻り値へ露出させない。
+低レベルraw IRの`compile_program`が明示Evidenceを扱えることとは別の境界である。
+`pipeline::saved_raw_evidence_input_cannot_bypass_the_cli_entry_contract`はCLI入口の迂回を拒否する。
+
+実装はCLIの上記補完、`crates/emelino-compiler/src/backend/lower/{closure.rs,effects.rs,failures.rs}`、
+`backend/emit/cause.rs`とfailure emitが担当する。
+`crates/emelino-cli/tests/reused_effects.rs`はcapture順・handler層・failure payloadを確認し、
+`legacy_state.rs`は逃げたclosureの共有と繰り返し回収を確認する。
+`legacy_traits.rs`は構造表示・typed Cause・公開failure、`source_builtins.rs`は表示の一度だけの評価と
+panic/todo/assertのboard停止を観測する。
+`legacy_runtime.rs`の`legacy_cause_*`と`legacy_aggregate_*`はCause・所有capture・間接callを確認する。

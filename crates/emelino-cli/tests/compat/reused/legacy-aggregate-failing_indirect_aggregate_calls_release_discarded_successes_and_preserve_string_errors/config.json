@@ -1,0 +1,10 @@
+{
+  "exports": [
+    {
+      "function": "checked",
+      "symbol": "legacy_checked"
+    }
+  ],
+  "heap_bytes": 2048,
+  "string_capacity": 64
+}

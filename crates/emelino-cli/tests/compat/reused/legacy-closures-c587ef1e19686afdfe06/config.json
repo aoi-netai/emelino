@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "calculate",
+      "symbol": "legacy_calculate"
+    }
+  ],
+  "heap_bytes": 2048
+}

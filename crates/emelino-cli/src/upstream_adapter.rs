@@ -6,6 +6,8 @@
 use emelino_compiler::ir as d;
 use std::collections::{HashMap, HashSet};
 
+mod cause;
+mod unit_any;
 use la_arena::{Arena, Idx};
 
 fn id<T, U>(value: Idx<T>) -> Idx<U> {
@@ -80,7 +82,7 @@ pub fn adapt(
         converted.exported = converted.export_symbol.is_some();
         functions.alloc(converted);
     }
-    let program = d::Program {
+    let mut program = d::Program {
         core,
         functions,
         error_shows: source
@@ -93,6 +95,8 @@ pub fn adapt(
         const_function_groups: Vec::new(),
         has_scopes: false,
     };
+    unit_any::normalize(&mut program);
+    cause::normalize(&mut program)?;
     Ok(program)
 }
 

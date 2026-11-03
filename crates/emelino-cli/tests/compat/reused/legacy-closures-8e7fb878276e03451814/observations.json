@@ -1,0 +1,10 @@
+{
+  "heap_observer": true,
+  "cancel_root": false,
+  "type_bindings": [],
+  "release_bindings": [],
+  "heapless_observer": true,
+  "c_not_contains": [
+    "emela_heap_storage"
+  ]
+}

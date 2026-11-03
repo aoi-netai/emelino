@@ -1,0 +1,6 @@
+type Item(value:String) derive Show
+pub fn display(value:String)->String {
+ item=dbg(Item(value))
+ inspect((item,value))
+}
+pub fn nested(value:String)->String { String.show_nested(value) }

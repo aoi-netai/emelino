@@ -86,6 +86,17 @@ int main(void){for(int i=0;i<1000;i++){bytes_discard((EmelaString){"abc",3,NULL}
 }
 
 #[test]
+fn bytes_unicode_decode_hex_and_unsigned_traits_match_the_fixed_corpus() {
+    let output = with_heap_audit(compile_source(
+        include_str!("compat/p3/bytes-transform.emel"),
+        &Options::default()
+            .with_heap_bytes(16384)
+            .with_string_capacity(512),
+    ));
+    compile_and_run(&output, include_str!("compat/p3/bytes-transform-harness.c"));
+}
+
+#[test]
 fn bytes_owned_results_require_a_heap_even_when_the_result_is_discarded() {
     let source = r#"
 import Std.Bytes.{Bytes}

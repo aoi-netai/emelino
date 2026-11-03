@@ -39,9 +39,7 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                     }
                 }
             }
-            Type::Fn(_) | Type::Handler(_) | Type::Evidence | Type::Cell(_) => {
-                require(function, "functions, effects and Cell")?
-            }
+            Type::Fn(_) | Type::Handler(_) | Type::Evidence | Type::Cell(_) => {}
             Type::FiberScope => require(function, "fiber scopes")?,
             _ => {}
         }
@@ -60,9 +58,7 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         if f.constant || f.canonical_const.is_some() {
             require(&f.name, "const definitions")?;
         }
-        if f.fails || f.env.is_some() {
-            require(&f.name, "failure and environment ABI")?;
-        }
+
         if f.suspends {
             require(&f.name, "suspension")?;
         }
@@ -86,16 +82,13 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         }
         for (_, stmt) in f.stmts.iter() {
             match stmt {
-                Stmt::Protect { .. } => require(&f.name, "protected cleanup")?,
+                Stmt::Protect { .. } => {}
                 Stmt::Let {
-                    dst,
+                    dst: _,
                     value,
-                    on_defect,
+                    on_defect: _,
                     on_suspend,
                 } => {
-                    if on_defect.is_some() {
-                        require(&f.name, "defect recovery")?;
-                    }
                     if on_suspend.is_some() {
                         require(&f.name, "suspension points")?;
                     }
@@ -108,36 +101,32 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                         | Value::EvExtend { .. }
                         | Value::Handler { .. }
                         | Value::IsError { .. }
-                        | Value::AsError { .. } => require(&f.name, "closure and effect values")?,
-                        Value::Fiber { .. } => require(&f.name, "fiber operations")?,
+                        | Value::AsError { .. } => {}
+                        Value::Fiber { op, .. }
+                            if !matches!(
+                                op,
+                                FiberOp::Attempt {
+                                    suspends: false,
+                                    ..
+                                } | FiberOp::CauseKind { .. }
+                                    | FiberOp::CauseToString
+                                    | FiberOp::CauseRaise
+                            ) =>
+                        {
+                            require(&f.name, "fiber operations")?
+                        }
                         Value::Builtin {
                             op: Builtin::CellNew | Builtin::CellGet | Builtin::CellSet,
                             ..
-                        } => require(&f.name, "builtin operations")?,
+                        } => {}
                         Value::Runtime { op, .. }
-                            if !matches!(op, RuntimeOp::ShowString | RuntimeOp::DebugPrint) =>
-                        {
-                            require(&f.name, "runtime operations")?
-                        }
-                        Value::Coerce(source)
-                            if dst.is_some_and(|dst| {
-                                f.vars[dst].ty == TypeId::ANY && f.vars[*source].ty == TypeId::UNIT
-                            }) =>
-                        {
-                            require(&f.name, "Unit in Any")?
-                        }
+                            if !matches!(op, RuntimeOp::ShowString | RuntimeOp::DebugPrint) => {}
                         Value::Call {
-                            callee,
+                            callee: _,
                             suspends,
-                            on_fail,
                             ..
-                        } => {
-                            if !matches!(callee, Callee::Direct(_)) || on_fail.is_some() {
-                                require(&f.name, "indirect and fallible calls")?;
-                            }
-                            if *suspends {
-                                require(&f.name, "suspending calls")?;
-                            }
+                        } if *suspends => {
+                            require(&f.name, "suspending calls")?;
                         }
                         _ => {}
                     }
@@ -147,7 +136,7 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         }
         for (_, seq) in f.seqs.iter() {
             match seq.term {
-                Term::Fail(_) => require(&f.name, "failure and defect paths")?,
+                Term::Fail(_) => {}
                 Term::Unwind => require(&f.name, "unwinding")?,
                 _ => {}
             }

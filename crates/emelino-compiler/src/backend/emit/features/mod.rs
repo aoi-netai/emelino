@@ -23,6 +23,8 @@ pub(in crate::backend::emit) struct BuiltinContext<'a, 'ir> {
 }
 use builtin_utilities::ResultType;
 
+type Emission = Result<(), Vec<Error>>;
+
 pub(in crate::backend::emit) mod constants;
 
 pub(in crate::backend::emit) mod operands;
@@ -38,6 +40,7 @@ pub(in crate::backend::emit) mod failures;
 pub(in crate::backend::emit) mod runtime;
 
 pub(in crate::backend::emit) mod case_keys;
+pub(in crate::backend::emit) mod fibers;
 pub(in crate::backend::emit) mod switches;
 
 pub(in crate::backend::emit) mod control_utilities;

@@ -1,0 +1,50 @@
+{
+  "exports": [
+    {
+      "function": "order",
+      "symbol": "record_order"
+    },
+    {
+      "function": "generic",
+      "symbol": "record_generic"
+    },
+    {
+      "function": "base_failure",
+      "symbol": "record_base_failure"
+    },
+    {
+      "function": "field_failure",
+      "symbol": "record_field_failure"
+    },
+    {
+      "function": "never_base",
+      "symbol": "record_never_base"
+    },
+    {
+      "function": "error_update",
+      "symbol": "record_error"
+    },
+    {
+      "function": "return_updated",
+      "symbol": "record_return_updated"
+    },
+    {
+      "function": "return_items",
+      "symbol": "record_return_items"
+    },
+    {
+      "function": "items_first",
+      "symbol": "record_items_first"
+    },
+    {
+      "function": "handler_update",
+      "symbol": "record_handler"
+    },
+    {
+      "function": "enum_method",
+      "symbol": "record_enum_method"
+    }
+  ],
+  "heap_bytes": 16384,
+  "string_capacity": 256
+}

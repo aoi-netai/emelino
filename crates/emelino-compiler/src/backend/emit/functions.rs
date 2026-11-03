@@ -1,9 +1,10 @@
 //! Function signatures, ownership helpers, closures, and public wrappers.
 use super::{
     StringBufferPlan, TypeLayouts,
-    c::{owned_variable_name, variable_name},
+    c::{function_coerce_adapter_name, owned_variable_name, variable_name},
 };
 use crate::contract::ir::{Function, Operand, Repr, Stmt, VarId};
+use crate::contract::ir::{Type, TypeId};
 use crate::semantics::abi::LayoutRead;
 use crate::writer::Writer;
 
@@ -53,6 +54,89 @@ pub(in crate::backend::emit) fn emit_local_declarations(
             continue;
         }
         writer.line(&format!("(void)&{};", variable_name(variable)));
+    }
+}
+
+pub(in crate::backend::emit) fn emit_closure_environment_declarations(
+    layouts: &TypeLayouts<'_>,
+    closures: &crate::contract::lowered::ClosureMetadata,
+    writer: &mut Writer,
+) {
+    for (index, environment) in closures.environments.iter().enumerate() {
+        writer.line("typedef struct {");
+        let mut represented = false;
+        for (capture_index, capture) in environment.captures.iter().enumerate() {
+            if layouts.type_repr(capture.ty) == Repr::Void {
+                continue;
+            }
+            represented = true;
+            writer.line(&format!(
+                "  {} c{capture_index};",
+                layouts.c_type(capture.ty)
+            ));
+        }
+        if !represented {
+            writer.line("  uint8_t _unit;");
+        }
+        writer.line(&format!("}} emela_closure_env_{index};"));
+        writer.blank();
+    }
+}
+
+pub(in crate::backend::emit) fn emit_closure_string_copy_helper(
+    layouts: &TypeLayouts<'_>,
+    writer: &mut Writer,
+) {
+    let kind = layouts.string_owner_kind();
+    writer.begin_block(
+        "static inline EMELA_UNUSED EmelaString emela_heap_copy_string(EmelaString value)",
+    );
+    writer.line("if (value.length == UINT16_C(0)) return (EmelaString){ .data = \"\" };");
+    writer.line(&format!(
+        "char *bytes = (char *)emela_heap_allocate((size_t)value.length, UINT32_C({kind}));"
+    ));
+    writer.line("for (uint32_t index = UINT32_C(0); index < (uint32_t)value.length; ++index)");
+    writer.begin_block("");
+    writer.line("bytes[index] = value.data[index];");
+    writer.end_block();
+    writer.line("EmelaString copy = { bytes, value.length, bytes };");
+    writer.ret(Some("copy"));
+    writer.end_block();
+    writer.blank();
+    writer.begin_block(
+        "static inline EMELA_UNUSED EmelaString emela_heap_own_string(EmelaString value)",
+    );
+    writer.line("if (value.length == UINT16_C(0)) return (EmelaString){ .data = \"\" };");
+    writer.line("if (value.owner == NULL) return emela_heap_copy_string(value);");
+    writer.line("emela_heap_retain(value.owner);");
+    writer.line("return value;");
+    writer.end_block();
+}
+
+pub(in crate::backend::emit) fn emit_closure_capture_loads(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    environment: usize,
+    writer: &mut Writer,
+) {
+    let captures = &layouts.functions.closure_environments[environment].captures;
+    writer.begin_block("if (emela_env == NULL)");
+    writer.line(
+        "emela_board_defect(EMELA_DEFECT_PANIC, \"null closure environment\", UINT16_C(24));",
+    );
+    writer.end_block();
+    for (capture_index, capture) in captures.iter().enumerate() {
+        if layouts.type_repr(capture.ty) == Repr::Void {
+            continue;
+        }
+        let source = format!("((emela_closure_env_{environment} *)emela_env)->c{capture_index}");
+        if layouts.is_managed_value(capture.ty) {
+            layouts.emit_retain_value_expression(capture.ty, &source, writer);
+        }
+        writer.assign(&variable_name(capture.local), &source);
+        if layouts.is_managed_value(function.vars[capture.local].ty) {
+            writer.assign(&owned_variable_name(capture.local), "INT32_C(1)");
+        }
     }
 }
 
@@ -240,34 +324,316 @@ pub(in crate::backend::emit) fn signature(
     format!("{linkage}{return_type} {name}({params})")
 }
 
-use super::layouts::LayoutEmission;
-
-pub(in crate::backend::emit) fn emit_closure_string_copy_helper(
+pub(in crate::backend::emit) fn closure_signature(
     layouts: &TypeLayouts<'_>,
+    function: &Function,
+    name: &str,
+    is_static: bool,
+) -> String {
+    let signature = signature(layouts, function, name, is_static, function.fails, false);
+    let open = signature
+        .find('(')
+        .expect("function signature contains an opening parenthesis");
+    let params = &signature[open + 1..signature.len() - 1];
+    if params == "void" {
+        format!("{}(void *emela_env)", &signature[..open])
+    } else {
+        format!("{}(void *emela_env, {params})", &signature[..open])
+    }
+}
+
+pub(in crate::backend::emit) fn function_ref_adapter_signature(
+    layouts: &TypeLayouts<'_>,
+    function_type: TypeId,
+    name: &str,
+) -> String {
+    let Type::Fn(function_type) = layouts.shapes.types[function_type].clone() else {
+        unreachable!("function reference adapter has a non-function type")
+    };
+    let mut params = vec!["void *emela_env".to_owned()];
+    if function_type.suspends {
+        params.insert(0, "emela_fiber *fiber".to_owned());
+    }
+    for (index, &parameter) in function_type.params.iter().enumerate() {
+        if layouts.type_repr(parameter) != Repr::Void {
+            params.push(format!("{} emela_arg_{index}", layouts.c_type(parameter)));
+        }
+    }
+    if function_type.ev {
+        params.push("void *emela_evidence".to_owned());
+    }
+    if function_type.fails {
+        params.push("EmelaError *emela_error_out".to_owned());
+    }
+    if function_type.suspends && layouts.type_repr(function_type.ret) != Repr::Void {
+        params.push(format!("{} *result", layouts.c_type(function_type.ret)));
+    }
+    format!(
+        "static {} {name}({})",
+        if function_type.suspends {
+            "void".to_owned()
+        } else {
+            layouts.c_type(function_type.ret)
+        },
+        params.join(", ")
+    )
+}
+
+pub(in crate::backend::emit) fn emit_function_ref_adapter(
+    layouts: &TypeLayouts<'_>,
+    function_type: TypeId,
+    target_name: &str,
+    adapter_name: &str,
+    takes_string_output: bool,
+    string_capacity: u16,
     writer: &mut Writer,
 ) {
-    let kind = layouts.string_owner_kind();
-    writer.begin_block(
-        "static inline EMELA_UNUSED EmelaString emela_heap_copy_string(EmelaString value)",
-    );
-    writer.line("if (value.length == UINT16_C(0)) return (EmelaString){ .data = \"\" };");
-    writer.line(&format!(
-        "char *bytes = (char *)emela_heap_allocate((size_t)value.length, UINT32_C({kind}));"
+    let Type::Fn(function_type_data) = layouts.shapes.types[function_type].clone() else {
+        unreachable!("function reference adapter has a non-function type")
+    };
+    writer.begin_block(&function_ref_adapter_signature(
+        layouts,
+        function_type,
+        adapter_name,
     ));
-    writer.line("for (uint32_t index = UINT32_C(0); index < (uint32_t)value.length; ++index)");
-    writer.begin_block("");
-    writer.line("bytes[index] = value.data[index];");
-    writer.end_block();
-    writer.line("EmelaString copy = { bytes, value.length, bytes };");
-    writer.ret(Some("copy"));
-    writer.end_block();
-    writer.blank();
-    writer.begin_block(
-        "static inline EMELA_UNUSED EmelaString emela_heap_own_string(EmelaString value)",
-    );
-    writer.line("if (value.length == UINT16_C(0)) return (EmelaString){ .data = \"\" };");
-    writer.line("if (value.owner == NULL) return emela_heap_copy_string(value);");
-    writer.line("emela_heap_retain(value.owner);");
-    writer.line("return value;");
+    writer.line("(void)emela_env;");
+    let mut args = Vec::new();
+    if function_type_data.suspends {
+        args.push("fiber".to_owned());
+    }
+    for (index, &parameter) in function_type_data.params.iter().enumerate() {
+        if layouts.type_repr(parameter) != Repr::Void {
+            args.push(format!("emela_arg_{index}"));
+        }
+    }
+    if function_type_data.ev {
+        args.push("emela_evidence".to_owned());
+    }
+    if function_type_data.fails {
+        args.push("emela_error_out".to_owned());
+    }
+    if function_type_data.suspends {
+        if layouts.type_repr(function_type_data.ret) != Repr::Void {
+            args.push("result".to_owned());
+        }
+        writer.line(&format!("{target_name}_push({});", args.join(", ")));
+        writer.end_block();
+        return;
+    }
+    if takes_string_output {
+        writer.line(&format!("char buffer[{string_capacity}];"));
+        args.push("buffer".to_owned());
+        args.push(format!("UINT16_C({string_capacity})"));
+    }
+    let call = format!("{target_name}({})", args.join(", "));
+    if takes_string_output {
+        writer.line(&format!("EmelaString returned = {call};"));
+        writer.ret(Some("emela_heap_own_string(returned)"));
+        writer.end_block();
+        return;
+    }
+    if layouts.type_repr(function_type_data.ret) == Repr::Void {
+        writer.line(&format!("{call};"));
+        writer.ret(None);
+    } else {
+        writer.ret(Some(&call));
+    }
     writer.end_block();
 }
+
+pub(in crate::backend::emit) fn emit_function_coerce_adapter(
+    layouts: &TypeLayouts<'_>,
+    adapter: &FunctionAdapterLayout,
+    index: usize,
+    writer: &mut Writer,
+) {
+    let Type::Fn(source_type) = layouts.shapes.types[adapter.source].clone() else {
+        unreachable!("function adapter source has non-function type")
+    };
+    let Type::Fn(destination_type) = layouts.shapes.types[adapter.destination].clone() else {
+        unreachable!("function adapter destination has non-function type")
+    };
+    let traps_failure = source_type.fails && !destination_type.fails;
+    if traps_failure && source_type.suspends {
+        writer.line(&format!(
+            "typedef struct {{ emela_frame base; EmelaError error; }} emela_coerce_check_{index};"
+        ));
+        writer.line(&format!("_Static_assert(sizeof(emela_coerce_check_{index}) <= EMELA_FRAME_BYTES, \"increase frame_bytes for function coercion\");"));
+        writer.begin_block(&format!(
+            "static void emela_coerce_check_step_{index}(emela_fiber *fiber, emela_frame *base)"
+        ));
+        writer.line(&format!(
+            "emela_coerce_check_{index} *frame = (emela_coerce_check_{index} *)base;"
+        ));
+        writer.line("if (frame->error.tag != 0) emela_board_defect(EMELA_DEFECT_ASSERT, \"failure in infallible coercion\", UINT16_C(30));");
+        writer.line("emela_frame_return(fiber);");
+        writer.end_block();
+        writer.begin_block(&format!(
+            "static void emela_coerce_check_drop_{index}(emela_frame *base)"
+        ));
+        writer.line(&format!(
+            "emela_error_clear(&((emela_coerce_check_{index} *)base)->error);"
+        ));
+        writer.end_block();
+    }
+    writer.begin_block(&function_ref_adapter_signature(
+        layouts,
+        adapter.destination,
+        &function_coerce_adapter_name(index),
+    ));
+    writer.line(&format!(
+        "emela_fn_coerce_env_{index} *environment = (emela_fn_coerce_env_{index} *)emela_env;"
+    ));
+    writer.begin_block("if (environment == NULL || environment->source.call == NULL)");
+    writer.line(
+        "emela_board_defect(EMELA_DEFECT_PANIC, \"invalid coerced function value\", UINT16_C(28));",
+    );
+    writer.end_block();
+
+    let mut args = vec!["environment->source.env".to_owned()];
+    if source_type.suspends {
+        args.insert(0, "fiber".to_owned());
+    }
+    for (parameter_index, &parameter) in source_type.params.iter().enumerate() {
+        if layouts.type_repr(parameter) != Repr::Void {
+            args.push(format!("emela_arg_{parameter_index}"));
+        }
+    }
+    if source_type.ev {
+        args.push("emela_evidence".to_owned());
+    } else if destination_type.ev {
+        writer.line("(void)emela_evidence;");
+    }
+    if traps_failure {
+        if source_type.suspends {
+            writer.line(&format!("emela_coerce_check_{index} *check = (emela_coerce_check_{index} *)emela_frame_push(fiber, sizeof(*check), emela_coerce_check_step_{index});"));
+            writer.line("check->error = (EmelaError){0};");
+            writer.line(&format!(
+                "check->base.drop = emela_coerce_check_drop_{index};"
+            ));
+            args.push("&check->error".into());
+        } else {
+            writer.line("EmelaError checked_error = {0};");
+            args.push("&checked_error".into());
+        }
+    } else if source_type.fails {
+        args.push("emela_error_out".to_owned());
+    } else if destination_type.fails {
+        writer.assign("*emela_error_out", "(EmelaError){0}");
+    }
+    if source_type.suspends && layouts.type_repr(source_type.ret) != Repr::Void {
+        args.push("result".to_owned());
+    }
+    let call = format!("environment->source.call({})", args.join(", "));
+    let trap = "if (checked_error.tag != 0) emela_board_defect(EMELA_DEFECT_ASSERT, \"failure in infallible coercion\", UINT16_C(30));";
+    if source_type.ret == TypeId::NEVER && !source_type.suspends {
+        writer.line(&format!("{call};"));
+        if traps_failure {
+            writer.line(trap);
+        } else if source_type.fails {
+            // A Never-returning function can still return through its failure ABI.
+            // The caller examines the error before observing this placeholder result.
+            writer.begin_block("if (emela_error_out->tag != UINT32_C(0))");
+            if destination_type.suspends || layouts.type_repr(destination_type.ret) == Repr::Void {
+                writer.ret(None);
+            } else {
+                writer.ret(Some(&format!(
+                    "({}){{0}}",
+                    layouts.c_type(destination_type.ret)
+                )));
+            }
+            writer.end_block();
+        }
+        writer.line("emela_board_defect(EMELA_DEFECT_ASSERT, \"Never-returning function returned\", UINT16_C(33));");
+        writer.end_block();
+        return;
+    }
+    if destination_type.suspends {
+        if source_type.suspends || layouts.type_repr(source_type.ret) == Repr::Void {
+            writer.line(&format!("{call};"));
+            if traps_failure && !source_type.suspends {
+                writer.line(trap);
+            }
+        } else {
+            writer.decl(&layouts.c_type(source_type.ret), "returned", Some(&call));
+            if traps_failure {
+                writer.line(trap);
+            }
+            writer.begin_block("if (result != NULL)");
+            writer.assign("*result", "returned");
+            writer.end_block();
+            if layouts.is_managed_value(source_type.ret) {
+                writer.begin_block("else");
+                layouts.emit_release_value_expression(source_type.ret, "returned", writer);
+                writer.end_block();
+            }
+        }
+        writer.line("(void)fiber;");
+        writer.end_block();
+        return;
+    }
+    if layouts.type_repr(source_type.ret) == Repr::Void {
+        writer.line(&format!("{call};"));
+        if traps_failure {
+            writer.line(trap);
+        }
+        writer.ret(None);
+    } else if traps_failure {
+        writer.decl(&layouts.c_type(source_type.ret), "returned", Some(&call));
+        writer.line(trap);
+        writer.ret(Some("returned"));
+    } else {
+        writer.ret(Some(&call));
+    }
+    writer.end_block();
+}
+
+pub(in crate::backend::emit) fn emit_fallible_wrapper(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    public_name: &str,
+    implementation_name: &str,
+    takes_string_output: bool,
+    writer: &mut Writer,
+) {
+    writer.begin_block(&signature(
+        layouts,
+        function,
+        public_name,
+        false,
+        false,
+        takes_string_output,
+    ));
+    writer.decl("EmelaError", "emela_error", Some("{0}"));
+    let mut args: Vec<String> = function
+        .params
+        .iter()
+        .map(|&variable| variable_name(variable))
+        .collect();
+    args.push("&emela_error".to_owned());
+    if takes_string_output {
+        args.push("emela_string_output".to_owned());
+        args.push("emela_string_capacity".to_owned());
+    }
+    let call = format!("{implementation_name}({})", args.join(", "));
+    if layouts.type_repr(function.ret) == Repr::Void {
+        writer.line(&format!("{call};"));
+    } else {
+        writer.decl(&layouts.c_type(function.ret), "emela_result", Some(&call));
+    }
+    writer.begin_block("if (emela_error.tag != UINT32_C(0))");
+    writer.line(
+        "emela_board_defect(EMELA_DEFECT_UNHANDLED_ERROR, \"unhandled error\", UINT16_C(15));",
+    );
+    writer.end_block();
+    if layouts.type_repr(function.ret) == Repr::Void {
+        writer.ret(None);
+    } else {
+        writer.ret(Some("emela_result"));
+    }
+    writer.end_block();
+}
+
+use super::layouts::LayoutEmission;
+
+use crate::contract::abi::FunctionAdapterLayout;

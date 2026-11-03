@@ -1,0 +1,46 @@
+error Empty(code: Int)
+@external(c, "board_mark")
+fn host_raw_mark(n: Int) -> Int
+pub fn option_default(n: Int) -> Int {
+  value: Option[Int] = if n < 0 { None } else { Some(n) }
+  assert Option.is_some(value) == (n >= 0)
+  assert Option.is_none(value) == (n < 0)
+  Option.or(value, 7)
+}
+pub fn option_failure(n: Int) -> Int {
+  value: Option[Int] = if n < 0 { None } else { Some(n) }
+  Option.or_fail(value, Empty(code: mark(7))) escape { Empty(code) -> code }
+}
+pub fn option_traits(n: Int, text: String) -> Int {
+  none: Option[Int] = None
+  assert Some(n) == Some(n)
+  assert Some(n) != Some(n + 1)
+  assert none < Some(n)
+  assert Ord.compare(none, Some(n)) == Less
+  assert inspect(Some(text)) == String.append(String.append("Some(", inspect(text)), ")")
+  assert inspect(none) == "None"
+  n
+}
+pub fn checked_add_default(a: Int, b: Int, fallback: Int) -> Int {
+  Option.or(Int.checked_add(a, b), fallback)
+}
+pub fn float_order(a: Float, b: Float) -> Int {
+  Float.compare(a, b) match { Less -> -1
+    Equal -> 0
+    Greater -> 1 }
+}
+pub fn float_minimum(a: Float, b: Float) -> Float { Float.min(a, b) }
+pub fn float_maximum(a: Float, b: Float) -> Float { Float.max(a, b) }
+pub fn code_point_matches(n: Int, expected: String) -> Bool {
+  String.from_code_point(n) match { Some(text) -> text == expected
+    None -> False }
+}
+pub fn code_point_none(n: Int) -> Bool { Option.is_none(String.from_code_point(n)) }
+
+effect EmelinoTestHost {
+  fn mark(n: Int) -> Int
+}
+handler EmelinoTestHostHandler: EmelinoTestHost {
+  fn mark(n) { host_raw_mark(n) }
+}
+fn mark(n: Int) -> Int { with EmelinoTestHostHandler { (use EmelinoTestHost).mark(n) } }

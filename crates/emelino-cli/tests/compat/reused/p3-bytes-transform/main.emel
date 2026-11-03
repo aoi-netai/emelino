@@ -1,0 +1,12 @@
+import Std.Bytes.{Bytes}
+pub fn decode_matches(b: Bytes, text: String) -> Bool { Bytes.decode_utf8(b) == Some(text) }
+pub fn decode_invalid(b: Bytes) -> Bool { Option.is_none(Bytes.decode_utf8(b)) }
+pub fn compare(a: Bytes, b: Bytes) -> Int { Ord.compare(a, b) match {
+  Less -> -1
+  Equal -> 0
+  Greater -> 1
+} }
+pub fn show(b: Bytes) -> String { inspect(b) }
+pub fn hex(text: String, expected: Bytes) -> Bool { Bytes.from_hex(text) == Some(expected) }
+pub fn bad_hex(text: String) -> Bool { Option.is_none(Bytes.from_hex(text)) }
+pub fn to_hex(b: Bytes) -> String { Bytes.to_hex(b) }

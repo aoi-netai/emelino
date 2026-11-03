@@ -1,0 +1,12 @@
+{
+  "exports": [
+    {
+      "function": "display",
+      "symbol": "display"
+    },
+    {
+      "function": "nested",
+      "symbol": "nested"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "main",
+      "symbol": "legacy_main"
+    }
+  ],
+  "heap_bytes": 2048
+}

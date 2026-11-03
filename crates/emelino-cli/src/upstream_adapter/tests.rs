@@ -110,6 +110,26 @@ fn upstream_calls_branches_and_composite_type_ids_execute() {
 }
 
 #[test]
+fn upstream_closure_error_and_handler_execute() {
+    for (source, invocation) in [
+        (
+            "pub fn answer(n: Int) -> Int { f = fn(x: Int) { x + n }\nf(37) }",
+            "answer(5)",
+        ),
+        (
+            "error Gone(value: Int)\nfn fail_value(n: Int) -> Int fails Gone { fail Gone(value: n) }\npub fn answer(n: Int) -> Int { fail_value(n) escape { Gone(value:) -> value + 37 } }",
+            "answer(5)",
+        ),
+        (
+            "effect Read { fn read() -> Int }\nhandler Reader(value: Int): Read { init { Reader(value: 42) }\nfn read() { self.value } }\npub fn answer() -> Int { with Reader { (use Read).read() } }",
+            "answer()",
+        ),
+    ] {
+        execute(source, invocation);
+    }
+}
+
+#[test]
 fn configured_roots_do_not_expose_private_or_unselected_functions() {
     let generated = crate::frontend::generate(
         "fn helper() -> Int { 42 }\npub fn answer() -> Int { helper() }\npub fn other() -> Int { 1 }",
@@ -220,4 +240,22 @@ fn user_bytes_name_keeps_its_nominal_type() {
             .any(|ty| matches!(ty, d::Type::Enum(id, _) if *id == local))
     );
     assert_eq!(program.core.ty(d::TypeId::BYTES), &d::Type::Bytes);
+}
+
+#[test]
+fn erased_unit_callback_uses_a_unit_box_without_changing_empty_strings() {
+    let program = source_program(
+        "import Std.Fiber\npub fn answer() -> Int { Fiber.scope(fn() { child = Fiber.fork(fn() { () })\nFiber.join(child)\n42 }) }",
+    );
+    assert!(program.functions.iter().any(|(_, function)| function.stmts.iter().any(|(_, statement)| {
+        matches!(statement, d::Stmt::Let { dst: Some(dst), value: d::Value::Coerce(source), .. }
+            if function.vars[*dst].ty == d::TypeId::ANY && function.vars[*source].ty == d::TypeId::UNIT)
+    })));
+    let program = source_program("pub fn answer() -> String { \"\" }");
+    assert!(program.functions.iter().any(|(_, function)| function.seqs.iter().any(|(_, sequence)| {
+        matches!(&sequence.term, d::Term::Return(Some(d::Operand::Const(d::Const::String(value)))) if value.is_empty())
+    })));
+    assert!(!program.functions.iter().any(|(_, function)| function.stmts.iter().any(|(_, statement)| {
+        matches!(statement, d::Stmt::Let { value: d::Value::Coerce(source), .. } if function.vars[*source].ty == d::TypeId::UNIT)
+    })));
 }

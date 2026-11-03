@@ -1,0 +1,34 @@
+{
+  "exports": [
+    {
+      "function": "decode_matches",
+      "symbol": "decode_matches"
+    },
+    {
+      "function": "decode_invalid",
+      "symbol": "decode_invalid"
+    },
+    {
+      "function": "compare",
+      "symbol": "bytes_compare"
+    },
+    {
+      "function": "show",
+      "symbol": "bytes_show"
+    },
+    {
+      "function": "hex",
+      "symbol": "bytes_hex"
+    },
+    {
+      "function": "bad_hex",
+      "symbol": "bytes_bad_hex"
+    },
+    {
+      "function": "to_hex",
+      "symbol": "bytes_to_hex"
+    }
+  ],
+  "heap_bytes": 16384,
+  "string_capacity": 512
+}

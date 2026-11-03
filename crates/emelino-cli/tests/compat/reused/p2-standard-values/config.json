@@ -1,0 +1,42 @@
+{
+  "exports": [
+    {
+      "function": "option_default",
+      "symbol": "option_default"
+    },
+    {
+      "function": "option_failure",
+      "symbol": "option_failure"
+    },
+    {
+      "function": "option_traits",
+      "symbol": "option_traits"
+    },
+    {
+      "function": "checked_add_default",
+      "symbol": "checked_add_default"
+    },
+    {
+      "function": "float_order",
+      "symbol": "float_order"
+    },
+    {
+      "function": "float_minimum",
+      "symbol": "float_minimum"
+    },
+    {
+      "function": "float_maximum",
+      "symbol": "float_maximum"
+    },
+    {
+      "function": "code_point_matches",
+      "symbol": "code_point_matches"
+    },
+    {
+      "function": "code_point_none",
+      "symbol": "code_point_none"
+    }
+  ],
+  "heap_bytes": 4096,
+  "string_capacity": 128
+}
