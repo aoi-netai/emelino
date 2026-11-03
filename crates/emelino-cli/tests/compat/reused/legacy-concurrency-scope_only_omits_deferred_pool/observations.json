@@ -1,0 +1,9 @@
+{
+  "heap_observer": false,
+  "cancel_root": false,
+  "type_bindings": [],
+  "release_bindings": [],
+  "c_not_contains": [
+    "#define EMELA_DEFERRED_CAPACITY"
+  ]
+}

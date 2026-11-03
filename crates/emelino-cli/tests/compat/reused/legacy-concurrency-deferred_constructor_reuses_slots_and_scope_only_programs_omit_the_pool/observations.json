@@ -1,0 +1,17 @@
+{
+  "heap_observer": true,
+  "cancel_root": false,
+  "type_bindings": [],
+  "release_bindings": [],
+  "c_contains": [
+    "#define EMELA_DEFERRED_CAPACITY 1"
+  ],
+  "reject_options": [
+    {
+      "override": {
+        "deferred_capacity": 0
+      },
+      "diagnostic": "deferred_capacity must be positive"
+    }
+  ]
+}

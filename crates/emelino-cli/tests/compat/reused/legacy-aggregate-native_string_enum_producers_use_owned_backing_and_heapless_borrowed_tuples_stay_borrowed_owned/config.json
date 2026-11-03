@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "encoded",
+      "symbol": "legacy_encoded"
+    }
+  ],
+  "heap_bytes": 256
+}
