@@ -1,0 +1,34 @@
+{
+  "exports": [
+    {
+      "function": "answer",
+      "symbol": "p6_scope"
+    },
+    {
+      "function": "attempt",
+      "symbol": "p6_attempt"
+    },
+    {
+      "function": "unit",
+      "symbol": "p6_unit"
+    },
+    {
+      "function": "deferred",
+      "symbol": "p6_deferred"
+    },
+    {
+      "function": "deferred_unit",
+      "symbol": "p6_deferred_unit"
+    },
+    {
+      "function": "cause",
+      "symbol": "p6_cause"
+    },
+    {
+      "function": "recover",
+      "symbol": "p6_raise"
+    }
+  ],
+  "heap_bytes": 32768,
+  "frame_bytes": 1024
+}

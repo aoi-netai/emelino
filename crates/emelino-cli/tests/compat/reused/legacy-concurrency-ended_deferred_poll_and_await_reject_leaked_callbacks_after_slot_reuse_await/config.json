@@ -1,0 +1,17 @@
+{
+  "exports": [
+    {
+      "function": "leak",
+      "symbol": "legacy_leak"
+    },
+    {
+      "function": "invoke",
+      "symbol": "legacy_invoke"
+    }
+  ],
+  "heap_bytes": 8192,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 512,
+  "deferred_capacity": 1
+}

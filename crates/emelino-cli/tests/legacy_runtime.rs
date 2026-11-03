@@ -19,10 +19,102 @@ fn legacy_concurrency_await_resumes_all_waiters_in_fifo_order_after_completer_fi
 }
 
 #[test]
+fn legacy_concurrency_complete_copies_borrowed_string_and_poll_retains_it_past_scope_end() {
+    support::run_fixture(
+        "legacy-concurrency-complete_copies_borrowed_string_and_poll_retains_it_past_scope_end",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_complete_stores_once_and_scope_end_breaks_cycles_through_captured_deferreds()
+{
+    support::run_fixture(
+        "legacy-concurrency-complete_stores_once_and_scope_end_breaks_cycles_through_captured_deferreds",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_deferred_constructor_reuses_slots_and_scope_only_programs_omit_the_pool() {
+    support::run_fixture(
+        "legacy-concurrency-deferred_constructor_reuses_slots_and_scope_only_programs_omit_the_pool",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_deferred_pool_exhaustion_uses_the_defined_defect() {
+    support::run_fixture(
+        "legacy-concurrency-deferred_pool_exhaustion_uses_the_defined_defect",
+        false,
+    );
+}
+
+#[test]
+fn legacy_concurrency_deferred_round_trips_int64_and_float_bits_through_await_and_poll() {
+    support::run_fixture(
+        "legacy-concurrency-deferred_round_trips_int64_and_float_bits_through_await_and_poll",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_deferred_transfers_tuple_values_and_boolean_flags() {
+    support::run_fixture(
+        "legacy-concurrency-deferred_transfers_tuple_values_and_boolean_flags",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_deferred_wait_is_a_real_resume_boundary_and_root_end_reclaims_pending_operation()
+ {
+    support::run_fixture(
+        "legacy-concurrency-deferred_wait_is_a_real_resume_boundary_and_root_end_reclaims_pending_operation",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_poll()
+{
+    support::run_fixture(
+        "legacy-concurrency-ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_poll",
+        false,
+    );
+}
+
+#[test]
+fn legacy_concurrency_ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_await()
+{
+    support::run_fixture(
+        "legacy-concurrency-ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_await",
+        false,
+    );
+}
+
+#[test]
+fn legacy_concurrency_leaked_complete_callback_checks_scope_before_recycled_slot() {
+    support::run_fixture(
+        "legacy-concurrency-leaked_complete_callback_checks_scope_before_recycled_slot",
+        false,
+    );
+}
+
+#[test]
 fn legacy_concurrency_nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries()
  {
     support::run_fixture(
         "legacy-concurrency-nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_poll_observes_empty_and_first_value_for_scalar_and_unit_without_yielding() {
+    support::run_fixture(
+        "legacy-concurrency-poll_observes_empty_and_first_value_for_scalar_and_unit_without_yielding",
         true,
     );
 }
@@ -294,4 +386,9 @@ fn legacy_aggregate_failing_indirect_aggregate_calls_release_discarded_successes
         "legacy-aggregate-failing_indirect_aggregate_calls_release_discarded_successes_and_preserve_string_errors",
         true,
     );
+}
+
+#[test]
+fn legacy_concurrency_scope_only_omits_deferred_pool() {
+    support::run_fixture("legacy-concurrency-scope_only_omits_deferred_pool", false);
 }

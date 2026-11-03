@@ -1,0 +1,17 @@
+{
+  "exports": [
+    {
+      "function": "once",
+      "symbol": "legacy_once"
+    },
+    {
+      "function": "cycle",
+      "symbol": "legacy_cycle"
+    }
+  ],
+  "heap_bytes": 8192,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 512,
+  "deferred_capacity": 1
+}

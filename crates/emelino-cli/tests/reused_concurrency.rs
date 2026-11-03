@@ -17,7 +17,7 @@ fixture_test!(
     "p5-suspend",
     true
 );
-
+fixture_test!(scope_fiber_deferred_and_cause, "p6-concurrency", true);
 fixture_test!(
     nested_scope_cancellation_and_reclamation,
     "p6-nested-cancel",
