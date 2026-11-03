@@ -1,0 +1,17 @@
+{
+  "heap_observer": true,
+  "cancel_root": true,
+  "type_bindings": [
+    {
+      "placeholder": "ty",
+      "function": "legacy_terminal_start",
+      "prefix": "emela_type_"
+    }
+  ],
+  "release_bindings": [
+    {
+      "placeholder": "release",
+      "type_placeholder": "ty"
+    }
+  ]
+}

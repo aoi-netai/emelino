@@ -78,6 +78,11 @@ fn legacy_closures_c587ef1e19686afdfe06() {
 }
 
 #[test]
+fn legacy_closures_45d10a963a24d47032c7() {
+    support::run_fixture("legacy-closures-45d10a963a24d47032c7", true);
+}
+
+#[test]
 fn legacy_closures_f9a6b6eea98c9abe5d11() {
     support::run_fixture("legacy-closures-f9a6b6eea98c9abe5d11", true);
 }

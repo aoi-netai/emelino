@@ -573,6 +573,78 @@ fn legacy_scope_scope_keeps_managed_captures_and_boxes_reference_results_without
 }
 
 #[test]
+fn legacy_aggregate_deferred_complete_poll_and_await_share_owned_string_aggregates_past_scope_end()
+{
+    support::run_fixture(
+        "legacy-aggregate-deferred_complete_poll_and_await_share_owned_string_aggregates_past_scope_end",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_native_closure_captures_string_tuple_enum_and_list_after_factory_stack_returns()
+{
+    support::run_fixture(
+        "legacy-aggregate-native_closure_captures_string_tuple_enum_and_list_after_factory_stack_returns",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_string_aggregates_own_borrowed_inputs_and_native_results_across_suspend_and_cancellation()
+ {
+    support::run_fixture(
+        "legacy-aggregate-string_aggregates_own_borrowed_inputs_and_native_results_across_suspend_and_cancellation",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_suspended_child_captures_and_scope_results_keep_string_aggregates_until_last_release()
+ {
+    support::run_fixture(
+        "legacy-aggregate-suspended_child_captures_and_scope_results_keep_string_aggregates_until_last_release",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_both_returns_nested_string_aggregates_and_cancels_pending_children_without_leaks()
+ {
+    support::run_fixture(
+        "legacy-aggregate-both_returns_nested_string_aggregates_and_cancels_pending_children_without_leaks",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_scope_returns_string_enum_exits_after_success_or_interruption_and_frame_reuse()
+{
+    support::run_fixture(
+        "legacy-aggregate-scope_returns_string_enum_exits_after_success_or_interruption_and_frame_reuse",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_handler_resume_accepts_a_string_enum_and_reclaims_it_when_cancelled_in_either_wait()
+ {
+    support::run_fixture(
+        "legacy-aggregate-handler_resume_accepts_a_string_enum_and_reclaims_it_when_cancelled_in_either_wait",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_both_propagates_managed_failure_from_aggregate_callbacks_and_reclaims_its_sibling()
+ {
+    support::run_fixture(
+        "legacy-aggregate-both_propagates_managed_failure_from_aggregate_callbacks_and_reclaims_its_sibling",
+        true,
+    );
+}
+
+#[test]
 fn legacy_aggregate_heapless_callbacks_accept_and_return_aggregates_containing_function_values() {
     support::run_fixture(
         "legacy-aggregate-heapless_callbacks_accept_and_return_aggregates_containing_function_values",

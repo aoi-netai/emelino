@@ -1,0 +1,12 @@
+{
+  "heap_observer": true,
+  "cancel_root": false,
+  "type_bindings": [
+    {
+      "placeholder": "callback",
+      "function": "legacy_maker",
+      "prefix": "emela_function_type_"
+    }
+  ],
+  "release_bindings": []
+}

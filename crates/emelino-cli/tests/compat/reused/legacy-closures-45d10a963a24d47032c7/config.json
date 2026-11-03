@@ -1,0 +1,38 @@
+{
+  "exports": [
+    {
+      "function": "escaped",
+      "symbol": "legacy_escaped"
+    },
+    {
+      "function": "escaped_result",
+      "symbol": "legacy_escaped_result"
+    },
+    {
+      "function": "shared",
+      "symbol": "legacy_shared"
+    },
+    {
+      "function": "failed",
+      "symbol": "legacy_failed"
+    },
+    {
+      "function": "composite",
+      "symbol": "legacy_composite"
+    }
+  ],
+  "heap_bytes": 8192,
+  "string_capacity": 128,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 1024,
+  "task_capacity": 2,
+  "event_capacity": 2,
+  "deferred_capacity": 0,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}
