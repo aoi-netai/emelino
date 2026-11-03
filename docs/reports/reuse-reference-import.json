@@ -1,0 +1,54 @@
+{
+  "source_repository": "https://github.com/aoi-netai/emela-emb",
+  "source_revision": "2258716bab2e9e4bbaa5a2fd135f6999636125e2",
+  "legacy_revision": "c34c0aeefdd966d854371b3110db00a47798751d",
+  "files": [
+    {
+      "path": "docs/reference/legacy-flow/README.md",
+      "sha256": "bb90c7bdf0f4beb5953e96f2709eb2cdf1ee0449adfbc9c4f736e2aba2be13fb"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-backend-inventory.json",
+      "sha256": "e8161afe09e199e2fbfcf892f841a21b13afbf638c6947be50092b89073ef8e5"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-backend-inventory.md",
+      "sha256": "6c48d7c7922748c84ad360dc8777b0379010780159b9d57f45b2a47c1485b946"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-coverage.json",
+      "sha256": "f270449666d639bead4d2dd54bcce9c8d8d1baca61477ec5af173f39ce51149c"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-coverage.md",
+      "sha256": "d1646ebd269d63b120fcd2e20958028fa3991f7fd526a19fbcfc22e3671d443b"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-implementation-inventory.json",
+      "sha256": "25ca32c2a0249d10069e7f648c954c726b45c6aae9ce46eace99b5df758a85ef"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-implementation-inventory.md",
+      "sha256": "a9fb5406b1ea499b86ed21b872f5942a2d18a65aea3ab1e1ca18a18b84f1b763"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-ir-inventory.json",
+      "sha256": "5c495460514043988b8bbb0edb64ead4bab7d9f792024ebd841537ef48f7defb"
+    },
+    {
+      "path": "docs/reference/legacy-flow/flow-ir-inventory.md",
+      "sha256": "561f3926ba00161594154ef43d1619bfacb5eda5bbfe2b3d2623fb559a15b070"
+    },
+    {
+      "path": "docs/reference/legacy-flow/provenance.json",
+      "sha256": "96304d87fe5871c6e804c8bbcca7881bb4bfe8c0e445ce2be16d77f8c72bad48"
+    }
+  ],
+  "counts": {
+    "records": 428,
+    "contexts": 226,
+    "tests": 115,
+    "requirements": 10
+  },
+  "inherited_verified": 0
+}
