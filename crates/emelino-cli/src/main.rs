@@ -1,29 +1,33 @@
-mod frontend;
+use emelino_cli::{config::Config, errors, frontend, upstream_adapter};
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-const HELP: &str = "emelino — minimal Emela Flow → C experiment
+const HELP: &str = "emelino — Emela Flow → embedded C
 
 Usage:
-  emelino flow <source.emel> --out-dir <directory>
-  emelino build <source.emel> --out-dir <directory>
-  emelino build --flow <program.flow.json> --out-dir <directory>
+  emelino flow <source.emel> --config <config.json> --out-dir <directory>
+  emelino build <source.emel> --config <config.json> --out-dir <directory>
+  emelino build --input <program.backend.json> --config <program.config.json> --out-dir <directory>
+  emelino build --flow <program.flow.json> --out-dir <directory>  (legacy minimal replay)
 
-flow writes program.flow.json and program.flow.txt (an inspection-only dump).
-build writes program.c and program.h; source builds also save the Flow files.
-Only exported, zero-argument functions returning an Int literal are supported.
+Source input uses ordinary public functions selected by the configuration.
+flow writes the versioned backend input, replay configuration and inspection-only Flow dump.
+build also writes embedded C, public headers and the artifact manifest.
+Additional source files can be supplied by config.sources relative to the entry source directory.
 ";
 
 enum Input {
     Source(PathBuf),
     Flow(PathBuf),
+    Backend(PathBuf),
 }
 
 struct Options {
     input: Input,
     out_dir: PathBuf,
     emit_c: bool,
+    config: Option<PathBuf>,
 }
 
 fn parse(args: impl Iterator<Item = OsString>) -> Result<Options, String> {
@@ -35,12 +39,23 @@ fn parse(args: impl Iterator<Item = OsString>) -> Result<Options, String> {
     };
     let mut input = None;
     let mut out_dir = None;
+    let mut config = None;
     while let Some(arg) = args.next() {
         if arg == "--out-dir" {
             if out_dir.is_some() {
                 return Err("--out-dir was specified more than once".into());
             }
             out_dir = Some(next_path(&mut args, "--out-dir")?);
+        } else if arg == "--config" {
+            if config.is_some() {
+                return Err("--config was specified more than once".into());
+            }
+            config = Some(next_path(&mut args, "--config")?);
+        } else if arg == "--input" {
+            if !emit_c || input.is_some() {
+                return Err("--input requires build and exactly one input".into());
+            }
+            input = Some(Input::Backend(next_path(&mut args, "--input")?));
         } else if arg == "--flow" {
             if !emit_c || input.is_some() {
                 return Err("--flow requires `build` and exactly one input".into());
@@ -54,10 +69,19 @@ fn parse(args: impl Iterator<Item = OsString>) -> Result<Options, String> {
             return Err("expected exactly one input".into());
         }
     }
+    let input = input.ok_or("missing input")?;
+    if matches!(input, Input::Flow(_)) {
+        if config.is_some() {
+            return Err("legacy --flow replay does not accept --config".into());
+        }
+    } else if config.is_none() {
+        return Err("--config is required for source and backend inputs".into());
+    }
     Ok(Options {
-        input: input.ok_or("missing input")?,
+        input,
         out_dir: out_dir.ok_or("missing --out-dir")?,
         emit_c,
+        config,
     })
 }
 
@@ -81,25 +105,83 @@ fn write(directory: &Path, name: &str, contents: &str) -> Result<(), String> {
 }
 
 fn run(options: Options) -> Result<(), String> {
-    let (artifact, flow_files) = match options.input {
+    if let Input::Flow(path) = &options.input {
+        let artifact = emelino_compiler::from_json(&read(path)?)?;
+        let c = emelino_compiler::compile(&artifact)?;
+        std::fs::create_dir_all(&options.out_dir).map_err(|e| e.to_string())?;
+        write(&options.out_dir, "program.c", &c.source)?;
+        return write(&options.out_dir, "program.h", &c.header);
+    }
+    let config = Config::from_json(&read(options.config.as_deref().ok_or("missing --config")?)?)?;
+    let backend_options = config.options()?;
+    let (input, dump) = match &options.input {
         Input::Source(path) => {
-            let generated = frontend::generate(&read(&path)?, &path)?;
-            let json = emelino_compiler::to_json(&generated.artifact)?;
-            (generated.artifact, Some((json, generated.dump)))
+            let pairs = config.export_pairs()?;
+            let entry_name = path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .ok_or("entry filename must be UTF-8")?;
+            let directory = path.parent().unwrap_or(Path::new("."));
+            let mut sources = vec![(entry_name.to_owned(), read(path)?)];
+            for source in &config.sources {
+                let module = Path::new(source);
+                if module
+                    .components()
+                    .any(|part| !matches!(part, std::path::Component::Normal(_)))
+                {
+                    return Err(format!("source must be a relative module path: {source}"));
+                }
+                sources.push((source.clone(), read(&directory.join(module))?));
+            }
+            let supplied: Vec<_> = sources
+                .iter()
+                .map(|(name, text)| frontend::Source { name, text })
+                .collect();
+            let generated = frontend::generate_sources(&supplied, entry_name, path)?;
+            let program = upstream_adapter::adapt(&generated.module, &pairs)?;
+            config.validate_entry(&program)?;
+            (
+                emelino_compiler::BackendInput::new(program).map_err(errors)?,
+                Some(generated.dump),
+            )
         }
-        Input::Flow(path) => (emelino_compiler::from_json(&read(&path)?)?, None),
+        Input::Backend(path) => {
+            config.validate_replay()?;
+            let input = emelino_compiler::BackendInput::from_json(&read(path)?).map_err(errors)?;
+            config.validate_entry(input.program())?;
+            (input, None)
+        }
+        Input::Flow(_) => unreachable!(),
     };
-    // Validate everything before creating or replacing any output.
-    let c = emelino_compiler::compile(&artifact)?;
+    // Compile and serialize before changing output files, including `flow`: the
+    // saved contract must be accepted by the backend with these resource limits.
+    let output = input.compile(&backend_options).map_err(errors)?;
+    let json = input.to_json().map_err(errors)?;
+    let replay = serde_json::to_string_pretty(&config.replay()).map_err(|e| e.to_string())?;
+    for file in &output.files {
+        if Path::new(&file.path)
+            .components()
+            .any(|part| !matches!(part, std::path::Component::Normal(_)))
+        {
+            return Err(format!("invalid generated path: {}", file.path));
+        }
+    }
     std::fs::create_dir_all(&options.out_dir)
         .map_err(|e| format!("cannot create {}: {e}", options.out_dir.display()))?;
-    if let Some((json, dump)) = flow_files {
-        write(&options.out_dir, "program.flow.json", &json)?;
+    write(&options.out_dir, "program.backend.json", &json)?;
+    write(&options.out_dir, "program.config.json", &replay)?;
+    if let Some(dump) = dump {
         write(&options.out_dir, "program.flow.txt", &dump)?;
     }
     if options.emit_c {
-        write(&options.out_dir, "program.c", &c.source)?;
-        write(&options.out_dir, "program.h", &c.header)?;
+        for file in output.files {
+            let path = options.out_dir.join(&file.path);
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent)
+                    .map_err(|e| format!("cannot create {}: {e}", parent.display()))?;
+            }
+            write(&options.out_dir, &file.path, &file.contents)?;
+        }
     }
     Ok(())
 }

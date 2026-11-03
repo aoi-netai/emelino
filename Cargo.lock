@@ -112,6 +112,8 @@ dependencies = [
  "emela-types",
  "emelino-compiler",
  "la-arena",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

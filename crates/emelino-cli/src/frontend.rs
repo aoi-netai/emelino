@@ -1,33 +1,64 @@
-//! Temporary single-file bridge to the upstream compiler's public APIs.
+//! Source collection and orchestration over the pinned upstream public APIs.
 //!
 //! Parsing, resolution, typing, monomorphization and Flow construction belong to
-//! Emela. This module only arranges their inputs and exports the supported Flow
-//! subset. It does not parse the human-readable Flow dump.
+//! Emela. This module only arranges explicitly supplied inputs. It does not
+//! inspect Core function bodies or parse the human-readable Flow dump.
 
 use std::path::Path;
 
-use emela_core::{LowerInput, Roots, TypeId};
-use emela_lir::{Const, Operand, Stage, Term};
+use emela_core::{LowerInput, Roots};
 use emela_resolve::hir::DefKind;
 use emela_resolve::{MemoryFs, ModuleId, ModuleMap, ModuleName, NoBuiltins};
 use emela_syntax::ast::{Annotation, AstNode};
-use emelino_compiler::{
-    Constant, FORMAT, FlowArtifact, FlowFunction, Producer, SCHEMA_VERSION, Terminator,
-    UPSTREAM_REVISION,
-};
 use la_arena::ArenaMap;
 
+/// An explicitly supplied source; names are relative module paths such as `helpers.emel`.
+pub struct Source<'a> {
+    pub name: &'a str,
+    pub text: &'a str,
+}
+
 pub struct GeneratedFlow {
-    pub artifact: FlowArtifact,
+    pub module: emela_lir::Module,
     pub dump: String,
 }
 
 pub fn generate(source: &str, shown_path: &Path) -> Result<GeneratedFlow, String> {
-    // Only this source and Emela's bundled modules are inputs. User files never
-    // receive the privileges granted by ModuleMap::add_core.
+    generate_sources(
+        &[Source {
+            name: "main.emel",
+            text: source,
+        }],
+        "main.emel",
+        shown_path,
+    )
+}
+
+pub fn generate_sources(
+    inputs: &[Source<'_>],
+    entry_name: &str,
+    shown_path: &Path,
+) -> Result<GeneratedFlow, String> {
+    // User files never receive ModuleMap::add_core privileges. Source names are
+    // explicit module paths, not a locally reimplemented project/package loader.
     let root = Path::new("<emelino-input>");
-    let input_path = root.join("main.emel");
-    let fs = MemoryFs::new([input_path.clone()]);
+    let mut names = std::collections::HashSet::new();
+    for input in inputs {
+        let path = Path::new(input.name);
+        if path.extension().is_none_or(|ext| ext != "emel")
+            || path
+                .components()
+                .any(|c| !matches!(c, std::path::Component::Normal(_)))
+            || !names.insert(input.name)
+        {
+            return Err(format!("invalid or duplicate source name: {}", input.name));
+        }
+    }
+    if !names.contains(entry_name) {
+        return Err(format!("entry source is not supplied: {entry_name}"));
+    }
+    let input_path = root.join(entry_name);
+    let fs = MemoryFs::new(inputs.iter().map(|source| root.join(source.name)));
     let (mut modules, diagnostics) = emela_resolve::collect_modules(&fs, root);
     check_messages(
         "module collection",
@@ -39,7 +70,17 @@ pub fn generate(source: &str, shown_path: &Path) -> Result<GeneratedFlow, String
         .map(|(id, _)| id)
         .ok_or_else(|| "Emela module collection: entry module is missing".to_owned())?;
     let mut sources = ArenaMap::default();
-    sources.insert(entry, source);
+    let mut user_modules = std::collections::HashSet::new();
+    for input in inputs {
+        let file = root.join(input.name);
+        let id = modules
+            .iter()
+            .find(|(_, module)| module.file == file)
+            .map(|(id, _)| id)
+            .ok_or_else(|| format!("Emela module collection: source is missing: {}", input.name))?;
+        sources.insert(id, input.text);
+        user_modules.insert(id);
+    }
     for &(name, text) in emela_core::core_sources() {
         let (id, diagnostic) = modules.add_core(
             ModuleName::parse(name),
@@ -66,7 +107,7 @@ pub fn generate(source: &str, shown_path: &Path) -> Result<GeneratedFlow, String
                 diagnostic.message,
             ));
         }
-        if id == entry {
+        if user_modules.contains(&id) {
             // Their semantics live in the full upstream driver, outside this
             // temporary bridge. Reject them instead of inventing local rules.
             for annotation in parsed.syntax().descendants().filter_map(Annotation::cast) {
@@ -79,6 +120,21 @@ pub fn generate(source: &str, shown_path: &Path) -> Result<GeneratedFlow, String
                         annotation.syntax().text_range(),
                         name.text(),
                     ));
+                }
+                if annotation
+                    .name()
+                    .is_some_and(|name| name.text() == "export")
+                    && annotation.args().next().is_some_and(|arg| {
+                        arg.descendants_with_tokens()
+                            .filter_map(|node| node.into_token())
+                            .any(|token| {
+                                token.kind() == emela_syntax::SyntaxKind::LOWER_NAME
+                                    && token.text() == "c"
+                            })
+                    })
+                {
+                    unsupported_annotations.push(format!("{}:{:?}: declare C exports in the emelino configuration instead of @export(c)",
+                        display_path(&modules, entry, id, shown_path), annotation.syntax().text_range()));
                 }
             }
         }
@@ -167,9 +223,9 @@ pub fn generate(source: &str, shown_path: &Path) -> Result<GeneratedFlow, String
         bundled_files: emela_core::bundled_files(),
         target: Some("c"),
     };
-    // A target and Exported roots make upstream lower run its standard
-    // monomorphization and target checks. Do not run a second mono pass here.
-    let core = emela_core::lower(&input, Roots::Exported)
+    // Public roots retain main and eligible public entry functions, while the
+    // normal mono and reachable C external checks remain owned by upstream.
+    let core = emela_core::lower(&input, Roots::Public)
         .map_err(|errors| format!("Emela Core lowering: {errors:#?}"))?
         .module;
     emela_core::verify_monomorphic(&core).map_err(|errors| {
@@ -203,94 +259,8 @@ pub fn generate(source: &str, shown_path: &Path) -> Result<GeneratedFlow, String
         )
     })?;
     Ok(GeneratedFlow {
-        artifact: export_minimal(&flow)?,
         dump: emela_lir::dump(&flow),
-    })
-}
-
-fn export_minimal(flow: &emela_lir::Module) -> Result<FlowArtifact, String> {
-    if flow.stage != Stage::Flow || !flow.error_shows.is_empty() {
-        return Err(
-            "emelino Flow export: only Flow without error display functions is supported"
-                .to_owned(),
-        );
-    }
-    // from_core publicly guarantees that Core functions occupy the initial
-    // Flow slots in the same order and with the same names. Only declaration
-    // metadata is read here; Core function bodies are never examined.
-    let declarations: Vec<_> = flow.core.functions.iter().map(|(_, f)| f).collect();
-    let mut functions = Vec::new();
-    for (index, (_, function)) in flow.functions.iter().enumerate() {
-        let unsupported = || {
-            format!(
-                "emelino Flow export: function `{}` is outside the minimal profile (pure, non-const, no arguments, Int literal return)",
-                function.name,
-            )
-        };
-        if !function.params.is_empty()
-            || function.ret != TypeId::INT
-            || function.fails
-            || function.suspends
-            || function.constant
-            || function.external.is_some()
-            || function.env.is_some()
-            || function.defects
-            || !function.vars.is_empty()
-            || !function.stmts.is_empty()
-            || !function.labels.is_empty()
-            || function.seqs.len() != 1
-        {
-            return Err(unsupported());
-        }
-        let sequence = function
-            .body
-            .map(|body| &function.seqs[body])
-            .ok_or_else(unsupported)?;
-        let Term::Return(Some(Operand::Const(Const::Int(value)))) = sequence.term else {
-            return Err(unsupported());
-        };
-        if !sequence.stmts.is_empty() {
-            return Err(unsupported());
-        }
-        let declaration = declarations.get(index).ok_or_else(unsupported)?;
-        if declaration.name != function.name || declaration.exported != function.exported {
-            return Err(
-                "emelino Flow export: upstream function metadata does not match its Flow slot"
-                    .to_owned(),
-            );
-        }
-        let mut exports = Vec::new();
-        for export in &declaration.host_exports {
-            if export.target != "c" || export.interface.is_some() {
-                return Err(unsupported());
-            }
-            exports.push(export.name.clone());
-        }
-        // An implicit main requires launcher semantics, which this experiment
-        // does not implement. Every exposed root must have explicit C names.
-        if function.exported && exports.is_empty() {
-            return Err(format!(
-                "emelino Flow export: root `{}` needs an explicit @export(c, \"name\")",
-                function.name,
-            ));
-        }
-        functions.push(FlowFunction {
-            name: function.name.clone(),
-            exports,
-            body: Terminator::Return {
-                value: Constant::Int { value },
-            },
-        });
-    }
-    Ok(FlowArtifact {
-        format: FORMAT.to_owned(),
-        schema_version: SCHEMA_VERSION,
-        producer: Producer {
-            name: "emela".to_owned(),
-            revision: UPSTREAM_REVISION.to_owned(),
-        },
-        stage: "flow".to_owned(),
-        functions,
+        module: flow,
     })
 }
 
@@ -314,83 +284,64 @@ fn check_messages(stage: &str, messages: Vec<String>) -> Result<(), String> {
 mod tests {
     use super::*;
 
-    fn generate_test(source: &str) -> Result<GeneratedFlow, String> {
-        generate(source, Path::new("example.emel"))
-    }
-
     #[test]
-    fn upstream_flow_preserves_literal_and_host_export_name() {
-        let generated =
-            generate_test("@export(c, \"board_answer\")\npub fn answer() -> Int { 42 }\n").unwrap();
-        assert_eq!(generated.artifact.functions.len(), 1);
-        let function = &generated.artifact.functions[0];
-        assert_eq!(function.exports, ["board_answer"]);
-        assert!(matches!(
-            function.body,
-            Terminator::Return {
-                value: Constant::Int { value: 42 }
-            }
-        ));
+    fn public_functions_retain_arguments_calls_and_control_flow() {
+        let generated = generate("fn helper(x: Int) -> Int { x + 2 }\npub fn answer(x: Int) -> Int { if x > 0 { helper(x) } else { 42 } }", Path::new("example.emel")).unwrap();
+        assert_eq!(generated.module.stage, emela_lir::Stage::Flow);
+        assert!(generated.dump.contains("helper"));
         assert!(generated.dump.contains("42"));
-        let changed =
-            generate_test("@export(c, \"answer\")\npub fn answer() -> Int { 7 }\n").unwrap();
-        assert!(matches!(
-            changed.artifact.functions[0].body,
-            Terminator::Return {
-                value: Constant::Int { value: 7 }
-            }
-        ));
+        assert!(
+            generated
+                .module
+                .functions
+                .iter()
+                .any(|(_, f)| f.name == "answer" && f.exported)
+        );
     }
 
     #[test]
-    fn upstream_errors_and_unsupported_flow_are_distinct() {
-        let cases = [
+    fn diagnostics_still_belong_to_upstream() {
+        for (source, expected) in [
             ("fn answer( {", "Emela parsing"),
             (
-                "@export(c, \"answer\")\npub fn answer() -> Int { missing }\n",
+                "pub fn answer() -> Int { missing }",
                 "Emela name resolution",
             ),
             (
-                "@export(c, \"answer\")\npub fn answer() -> Int { \"wrong\" }\n",
+                "pub fn answer() -> Int { \"wrong\" }",
                 "Emela type checking",
             ),
-            (
-                "@export(c, \"answer\")\npub fn answer() -> Int { 40 + 2 }\n",
-                "emelino Flow export",
-            ),
-            (
-                "@export(c, \"answer\")\npub fn answer(value: Int) -> Int { value }\n",
-                "emelino Flow export",
-            ),
-        ];
-        for (source, expected) in cases {
-            let error = match generate_test(source) {
-                Ok(_) => panic!("unexpectedly accepted: {source}"),
-                Err(error) => error,
-            };
-            assert!(error.contains(expected), "{expected}: {error}");
+        ] {
+            let error = generate(source, Path::new("example.emel"))
+                .err()
+                .expect("invalid source accepted");
+            assert!(error.contains(expected), "{error}");
         }
     }
 
     #[test]
-    fn duplicate_exports_are_checked_by_upstream() {
-        let source = "@export(c, \"answer\")\nfn first() -> Int { 42 }\n\n@export(c, \"answer\")\nfn second() -> Int { 7 }\n";
-        let error = match generate_test(source) {
-            Ok(_) => panic!("duplicate export accepted"),
-            Err(error) => error,
-        };
-        assert!(error.contains("DuplicateExport"), "{error}");
+    fn explicit_modules_use_upstream_resolution() {
+        let inputs = [
+            Source {
+                name: "main.emel",
+                text: "import Helper\npub fn answer() -> Int { Helper.value() }",
+            },
+            Source {
+                name: "helper.emel",
+                text: "pub fn value() -> Int { 42 }",
+            },
+        ];
+        let generated = generate_sources(&inputs, "main.emel", Path::new("main.emel")).unwrap();
+        assert!(generated.dump.contains("42"));
     }
 
     #[test]
-    fn driver_only_annotations_are_not_silently_ignored() {
-        for annotation in ["test", "internal"] {
-            let source =
-                format!("@{annotation}\n@export(c, \"answer\")\nfn answer() -> Int {{ 42 }}\n");
-            let error = match generate_test(&source) {
-                Ok(_) => panic!("@{annotation} accepted without the upstream driver"),
-                Err(error) => error,
-            };
+    fn driver_attributes_and_duplicate_export_contracts_are_rejected() {
+        for annotation in ["test", "internal", "export(c, \"answer\")"] {
+            let source = format!("@{annotation}\npub fn answer() -> Int {{ 42 }}");
+            let error = generate(&source, Path::new("example.emel"))
+                .err()
+                .expect("unsupported attribute accepted");
             assert!(error.contains("emelino source bridge"), "{error}");
         }
     }

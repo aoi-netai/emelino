@@ -1,2 +1,1 @@
-@export(c, "answer")
 pub fn answer() -> Int { 42 }

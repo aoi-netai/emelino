@@ -16,3 +16,5 @@ emela-types.workspace = true
 emela-core.workspace = true
 emela-lir.workspace = true
 la-arena.workspace = true
+serde.workspace = true
+serde_json.workspace = true
