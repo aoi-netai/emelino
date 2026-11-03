@@ -8,6 +8,7 @@ use std::collections::{HashMap, HashSet};
 
 mod bytes;
 mod cause;
+mod unit_any;
 use la_arena::{Arena, Idx};
 
 fn id<T, U>(value: Idx<T>) -> Idx<U> {
@@ -109,6 +110,7 @@ pub fn adapt(
         has_scopes: false,
     };
     bytes::lower(&mut program)?;
+    unit_any::normalize(&mut program);
     cause::normalize(&mut program)?;
     Ok(program)
 }

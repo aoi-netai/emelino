@@ -260,3 +260,21 @@ fn bytes_external_contract_rejects_nonopaque_type() {
             .contains("opaque, non-generic external type")
     );
 }
+
+#[test]
+fn erased_unit_callback_uses_a_unit_box_without_changing_empty_strings() {
+    let program = source_program(
+        "import Std.Fiber\npub fn answer() -> Int { Fiber.scope(fn() { child = Fiber.fork(fn() { () })\nFiber.join(child)\n42 }) }",
+    );
+    assert!(program.functions.iter().any(|(_, function)| function.stmts.iter().any(|(_, statement)| {
+        matches!(statement, d::Stmt::Let { dst: Some(dst), value: d::Value::Coerce(source), .. }
+            if function.vars[*dst].ty == d::TypeId::ANY && function.vars[*source].ty == d::TypeId::UNIT)
+    })));
+    let program = source_program("pub fn answer() -> String { \"\" }");
+    assert!(program.functions.iter().any(|(_, function)| function.seqs.iter().any(|(_, sequence)| {
+        matches!(&sequence.term, d::Term::Return(Some(d::Operand::Const(d::Const::String(value)))) if value.is_empty())
+    })));
+    assert!(!program.functions.iter().any(|(_, function)| function.stmts.iter().any(|(_, statement)| {
+        matches!(statement, d::Stmt::Let { value: d::Value::Coerce(source), .. } if function.vars[*source].ty == d::TypeId::UNIT)
+    })));
+}
