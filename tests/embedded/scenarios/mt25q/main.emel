@@ -1,0 +1,63 @@
+import Test.Target
+import Embedded.Board.{BoardSpi}
+import Embedded.Spi
+import Embedded.Gpio
+
+@external(c, "spi_device_test_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "spi_device_test_wait")
+fn wait_stage(stage: Int) -> () use {}
+
+fn check(number: Int, success: Bool) -> () {
+  raw_check(number, if success { 1 } else { 0 })
+}
+
+pub fn main() -> () {
+  with BoardSpi {
+    spi = use Spi.Spi
+    flash = spi.create_device(Spi.SpiDeviceConfig(Target.spi(),
+      Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits8, Spi.IdleLow,
+        Spi.FirstEdge, 1000000, Spi.MostSignificantFirst),
+      Target.chip_select(), Gpio.Low, 1, 1))
+    # Micron MT25Q, 1.8 V variant, 8 MiB: manufacturer/type/density = 20 BB 17.
+    check(1, spi.transaction(flash, [Spi.Write([159]), Spi.Read(3)], 20)
+      == [[], [32, 187, 23]])
+    check(2, spi.transaction(flash, [Spi.Write([3, 0, 0, 32]), Spi.Read(4)], 20)
+      == [[], [255, 255, 255, 255]])
+    check(3, spi.transaction(flash, [Spi.Write([5]), Spi.Read(1)], 20)
+      == [[], [0]])
+    spi.transaction(flash, [Spi.Write([6])], 20)
+    check(4, spi.transaction(flash, [Spi.Write([5]), Spi.Read(1)], 20)
+      == [[], [2]])
+    # Header and payload are separate operations under one asserted CS.
+    check(5, spi.transaction(flash,
+      [Spi.Write([2, 0, 0, 32]), Spi.Write([0, 85, 170, 255])], 20)
+      == [[], []])
+    check(6, spi.transaction(flash, [Spi.Write([5]), Spi.Read(1)], 20)
+      == [[], [0]])
+    check(7, spi.transaction(flash, [Spi.Write([3, 0, 0, 32]), Spi.Read(4)], 20)
+      == [[], [0, 85, 170, 255]])
+    # FAST READ needs its dummy byte before the response.
+    check(8, spi.transaction(flash, [Spi.Write([11, 0, 0, 32, 0]), Spi.Read(4)], 20)
+      == [[], [0, 85, 170, 255]])
+    check(9, spi.transaction(flash, [Spi.Transfer([3, 0, 0, 32, 255, 255, 255, 255])], 20)
+      == [[0, 0, 0, 0, 0, 85, 170, 255]])
+    wait_stage(1)
+    # CS deassertion must reset the command cursor, even after a short ID read.
+    check(10, spi.transaction(flash, [Spi.Write([159]), Spi.Read(1)], 20)
+      == [[], [32]])
+    check(11, spi.transaction(flash, [Spi.Write([159]), Spi.Read(3)], 20)
+      == [[], [32, 187, 23]])
+    spi.transaction(flash, [Spi.Write([6])], 20)
+    spi.transaction(flash, [Spi.Write([4])], 20)
+    check(12, spi.transaction(flash, [Spi.Write([5]), Spi.Read(1)], 20)
+      == [[], [0]])
+    spi.transaction(flash, [Spi.Write([6])], 20)
+    spi.transaction(flash, [Spi.Write([32, 0, 0, 0])], 20)
+    check(13, spi.transaction(flash, [Spi.Write([3, 0, 0, 32]), Spi.Read(4)], 20)
+      == [[], [255, 255, 255, 255]])
+    check(14, spi.transaction(flash, [Spi.Write([5]), Spi.Read(1)], 20)
+      == [[], [0]])
+    wait_stage(2)
+  } escape { Spi.SpiTransactionError(_, _) -> raw_check(99, 0) }
+}

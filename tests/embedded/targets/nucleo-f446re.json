@@ -3,27 +3,18 @@
   "board": "nucleo-f446re",
   "renode_port": "stm32f4",
   "scenarios": {
-    "gpio": {
-      "port": "stm32f4"
+    "gpio": {"port": "stm32f4"},
+    "uart": {"port": "stm32f4"},
+    "spi": {"port": "stm32f4", "wrap": ["HAL_SPI_TransmitReceive", "stm32f4_gpio_write_owned"]},
+    "i2c": {"port": "stm32f4", "wrap": ["HAL_I2C_Master_Seq_Transmit_IT"]},
+    "peripherals": {"port": "stm32f4"},
+    "bmp180": {
+      "bindings": true,
+      "i2c": 1,
+      "address": 119,
+      "missing_address": 118,
+      "controller_model": "tests/renode/models/EmelinoSTM32F4I2C.cs"
     },
-    "uart": {
-      "port": "stm32f4"
-    },
-    "spi": {
-      "port": "stm32f4",
-      "wrap": [
-        "HAL_SPI_TransmitReceive",
-        "stm32f4_gpio_write_owned"
-      ]
-    },
-    "i2c": {
-      "port": "stm32f4",
-      "wrap": [
-        "HAL_I2C_Master_Seq_Transmit_IT"
-      ]
-    },
-    "peripherals": {
-      "port": "stm32f4"
-    }
+    "mt25q": {"bindings": true, "spi": 1, "cs_pin": 4}
   }
 }

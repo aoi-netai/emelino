@@ -30,8 +30,26 @@ BMP180のモデルはRenode標準のものをそのまま使用する。
 
 ## 検証
 
-`RENODE`を指定して `python3 tools/test_renode_i2c_model.py` を実行する。
-HAL・firmwareを介さずMMIO・IRQと相手への読出し回数を検査する。
+```sh
+# docs/embedded/README.mdと同じARM_GCC / STM32CUBE_F4 / RENODEを指定する。
+python3 tools/test_renode_i2c_model.py
+python3 tools/test_embedded.py --scenario bmp180 \
+  --controller-model tests/renode/models/EmelinoSTM32F4I2C.cs
+python3 tools/test_embedded.py --scenario bmp180 \
+  --controller-model tests/renode/models/EmelinoSTM32F4I2C.cs \
+  --optimization O0 --output-dir out/stm32f4-bmp180-o0
+```
+
+独立モデル試験はHALやfirmwareを使わず、MMIOを直接操作する。ADDR、AF、IRQ mask、
+1/2/3/8バイトの受信、実際の相手への読出し回数、Repeated START、STOP、PE/resetを検査する。
+BMP180試験は同じモデルへ生成firmwareを接続し、デバイスの状態・データを照合する。
+結果にはモデルソースのSHA-256を記録する。
+
+NUCLEO-F446REのtest targetはこの修正版モデルを既定で選択する。
+`--stock-controller`を指定すれば、標準Renode 1.16.1での比較試験になる。
+その場合、現状はBMP180の最初の1バイトID読み取りがTimeoutとなり、スクリプトは失敗を返す。
+失敗を正常通信として数えない。`tools/test_embedded.py --scenario i2c`は、元モデルの制約を別項目で
+確認する試験として残す。
 
 ## 範囲
 
