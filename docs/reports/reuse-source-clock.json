@@ -75,5 +75,28 @@
       "cargo test -p emelino-cli --test source_clock --locked --offline",
       "cargo clippy -p emelino-cli --test source_clock --locked --offline -- -D warnings"
     ]
+  },
+  "frame_layout_audit": {
+    "host": "64-bit host C11, sizeof measured from generated C; fields summed separately",
+    "function": "emela_fn_24, the State.run callback containing the three virtual-time assertions",
+    "sizeof": 1624,
+    "breakdown_bytes": {
+      "scheduler_base": 40,
+      "ordinary_locals": 128,
+      "15_assertion_message_EmelaString_values": 360,
+      "22_ownership_flags": 88,
+      "assertion_scratch_buffers": [
+        256,
+        111,
+        256,
+        256,
+        111
+      ],
+      "alignment_padding": 18
+    },
+    "primary_cause": "Official raw Flow expands equality assertions into failing-branch Int64.to_string/Show and String.append diagnostics containing both operand values. The previous independent frontend generated only the constant16-byte message assertion failed; its largest measured same-fixture frame was296bytes and had no diagnostic scratch arrays.",
+    "layout_policy": "The reused suspend emitter places every active local, ownership flag and planned String buffer into the frame (src/backend/emit/suspend.rs). It does not separate non-suspending temporary diagnostic storage or overlay mutually exclusive failure branches. Scratch990bytes and String views360bytes dominate this conservative layout.",
+    "lifetime_review": "All15 diagnostic values are initialized only inside the three assertion-failure branches; the successful suspension/resumption path does not acquire these owners. Existing1000-round heap-empty assertions pass. No unexpected capture, retained live owner or field-layout corruption was found. Reserving failure-only storage for the frame duration is conservative allocation and an optimization opportunity, not evidence that1624 is the minimal possible frame.",
+    "conclusion": "Keep the1024 failure and the explicit2048 verification separate. The difference is explained by richer official assertion lowering combined with inherited frame allocation policy; no production code change was made."
   }
 }
