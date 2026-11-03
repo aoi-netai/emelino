@@ -120,3 +120,24 @@ source対応表は174試験・169program・170source fileと、追加3件の拒�
 旧frontendの「このnamespaceを供給せずimportを拒否する」という追加観測は、
 今回の標準ライブラリー委譲により `replaced` とする。未使用importの処理順による差分ではない。
 `Std.Embedded.*` の名前解決を本体に従わせ、emelino側の `Embedded.*` の予約名上書き拒否とは分ける。
+
+## S6の確定結果
+
+| 集合 | 検証済み | 本体既知問題 | 方針による置換 |
+| --- | ---: | ---: | ---: |
+| records | 428 | 0 | 0 |
+| contexts | 226 | 0 | 0 |
+| canonical tests | 114 | 1 | 0 |
+| requirements | 9 | 1 | 0 |
+| 固定source観測174件 | 166 | 8 | 0 |
+| 追加nonruntime観測3件 | 2 | 0 | 1 |
+
+未判定・pending・mappedは残していない。recordsは表現と接続の各責任を確認する単位であり、
+constの型特殊化間共有の8観測が旧仕様と一致するという意味ではない。
+sourceの160定義と宣言代入1定義、schema238定義、入力限定18定義、raw IR限定11定義を区別した。
+
+[全体の実行記録](reports/compiler-s6-validation.json) は実装・試験revision `70dfbe6` の
+workspaceと独立archiveで各377試験成功、失敗・ignore・filteredとも0を記録している。
+最終帳票の分類変更は実装と試験のtree一致を確認し、台帳の整合試験を再実行した。
+ネットワークからの依存の新規取得は試していない。straceはsandboxのptrace制約で使えず、
+traceによるfilesystem access不在の証明は行っていない。
