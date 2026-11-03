@@ -35007,15 +35007,24 @@
     "known_upstream_issue": "UPSTREAM-001"
   },
   "completion": {
-    "finalized": false,
-    "status": "pending_reconstructed_history_validation",
-    "date": null,
+    "finalized": true,
+    "status": "passed",
+    "date": "2026-11-03T17:55:04+09:00",
     "scope": "機能契約・固定観測集合・UPSTREAM-001を保持した8PR履歴の再現検証",
-    "implementation_and_test_revision": null,
-    "implementation_and_test_trees": {},
+    "implementation_and_test_revision": "10537c3d1d72da34673551f402a903e25f09e613",
+    "implementation_and_test_trees": {
+      "emelino-cli": "01852bcf31210d2d382bac98ff3ec2a9809744b0",
+      "emelino-compiler": "f0f5198a179d0fbca87d4d332dc6ffcb86e6bf7d"
+    },
     "integration_report": "docs/reports/reconstruction-validation.json",
     "source_crosswalk": "docs/reports/reuse-source-coverage.json",
-    "note": "旧実行記録はpre_reconstruction_completion等へ保持した。新revisionと結果は実行後に記入する。行statusは履歴の観測分類であり、再編後の未実行を成功としない。"
+    "note": "再編後の実commitでworkspace全試験と独立Git archiveでの同じ試験を実行した。最終化分岐を含む台帳2試験と文書整合も別に確認する。旧実行SHAと判定はpre_reconstruction_completionおよび歴史資料へ保持する。",
+    "validation_counts": {
+      "workspace": 386,
+      "isolated_archive": 386,
+      "product_and_test_files": 1086,
+      "finalized_ledger_integrity": 2
+    }
   },
   "counts": {
     "records": {

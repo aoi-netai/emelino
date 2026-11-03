@@ -1,85 +1,105 @@
 {
   "schema_version": 1,
-  "status": "pending",
-  "date": null,
+  "status": "passed",
+  "date": "2026-11-03T17:55:04+09:00",
   "old_revision": "948a8be7e3bb01956b1558aa42204d19f177bb59",
   "old_archive_tag": "archive/pre-history-cleanup",
-  "tested_revision": null,
-  "implementation_and_test_trees": {},
+  "tested_revision": "10537c3d1d72da34673551f402a903e25f09e613",
+  "implementation_and_test_trees": {
+    "emelino-cli": "01852bcf31210d2d382bac98ff3ec2a9809744b0",
+    "emelino-compiler": "f0f5198a179d0fbca87d4d332dc6ffcb86e6bf7d"
+  },
   "environment": {
-    "os": null,
-    "rustc": null,
-    "cargo": null,
-    "c_compiler": null,
-    "dependency_mode": null
+    "os": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "c_compiler": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0",
+    "dependency_mode": "Cargo.lock + --locked --offline; fixed official Emela Git/Cargo cache. No fresh dependency download."
   },
   "checks": [
     {
       "id": "format",
       "command": "cargo fmt --all -- --check",
-      "status": "pending",
-      "exit_code": null,
-      "log_sha256": null
+      "status": "passed",
+      "exit_code": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duration_seconds": 1.41
     },
     {
       "id": "clippy",
       "command": "cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
-      "status": "pending",
-      "exit_code": null,
-      "log_sha256": null
+      "status": "passed",
+      "exit_code": 0,
+      "log_sha256": "e498092799ee4d24efac295b9c7b1e8d2a3b4441dda90a04d3d75013419bf4e4",
+      "duration_seconds": 0.501
     },
     {
       "id": "workspace_tests",
       "command": "cargo test --workspace --locked --offline",
-      "status": "pending",
-      "exit_code": null,
-      "passed": null,
-      "failed": null,
-      "ignored": null,
-      "filtered": null,
-      "log_sha256": null
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 386,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "log_sha256": "d048f9ea7988c1a3d538ab9e8c429f27e4cf2fcbefeefe3519f288117df9b477",
+      "duration_seconds": 141.2,
+      "measured": 0
     },
     {
       "id": "isolated_archive_tests",
       "command": "cargo test --workspace --locked --offline",
-      "status": "pending",
-      "archive_revision": null,
-      "directory": null,
-      "exit_code": null,
-      "passed": null,
-      "failed": null,
-      "ignored": null,
-      "filtered": null,
-      "log_sha256": null
+      "status": "passed",
+      "archive_revision": "10537c3d1d72da34673551f402a903e25f09e613",
+      "directory": "/tmp/emelino-history-validation-10537c3d1d72",
+      "exit_code": 0,
+      "passed": 386,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "log_sha256": "e2224ce52c01e33c171e7eb05945ba446a3c4c4d9a795e7324b652353fe13dcc",
+      "duration_seconds": 158.68,
+      "measured": 0,
+      "archive_sha256": "046b7840d178bc56f23a8d0a0af3e33ffd66e8d8fe00f998d69693d8d18d26c1"
     },
     {
       "id": "source_removed_replay",
       "command": "cargo test --locked --offline -p emelino-cli --test pipeline upstream_flow_survives_source_removal_and_links_from_c -- --exact",
-      "status": "pending",
-      "exit_code": null,
-      "log_sha256": null
+      "status": "passed",
+      "exit_code": 0,
+      "log_sha256": "2299a720836d826288d81ec42a7e97fbbb4ed2441d229d14bd154d8c8985aa9c",
+      "duration_seconds": 0.704,
+      "measured": 0,
+      "directory": "/tmp/emelino-history-validation-10537c3d1d72"
     },
     {
       "id": "finalized_ledger_integrity",
       "command": "cargo test --locked --offline -p emelino-cli --test reused_pipeline coverage_ -- --nocapture",
-      "status": "pending",
-      "exit_code": null,
-      "passed": null,
-      "log_sha256": null
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 2,
+      "log_sha256": "c33ddf2bea69674c77c1703e60b7b53e2bb910738661369f0636b77c3082596b",
+      "duration_seconds": 0.146
     },
     {
       "id": "product_and_test_identity",
       "command": "compare baseline and reconstructed tracked product/test/config/example files byte-for-byte",
-      "status": "pending",
-      "changed_paths": null,
-      "manifest_sha256": null
+      "status": "passed",
+      "changed_paths": [],
+      "manifest_sha256": "0799eb962d8ae7ca6c54df747759366f75118e02ff23cb01f02b3032e2222a4c",
+      "files": 1086,
+      "unchanged_git_trees": {
+        "crates/emelino-cli": "01852bcf31210d2d382bac98ff3ec2a9809744b0",
+        "crates/emelino-compiler": "f0f5198a179d0fbca87d4d332dc6ffcb86e6bf7d",
+        "examples": "73885209fb69f992f01b71c6bd34909369d003f0"
+      }
     },
     {
       "id": "docs_integrity",
-      "command": "one-off verify_docs.py BASELINE RECONSTRUCTED_TREE",
-      "status": "pending",
-      "exit_code": null,
-      "log_sha256": null
+      "command": "python3 verify_docs.py BASELINE RECONSTRUCTED_TREE --require-finalized (one-off repository-external checker)",
+      "status": "passed",
+      "exit_code": 0,
+      "log_sha256": "ed59b6c577bcc1950df215fec6a04aeca1c5b7509fe02d2ce978ecf39ff13297"
     }
   ],
   "limitations": [
