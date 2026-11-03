@@ -1,46 +1,33 @@
-//! Ordinary compatibility modules derived from the pinned upstream standard sources.
-//! Standard sources, including Std.Bytes, come directly from Emela.
+//! Embedded interfaces and board handlers owned by emelino.
+//! Imported from Emela v0.26.1 (Apache-2.0); generic core/std stays upstream.
 
-use std::borrow::Cow;
-
-const EMBEDDED: &[(&str, &str)] = &[
-    ("embedded/peripheral.emel", "Std.Embedded.Peripheral"),
-    ("embedded/gpio.emel", "Std.Embedded.Gpio"),
-    ("embedded/uart.emel", "Std.Embedded.Uart"),
-    ("embedded/i2c.emel", "Std.Embedded.I2c"),
-    ("embedded/spi.emel", "Std.Embedded.Spi"),
-    ("embedded/board.emel", "Std.Embedded.Board"),
-];
-
-pub(crate) fn sources() -> Result<Vec<(&'static str, Cow<'static, str>)>, String> {
-    let mut sources = Vec::with_capacity(EMBEDDED.len());
-    for &(path, module) in EMBEDDED {
-        let (_, source) = emela_core::core_sources()
-            .iter()
-            .find(|(name, _)| *name == module)
-            .ok_or_else(|| format!("pinned Emela standard source is missing: {module}"))?;
-        sources.push((path, compatibility_imports(source)));
-    }
-    Ok(sources)
-}
-
-/// Derive only the legacy namespace's import lines. The upstream module and all
-/// user source bodies remain unchanged and receive their normal frontend checks.
-fn compatibility_imports(source: &'static str) -> Cow<'static, str> {
-    const PREFIX: &str = "import Std.Embedded.";
-    if !source.lines().any(|line| line.starts_with(PREFIX)) {
-        return Cow::Borrowed(source);
-    }
-    let mut derived = String::with_capacity(source.len());
-    for line in source.split_inclusive('\n') {
-        if let Some(rest) = line.strip_prefix(PREFIX) {
-            derived.push_str("import Embedded.");
-            derived.push_str(rest);
-        } else {
-            derived.push_str(line);
-        }
-    }
-    Cow::Owned(derived)
+pub(crate) fn sources() -> &'static [(&'static str, &'static str)] {
+    &[
+        (
+            "embedded/peripheral.emel",
+            include_str!("../lib/embedded/peripheral.emel"),
+        ),
+        (
+            "embedded/gpio.emel",
+            include_str!("../lib/embedded/gpio.emel"),
+        ),
+        (
+            "embedded/uart.emel",
+            include_str!("../lib/embedded/uart.emel"),
+        ),
+        (
+            "embedded/i2c.emel",
+            include_str!("../lib/embedded/i2c.emel"),
+        ),
+        (
+            "embedded/spi.emel",
+            include_str!("../lib/embedded/spi.emel"),
+        ),
+        (
+            "embedded/board.emel",
+            include_str!("../lib/embedded/board.emel"),
+        ),
+    ]
 }
 
 #[cfg(test)]
@@ -55,7 +42,7 @@ mod tests {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .expect("host sha256sum is required to check the pinned module contract");
+            .expect("host sha256sum is required to check the imported module baseline");
         child
             .stdin
             .take()
@@ -77,37 +64,42 @@ mod tests {
     }
 
     #[test]
-    fn embedded_compatibility_sources_match_fixed_legacy_hashes() {
+    fn embedded_sources_match_imported_baseline() {
         let report: serde_json::Value = serde_json::from_str(include_str!(
             "../../../docs/reports/reuse-boundary-fixtures.json"
         ))
         .unwrap();
-        let sources = sources().unwrap();
+        let sources = sources();
         assert_eq!(sources.len(), 6);
         let mut checked = 0;
         for module in report["modules"].as_array().unwrap() {
-            let Some(path) = module["compatibility_path"].as_str() else {
+            let Some(path) = module["module_path"].as_str() else {
                 continue;
             };
             let (_, source) = sources.iter().find(|(name, _)| *name == path).unwrap();
-            assert_eq!(sha256(source), module["sha256"], "derived {path}");
-            let original = emela_core::core_sources()
-                .iter()
-                .find(|(name, _)| *name == module["upstream_module"].as_str().unwrap())
-                .unwrap()
-                .1;
-            assert_eq!(sha256(original), module["source_sha256"], "pinned {path}");
+            assert_eq!(sha256(source), module["sha256"], "local {path}");
             checked += 1;
         }
         assert_eq!(checked, 6);
     }
 
     #[test]
-    fn compatibility_derivation_changes_only_embedded_import_lines() {
-        let source = "# import Std.Embedded.Gpio is a comment\nimport Std.Clock.{Clock}\nimport Std.Embedded.Gpio.{Gpio}\npub fn text()->String{\"import Std.Embedded.Gpio\"}\n";
-        assert_eq!(
-            compatibility_imports(source),
-            "# import Std.Embedded.Gpio is a comment\nimport Std.Clock.{Clock}\nimport Embedded.Gpio.{Gpio}\npub fn text()->String{\"import Std.Embedded.Gpio\"}\n"
+    fn embedded_sources_have_no_upstream_module_dependency() {
+        // The real source route excludes upstream embedded modules even while
+        // the pinned release still supplies them. Generic std remains intact.
+        let upstream: Vec<_> = crate::frontend::upstream_sources().collect();
+        assert!(
+            upstream
+                .iter()
+                .all(|(name, _)| { *name != "Std.Embedded" && !name.starts_with("Std.Embedded.") })
         );
+        for name in ["Std.Bytes", "Std.Clock", "Std.Console", "Std.Instant"] {
+            assert!(upstream.iter().any(|(module, _)| *module == name));
+        }
+        for (name, source) in sources() {
+            assert!(!source.contains("Std.Embedded"), "{name}");
+            let parsed = emela_syntax::parse(source);
+            assert!(parsed.diagnostics().is_empty(), "{name}");
+        }
     }
 }

@@ -2,88 +2,130 @@
   "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
   "modules": [
     {
-      "path": "crates/emelino-cli/src/bundled.rs",
+      "path": "crates/emelino-cli/lib/embedded/board.emel",
       "source_path": "crates/emela-core/lib/std/embedded/board.emel",
       "source_sha256": "2ecc85c31a1edc5fa0c5cf1f3e59dad64351aef2ad7c5244ae9a987cc35a9448",
       "sha256": "f86e8766b31c3611547428d7078b6c47cae44c7f924e4ee1aeba3c46774de2f5",
-      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "changes": "emelinoがlib/embeddedの通常sourceとして所有する。取り込み時にStd.Embedded importをEmbeddedへ変更した6moduleを埋め込み、本体の組み込みsource供給には依存しない。source_sha256/upstream_revisionは由来、sha256はローカル実装の取り込み基準。",
       "legacy_copy_path": "crates/emelino-cli/lib/embedded/board.emel",
       "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/board.emel",
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-      "compatibility_path": "embedded/board.emel",
       "upstream_module": "Std.Embedded.Board",
       "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
-      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+      "previous_supply": {
+        "path": "crates/emelino-cli/src/bundled.rs",
+        "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+        "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329"
+      },
+      "module_path": "embedded/board.emel",
+      "owner": "emelino",
+      "source_role": "import_provenance_only"
     },
     {
-      "path": "crates/emelino-cli/src/bundled.rs",
+      "path": "crates/emelino-cli/lib/embedded/gpio.emel",
       "source_path": "crates/emela-core/lib/std/embedded/gpio.emel",
       "source_sha256": "b0628f656a4e25a67f10e4db89271a1e60cba3ee3c78f6bc0d45de3946ee4cda",
       "sha256": "b0628f656a4e25a67f10e4db89271a1e60cba3ee3c78f6bc0d45de3946ee4cda",
-      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "changes": "emelinoがlib/embeddedの通常sourceとして所有する。取り込み時にStd.Embedded importをEmbeddedへ変更した6moduleを埋め込み、本体の組み込みsource供給には依存しない。source_sha256/upstream_revisionは由来、sha256はローカル実装の取り込み基準。",
       "legacy_copy_path": "crates/emelino-cli/lib/embedded/gpio.emel",
       "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/gpio.emel",
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-      "compatibility_path": "embedded/gpio.emel",
       "upstream_module": "Std.Embedded.Gpio",
       "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
-      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+      "previous_supply": {
+        "path": "crates/emelino-cli/src/bundled.rs",
+        "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+        "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329"
+      },
+      "module_path": "embedded/gpio.emel",
+      "owner": "emelino",
+      "source_role": "import_provenance_only"
     },
     {
-      "path": "crates/emelino-cli/src/bundled.rs",
+      "path": "crates/emelino-cli/lib/embedded/i2c.emel",
       "source_path": "crates/emela-core/lib/std/embedded/i2c.emel",
       "source_sha256": "8a1d6387b00aaad097f93c5e78919113785aa7848b74dad35be2615f4d5862d1",
       "sha256": "89f38481c5f5513fa30007a0da8bbd28089b8d258888bf3a3a71f07b18291572",
-      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "changes": "emelinoがlib/embeddedの通常sourceとして所有する。取り込み時にStd.Embedded importをEmbeddedへ変更した6moduleを埋め込み、本体の組み込みsource供給には依存しない。source_sha256/upstream_revisionは由来、sha256はローカル実装の取り込み基準。",
       "legacy_copy_path": "crates/emelino-cli/lib/embedded/i2c.emel",
       "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/i2c.emel",
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-      "compatibility_path": "embedded/i2c.emel",
       "upstream_module": "Std.Embedded.I2c",
       "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
-      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+      "previous_supply": {
+        "path": "crates/emelino-cli/src/bundled.rs",
+        "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+        "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329"
+      },
+      "module_path": "embedded/i2c.emel",
+      "owner": "emelino",
+      "source_role": "import_provenance_only"
     },
     {
-      "path": "crates/emelino-cli/src/bundled.rs",
+      "path": "crates/emelino-cli/lib/embedded/peripheral.emel",
       "source_path": "crates/emela-core/lib/std/embedded/peripheral.emel",
       "source_sha256": "8f8c8587636a9cbbf8007e73b4e5306ffbfbf07630cfee84481805e1693278a8",
       "sha256": "8f8c8587636a9cbbf8007e73b4e5306ffbfbf07630cfee84481805e1693278a8",
-      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "changes": "emelinoがlib/embeddedの通常sourceとして所有する。取り込み時にStd.Embedded importをEmbeddedへ変更した6moduleを埋め込み、本体の組み込みsource供給には依存しない。source_sha256/upstream_revisionは由来、sha256はローカル実装の取り込み基準。",
       "legacy_copy_path": "crates/emelino-cli/lib/embedded/peripheral.emel",
       "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/peripheral.emel",
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-      "compatibility_path": "embedded/peripheral.emel",
       "upstream_module": "Std.Embedded.Peripheral",
       "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
-      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+      "previous_supply": {
+        "path": "crates/emelino-cli/src/bundled.rs",
+        "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+        "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329"
+      },
+      "module_path": "embedded/peripheral.emel",
+      "owner": "emelino",
+      "source_role": "import_provenance_only"
     },
     {
-      "path": "crates/emelino-cli/src/bundled.rs",
+      "path": "crates/emelino-cli/lib/embedded/spi.emel",
       "source_path": "crates/emela-core/lib/std/embedded/spi.emel",
       "source_sha256": "a9f93ca1dbf89cb1ab3620dcafb882fc0a6c7ad85151c47b8740da8ad5ddceeb",
       "sha256": "c39a3023e9c2258ecdcb01378011355e961b4140aa2ad11eb616e4357e1c25bc",
-      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "changes": "emelinoがlib/embeddedの通常sourceとして所有する。取り込み時にStd.Embedded importをEmbeddedへ変更した6moduleを埋め込み、本体の組み込みsource供給には依存しない。source_sha256/upstream_revisionは由来、sha256はローカル実装の取り込み基準。",
       "legacy_copy_path": "crates/emelino-cli/lib/embedded/spi.emel",
       "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/spi.emel",
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-      "compatibility_path": "embedded/spi.emel",
       "upstream_module": "Std.Embedded.Spi",
       "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
-      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+      "previous_supply": {
+        "path": "crates/emelino-cli/src/bundled.rs",
+        "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+        "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329"
+      },
+      "module_path": "embedded/spi.emel",
+      "owner": "emelino",
+      "source_role": "import_provenance_only"
     },
     {
-      "path": "crates/emelino-cli/src/bundled.rs",
+      "path": "crates/emelino-cli/lib/embedded/uart.emel",
       "source_path": "crates/emela-core/lib/std/embedded/uart.emel",
       "source_sha256": "86401040595c0170cf8f2e0282364ff9ac9c9e6c8baa4b3bcf11c6935448f5dc",
       "sha256": "49679fa4b32535805c085c1434ed4dd0f99c50b39d83f6f79136277148dec2c5",
-      "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+      "changes": "emelinoがlib/embeddedの通常sourceとして所有する。取り込み時にStd.Embedded importをEmbeddedへ変更した6moduleを埋め込み、本体の組み込みsource供給には依存しない。source_sha256/upstream_revisionは由来、sha256はローカル実装の取り込み基準。",
       "legacy_copy_path": "crates/emelino-cli/lib/embedded/uart.emel",
       "legacy_source_path": "crates/emela-emb-compiler/lib/embedded/uart.emel",
       "legacy_source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-      "compatibility_path": "embedded/uart.emel",
       "upstream_module": "Std.Embedded.Uart",
       "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
-      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+      "previous_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+      "previous_supply": {
+        "path": "crates/emelino-cli/src/bundled.rs",
+        "changes": "固定本体のcore_sources()から取得し、互換namespace用のimport行だけStd.EmbeddedからEmbeddedへ機械置換する。派生byte列は旧6moduleのhashと一致。本体・user sourceを書き換えず、ordinary Sourceとして供給する。",
+        "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329"
+      },
+      "module_path": "embedded/uart.emel",
+      "owner": "emelino",
+      "source_role": "import_provenance_only"
     },
     {
       "path": "crates/emelino-cli/src/frontend.rs",
@@ -160,8 +202,49 @@
       "adaptation": "本体の既知問題として2初期化を観測し、正式仕様の1初期化とは分けて記録。"
     }
   ],
-  "module_derivation_test": "crates/emelino-cli/src/bundled.rs::tests::embedded_compatibility_sources_match_fixed_legacy_hashes",
+  "module_derivation_test": "crates/emelino-cli/src/bundled.rs::tests::embedded_sources_match_imported_baseline",
   "module_derivation_evidence": {
+    "legacy_tests": [
+      "sources::embedded_sources_are_supplied_by_the_backend_without_shadowing_core"
+    ],
+    "current_test": {
+      "path": "crates/emelino-cli/src/bundled.rs",
+      "symbol": "embedded_sources_match_imported_baseline"
+    },
+    "observation_kind": "artifact_only",
+    "status": "verified",
+    "checks": [
+      "six local embedded sources match their imported baseline hashes; this is an adoption snapshot, not a future upstream synchronization requirement",
+      "embedded module imports and frontend registration do not depend on upstream Std.Embedded sources",
+      "missing bundled sources are compile-time include failures; no runtime upstream fallback"
+    ],
+    "related_tests": [
+      {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "embedded_namespace_is_owned_and_std_embedded_is_not_supplied"
+      },
+      {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "extension_modules_cannot_be_replaced_by_user_sources"
+      },
+      {
+        "path": "crates/emelino-cli/src/bundled.rs",
+        "symbol": "embedded_sources_have_no_upstream_module_dependency"
+      }
+    ]
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
+  },
+  "previous_module_derivation_evidence": {
     "legacy_tests": [
       "sources::embedded_sources_are_supplied_by_the_backend_without_shadowing_core"
     ],
@@ -187,15 +270,13 @@
       }
     ]
   },
-  "release_migration": {
-    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
-    "to_release": "v0.26.1",
-    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
-    "baseline_report_revision": "f29bafe",
-    "validation_report": "docs/reports/compiler-v0.26.1.md",
-    "validation_status": "passed_workspace_revalidation",
-    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
-    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
-    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
+  "embedded_ownership_migration": {
+    "decision": "User requests emelino ownership of embedded libraries; upstream codegen-emb/codegen-c are planned for removal.",
+    "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "0bb8ee5",
+    "validation_report": "docs/reports/embedded-library-ownership.md",
+    "validation_status": "pending_revalidation",
+    "ownership": "Emelino owns Embedded.* and the embedded C backend. Generic core/std including Std.Bytes remain delegated to upstream.",
+    "namespace": "Only Embedded.* is supplied for embedded libraries. Upstream Std.Embedded.* is excluded; no compatibility alias is registered."
   }
 }

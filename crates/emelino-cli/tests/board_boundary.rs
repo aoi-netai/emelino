@@ -77,16 +77,20 @@ fn public_entries_require_handled_effects_instead_of_exposing_evidence_pointers(
 }
 
 #[test]
-fn upstream_standard_namespace_and_reserved_compatibility_namespace_are_distinct() {
-    // The adopted upstream std owns Std.Embedded.Gpio. The independent
-    // frontend's old expectation that this namespace is absent is superseded.
-    emelino_cli::frontend::generate(
+fn embedded_namespace_is_owned_and_std_embedded_is_not_supplied() {
+    // Embedded modules belong to emelino. Even while the pinned upstream still
+    // bundles Std.Embedded, it must not supply a second copy of these contracts.
+    for source in [
         "import Std.Embedded.Gpio.{Gpio}\nfn main() { 0 }",
-        std::path::Path::new("main.emel"),
-    )
-    .unwrap();
-    emelino_cli::frontend::generate(
         "import Std.Embedded.Gpio.{Gpio}\npub fn answer()->Int use Gpio {42}",
+    ] {
+        let error = emelino_cli::frontend::generate(source, std::path::Path::new("main.emel"))
+            .err()
+            .expect("upstream Std.Embedded modules must not be supplied");
+        assert!(error.contains("Std.Embedded.Gpio"), "{error}");
+    }
+    emelino_cli::frontend::generate(
+        "import Embedded.Gpio.{Gpio}\npub fn answer()->Int use Gpio {42}",
         std::path::Path::new("main.emel"),
     )
     .unwrap();

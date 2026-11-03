@@ -23,6 +23,15 @@ pub struct GeneratedFlow {
     pub dump: String,
 }
 
+/// Embedded.* is supplied by emelino. Excluding the upstream copy makes this
+/// route independent of whether a future Emela release still bundles it.
+pub(crate) fn upstream_sources() -> impl Iterator<Item = (&'static str, &'static str)> {
+    emela_core::core_sources()
+        .iter()
+        .copied()
+        .filter(|(name, _)| *name != "Std.Embedded" && !name.starts_with("Std.Embedded."))
+}
+
 pub fn generate(source: &str, shown_path: &Path) -> Result<GeneratedFlow, String> {
     generate_sources(
         &[Source {
@@ -42,7 +51,7 @@ pub fn generate_sources(
     // User files never receive ModuleMap::add_core privileges. Source names are
     // explicit module paths, not a locally reimplemented project/package loader.
     let root = Path::new("<emelino-input>");
-    let bundled = crate::bundled::sources()?;
+    let bundled = crate::bundled::sources();
     if inputs.iter().any(|input| {
         bundled
             .iter()
@@ -97,7 +106,7 @@ pub fn generate_sources(
         sources.insert(id, input.text);
         user_modules.insert(id);
     }
-    for &(name, text) in emela_core::core_sources() {
+    for (name, text) in upstream_sources() {
         let (id, diagnostic) = modules.add_core(
             ModuleName::parse(name),
             Path::new("<emela-core>").join(name),
