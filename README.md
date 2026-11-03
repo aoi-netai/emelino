@@ -56,6 +56,7 @@ CLI binaryのCargoビルドには固定した本体crateを含む依存が必要
 - [接続・保存入力・基本制御](docs/architecture.md#foundation)
 - [データ表現・固定heap・所有権](docs/architecture.md#data-memory)
 - [数値・String・Unicode・Bytes](docs/architecture.md#numeric-text-bytes)
+- [closure・effect・State・failure](docs/architecture.md#functions-effects-failure)
 
 Bytesは本体の`Std.Bytes`からimportします。
 
