@@ -84,6 +84,16 @@ pub fn adapt(
                 "configured function `{name}` is not an upstream public root"
             ));
         }
+        if function.params.iter().any(|parameter| {
+            matches!(
+                source.core.types[function.vars[*parameter].ty],
+                emela_core::Type::Evidence
+            )
+        }) {
+            return Err(format!(
+                "configured function `{name}` has unresolved effect evidence; supply a concrete public wrapper with its handlers"
+            ));
+        }
     }
     let type_map = TypeMap::new(&source.core, bytes::identify(source)?);
     let mut core = definitions(&source.core, &type_map)?;
