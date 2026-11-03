@@ -26,14 +26,18 @@ S2の同期データ接続も[確認済み](reports/compiler-s2.md)。S3の関�
 その後、本体依存をユーザー指定のv0.26.1へ更新し、Bytesを本体標準へ移管する。
 release tagが指すcommitへ5 crateと保存入力のproducerを固定し、標準Flow→所有IRの
 接続に必要な処理だけを残す。更新内容と検証は[依存更新報告](reports/compiler-v0.26.1.md)に記録する。
+組み込み専用moduleは、後続のユーザー方針に従ってemelino管理へ移す。
+本体側のcodegen-emb/codegen-c削除予定に対し、組み込みライブラリー・backend・将来のBSPは
+こちらで管理する。[所有範囲と接続変更](reports/embedded-library-ownership.md)を正本とする。
 
 ## 2. 保持する方針
 
 - 本体を変更せず、公開APIと標準の単相化・Flow生成を利用する。
-- frontend、標準ライブラリー、単相化をemelinoへ複製しない。
-- 本体の5 crateを同一revisionへ固定し、core/stdもその版から供給する。
+- frontend、汎用標準ライブラリー、単相化をemelinoへ複製しない。
+- 本体の5 crateを同一revisionへ固定し、汎用core/stdもその版から供給する。
+- 組み込み専用の `Embedded.*` はemelino内で管理し、本体の `Std.Embedded.*` 供給には依存しない。
 - backend・runtime・テスト資産を前回の最終版から選んで再利用する。
-  独自frontend、同梱core/std、古い完了判定を含むコミット列の丸ごとの取り込みは行わない。
+  独自frontend、同梱の汎用core/std、古い完了判定を含むコミット列の丸ごとの取り込みは行わない。
 - 固定heap/pool、所有権、failure/取消のcleanup、defect時の即時停止、main側scheduler、
   ISR制約、C ABIは前回の組み込み契約を比較基準にする。
 - インライン化、定数伝播、不要コード除去等はCコンパイラーに任せる。
@@ -44,7 +48,7 @@ release tagが指すcommitへ5 crateと保存入力のproducerを固定し、標
 ## 3. Flow接続と保存形式
 
 ```text
-Emelaソース + 本体core/std
+Emelaソース + 本体の汎用core/std + emelinoのEmbedded.*
   → 本体の公開frontend API・標準単相化
   → emela_lir::Module（Stage::Flow）・本体verifier
   → upstream接続部で型・ID・演算・宣言情報を変換
@@ -149,11 +153,11 @@ backendの共通コードはS1でまとまって採用できるが、コード�
 | S5 const・公開ABI・ISR | 標準Flowのconst、同期/非同期adapter、所有値公開、ISR到達性、組み込みmodule/C bridgeを接続 | header/manifestとC呼出しが整合。constの正常観測とUPSTREAM-001の影響を分離し、ISR制約を検証 |
 | S6 対応表と全体確認 | 前回のsource/C harness/IR試験の接続先を照合し、回帰試験と新規checkoutでの再現を確認 | 対象行が新経路で検証済み、理由付き適用外、または明示した本体既知問題へ分類され、理由不明の未接続・未確認を残さない |
 
-S5の互換 `Embedded.*` は、固定本体の標準ソースからimport名だけを変えて供給する。
-6moduleの派生結果は旧moduleの固定hashとの一致を確認し、同じ宣言のコピーをrepoへ置かない。
+S5で接続した `Embedded.*` は、emelinoの `lib/embedded` に6moduleを保持して管理する。
+取り込み元と基準hashを記録し、通常のsourceとして読み込む。本体の `Std.Embedded.*` は登録しない。
 Bytesはv0.26.1の `Std.Bytes` に委譲し、独自のEmelaソースとexternal変換を削除する。
 標準Flowの構造変換と未移管のCause・Unit/Any補完は接続部に保持する。
-本体のcore/stdを差し替えず、互換ソースへcore内部権限を与えない。
+本体の汎用core/stdを差し替えず、組み込みソースへcore内部権限を与えない。
 利用可能な公開APIの範囲で接続し、供給できない場合はその項目を未完として記録する。
 Pome・project loadingの独自実装は作らず、必要な入口は本体へ委譲する。
 

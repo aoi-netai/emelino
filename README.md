@@ -1,7 +1,7 @@
 # emelino
 
 Emela本体の公開APIで生成したFlow IRを、再利用した組み込み向けbackendへ接続します。
-本体のfrontend・単相化・core/stdは複製せず、公式 **v0.26.1** のcommit
+本体のfrontend・単相化・汎用core/stdは複製せず、公式 **v0.26.1** のcommit
 `6021115103dd830e0efd9bb96a56a0ca97859329` に固定して利用します。本体への変更はありません。
 
 ## 試す
@@ -59,8 +59,9 @@ S0の `emelino.flow.minimal` は `build --flow` による最小profileの読込�
 設定のunknown fieldや重複公開名は拒否します。
 
 Bytesは本体の `Std.Bytes` からimportします。旧 `Emelino.Bytes` も `Std.Bytes` へ変更してください。
-旧 `Embedded.*` は、固定版本体の `Std.Embedded.*` から供給する互換モジュールです。
-標準ライブラリーのソースは本体へ集約し、emelino側に同じ宣言のコピーを置きません。
+組み込み用の `Embedded.*` はemelinoが管理し、`crates/emelino-cli/lib/embedded` から供給します。
+本体側の `Std.Embedded.*` は読み込まないため、組み込みmoduleは `Embedded.*` からimportしてください。
+`Std.Bytes`・List・Stringなどの汎用標準ライブラリーは引き続き本体へ委譲します。
 公開入口には具体型のwrapperを用意し、残るeffectをhandlerで処理してください。
 
 Pome/project loader、`@test` / `@internal` のdriver処理はまだ提供していません。
@@ -70,13 +71,14 @@ Pome/project loader、`@test` / `@internal` のdriver処理はまだ提供して
 [対応表](docs/compiler-coverage.md)の各項目に新経路の証拠を記録し、377試験と別ディレクトリでの再実行を確認しました。
 公開入口・容量の条件と結果の内訳は[S6報告](docs/reports/compiler-s6.md)を参照してください。
 v0.26.1への更新・標準Bytesへの移行と再検証は[依存更新報告](docs/reports/compiler-v0.26.1.md)に記録します。
+その後の組み込みライブラリーの管理移管は[所有範囲の報告](docs/reports/embedded-library-ownership.md)を参照してください。
 本体由来の汎化constの共有問題は[既知問題](docs/upstream-known-issues.md)として追跡します。
 現在の境界は[構成](docs/architecture.md)、移入元は[再利用記録](docs/reports/reuse-provenance.md)を参照してください。
 
 ## 検証
 
-検証にはC11コンパイラーと `sha256sum` が必要です。後者は固定版本体から供給する
-互換モジュールが旧ソースと一致することを確認します。
+検証にはC11コンパイラーと `sha256sum` が必要です。後者はローカルの組み込みmoduleが
+記録した基準hashに一致することを確認します。
 
 ```sh
 cargo fmt --all -- --check

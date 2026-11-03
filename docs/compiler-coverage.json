@@ -33053,9 +33053,18 @@
         {
           "kind": "integrated_run_report",
           "path": "docs/reports/compiler-s6-validation.json"
+        },
+        {
+          "kind": "integrated_run_report",
+          "path": "docs/reports/embedded-library-ownership.md"
+        },
+        {
+          "kind": "implementation",
+          "path": "crates/emelino-cli/src/bundled.rs"
         }
       ],
-      "reason": "本体と同一revisionのcore/stdを利用する。6個のEmbedded互換moduleは本体のStd.Embedded sourceからimport namespaceだけを変更して導出し、固定旧hash一致と予約名上書き拒否を確認した。6ソースの別コピーは削除した。v0.26.1ではStd.Bytesも本体から供給し、独自Bytesソースとexternal置換は削除した。Std.Embedded namespaceの不在という旧拒否期待は本体std委譲へ置き換える。"
+      "reason": "汎用core/stdとStd.Bytesはv0.26.1本体へ委譲する。組み込み6moduleはemelinoのlib/embeddedが所有し、本体のStd.Embedded供給を登録対象から除く。通常sourceとしての供給、取り込み基準hash、予約名上書き拒否を検証する。旧Std namespaceの欠落診断はユーザー指定の管理移管により原期待へ戻す。",
+      "previous_ownership_reason": "本体と同一revisionのcore/stdを利用する。6個のEmbedded互換moduleは本体のStd.Embedded sourceからimport namespaceだけを変更して導出し、固定旧hash一致と予約名上書き拒否を確認した。6ソースの別コピーは削除した。v0.26.1ではStd.Bytesも本体から供給し、独自Bytesソースとexternal置換は削除した。Std.Embedded namespaceの不在という旧拒否期待は本体std委譲へ置き換える。"
     },
     {
       "id": "memory_ownership",
@@ -33320,12 +33329,12 @@
     "finalized": true,
     "date": "2026-11-03",
     "scope": "fixed legacy fork under documented embedded constraints, upstream delegation, raw-input boundaries and known UPSTREAM-001 differences",
-    "integration_report": "docs/reports/compiler-v0.26.1.md",
+    "integration_report": "docs/reports/embedded-library-ownership.md",
     "source_crosswalk": "docs/reports/reuse-source-coverage.json",
-    "note": "The release migration preserves the fixed observation classifications after 377 workspace tests, format and strict all-target clippy passed. Ledger integrity is rechecked after finalization. Prior S6 isolated-checkout results remain historical in baseline_completion.",
-    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "note": "After local embedded-library ownership transfer, all 377 workspace tests, format and strict all-target clippy passed. The namespace-omission observation returns from replaced to verified; all other classifications are retained. Previous S6 and release results remain in baseline_completion and release_completion. Ledger integrity is rechecked after finalization.",
+    "implementation_and_test_revision": "7967eb96f13610dd30a29363ee1cfc5f7826564c",
     "implementation_and_test_trees": {
-      "crates/emelino-cli": "c34db2c1487d2555e9959c78fc75bfea7f7298e5",
+      "crates/emelino-cli": "84b302271b4a8b2e0e93e2547ea58f7d03d45185",
       "crates/emelino-compiler": "260f39d1db5a69e280b110d686b0184c79d520d8"
     }
   },
@@ -33359,8 +33368,7 @@
       },
       "additional_nonruntime_cases": 3,
       "additional_statuses": {
-        "replaced": 1,
-        "verified": 2
+        "verified": 3
       }
     }
   },
@@ -33390,5 +33398,37 @@
     "classification_parent_revision": "d57c912926d28a9cdc3583621d29833a428dc3e7",
     "note": "Final classification and evidence changes are documentation-only relative to the isolated implementation/test tree. Ledger integrity is rechecked after finalization; no copied old success status is inherited.",
     "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+  },
+  "release_completion": {
+    "finalized": true,
+    "date": "2026-11-03",
+    "scope": "fixed legacy fork under documented embedded constraints, upstream delegation, raw-input boundaries and known UPSTREAM-001 differences",
+    "integration_report": "docs/reports/compiler-v0.26.1.md",
+    "source_crosswalk": "docs/reports/reuse-source-coverage.json",
+    "note": "The release migration preserves the fixed observation classifications after 377 workspace tests, format and strict all-target clippy passed. Ledger integrity is rechecked after finalization. Prior S6 isolated-checkout results remain historical in baseline_completion.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "implementation_and_test_trees": {
+      "crates/emelino-cli": "c34db2c1487d2555e9959c78fc75bfea7f7298e5",
+      "crates/emelino-compiler": "260f39d1db5a69e280b110d686b0184c79d520d8"
+    }
+  },
+  "embedded_ownership_migration": {
+    "decision": "User requests emelino ownership of embedded libraries; upstream codegen-emb/codegen-c are planned for removal.",
+    "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "0bb8ee5",
+    "validation_report": "docs/reports/embedded-library-ownership.md",
+    "validation_status": "passed_workspace_revalidation",
+    "ownership": "Emelino owns Embedded.* and the embedded C backend. Generic core/std including Std.Bytes remain delegated to upstream.",
+    "namespace": "Only Embedded.* is supplied for embedded libraries. Upstream Std.Embedded.* is excluded; no compatibility alias is registered.",
+    "implementation_and_test_revision": "7967eb96f13610dd30a29363ee1cfc5f7826564c",
+    "validation": {
+      "workspace_tests": 377,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "format": "passed",
+      "strict_all_target_clippy": "passed"
+    },
+    "classification_decision": "Fixed 428 records, 226 contexts, 115 representative tests, 10 requirements and 174 runtime source observations retain their classifications. All three additional nonruntime observations are now verified: the original Std.Embedded namespace-omission expectation is restored by the explicit ownership change."
   }
 }

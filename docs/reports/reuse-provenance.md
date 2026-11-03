@@ -7,7 +7,7 @@
 | 前回のコンパイラーsource | emela-emb `b0a367bc0a29227fae62cee2def75ed925a5218f` | backend、contract、semantics、writer、artifactと必要な試験資産 |
 | 前回の最終対応表 | emela-emb `2258716bab2e9e4bbaa5a2fd135f6999636125e2` | `docs/reference/legacy-flow/`、台帳のID・関連情報 |
 | 比較する旧fork | `c34c0aeefdd966d854371b3110db00a47798751d` | 旧Flow定義・実装・関連試験の固定基準 |
-| 現在の本体frontend | 公式Emela v0.26.1 `6021115103dd830e0efd9bb96a56a0ca97859329` | 公開frontend API、標準単相化、Flow生成、core/std |
+| 現在の本体frontend | 公式Emela v0.26.1 `6021115103dd830e0efd9bb96a56a0ca97859329` | 公開frontend API、標準単相化、Flow生成、汎用core/std |
 
 コードと資料は固定したGit objectから取得し、元checkoutの未コミット変更を含めない。
 Apache-2.0のLICENSEと既存の出自・著作権表示を保持する。
@@ -16,7 +16,8 @@ Apache-2.0のLICENSEと既存の出自・著作権表示を保持する。
 
 ## 採用する境界
 
-旧独自frontend、source loader、同梱core/stdを新repoへ複製しない。
+旧独自frontend、source loader、同梱の汎用core/stdを新repoへ複製しない。
+組み込み専用の `Embedded.*` はユーザー指定によりemelinoで管理する。
 本体crateに依存する接続部はCLI crateに置き、compiler crateは所有するProgramとOptionsを受け取る。
 backend内のlower・plan・emit・runtime実装は再利用し、接続に必要な修正を機能別に記録する。
 
@@ -86,22 +87,24 @@ frame_bytesを1024から2048へ変更し、短絡評価・引数順序のfixture
 正しいeffect/handlerで扱うためheapを0から4096へ変更した。
 [時計の記録](reuse-source-clock.json) と [数値・Unicodeの補足記録](reuse-source-semantics.json) を参照する。
 
-## 組み込み互換moduleの供給元
+## 組み込みmoduleの供給元と所有者
 
-`Embedded.Peripheral/Gpio/Uart/I2c/Spi/Board` は公式本体
-v0.26.1 `6021115103dd830e0efd9bb96a56a0ca97859329` の `core_sources()` が返す
-`Std.Embedded.*` 6moduleから実行時に派生する。`bundled.rs` は互換コピーの
-`import Std.Embedded.` 行だけを `import Embedded.` へ置き換え、通常のsourceとして
-公開frontend APIに渡す。本体側moduleとuser sourceの本文は変更しない。
-旧 `crates/emelino-cli/lib/embedded/` の重複実装は削除した。
+`Embedded.Peripheral/Gpio/Uart/I2c/Spi/Board` はemelinoが所有し、
+`crates/emelino-cli/lib/embedded/` の6ソースを `bundled.rs` から供給する。
+取り込み内容はv0.26.1の `Std.Embedded.*` からimport行を `Embedded.*` へ変更したものと一致し、
+旧emela-embの6moduleとも同じ基準hashを持つ。これは移管時の由来であり、実行時に
+本体の組み込みソースを読む仕組みや、今後も本体と同期する契約ではない。
 
-[供給元とhash](reuse-boundary-fixtures.json) は本体ソースのSHA256と、派生後に一致すべき
-旧6moduleの固定SHA256を別々に保持する。`bundled` 単体試験で12個のhashを照合し、
-不一致やmodule欠落は失敗とする。hostの `sha256sum` を使い、Rust依存は追加していない。
-名前空間と置換不可の検査、および旧ボードC harnessのO0/O2実行も通過した。
+[供給元とhash](reuse-boundary-fixtures.json) は本体側の取り込み元とローカル実装の基準hashを
+別々に保持する。`bundled` 単体試験はローカル6ソースの基準hashを照合する。
+組み込みmoduleはordinary Sourceとして渡し、core権限を付けない。
+本体の `Std.Embedded.*` を登録対象から除外し、同名ローカルmoduleの上書きも拒否する。
+名前空間、標準moduleからの独立、旧C harnessの確認は
+[管理移管の報告](embedded-library-ownership.md)に記録する。
 
 Bytesはv0.26.1の `Std.Bytes` から供給する。旧pin `ec1031c` 用に保持していた
 `Emelino.Bytes` ソースとexternal識別adapterは削除した。旧fixtureの `Std.Bytes` importを
 書き換えずに、本体の型・intrinsicと既存のC runtimeを接続する。
-S1〜S6の実行記録は旧pinでの履歴として保持し、現在の検証は
-[依存更新報告](compiler-v0.26.1.md)に記録する。
+S1〜S6の実行記録は旧pinでの履歴として保持する。v0.26.1での検証は
+[依存更新報告](compiler-v0.26.1.md)、組み込みmoduleの管理移管後は
+[所有範囲の報告](embedded-library-ownership.md)に分けて記録する。

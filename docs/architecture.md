@@ -6,7 +6,7 @@ S0の最小実験から、前回のbackendを再利用する構成へ移行し�
 ## 処理経路
 
 ```text
-明示したソース群 + 固定版本体のcore/std
+明示したソース群 + 固定版本体の汎用core/std + emelinoのEmbedded.*
   → emelino-cli/frontend.rs
       本体parse → resolve → check → lower(target=c, Roots::Public)
       → 本体verify_monomorphic → from_core → Flow verifier
@@ -25,18 +25,18 @@ closure・handler・suspendの変換は再利用backendで一度だけ行う。
 
 本体の5 crate（syntax/resolve/types/core/lir）は公式v0.26.1のcommit
 `6021115103dd830e0efd9bb96a56a0ca97859329` へ固定し、
-core/stdは `emela_core::core_sources()` から供給する。兄弟repoへのpath依存はない。
-前回の独自frontendや同梱core/stdは移入しない。
+汎用core/stdは `emela_core::core_sources()` から供給する。兄弟repoへのpath依存はない。
+前回の独自frontendや汎用core/stdは移入しない。
 
-互換namespaceの `Embedded.*` 6moduleも固定本体の `core_sources()` から取得する。
-`bundled.rs` は互換用コピーの `import Std.Embedded.` 行だけを `import Embedded.` へ
-機械的に置換し、通常のsourceとして公開APIへ渡す。本体の `Std.Embedded.*` とuser sourceの
-本文は変更せず、互換コピーへcore権限を付けない。派生した6moduleのbyte列は旧moduleの
-固定SHA256と一致することを試験し、独立した `lib/embedded` の実装は保持しない。
-互換モジュールは別の通常moduleなので、型・effect・Board handlerのimportは同じnamespaceで揃える。
+組み込み用の `Embedded.Peripheral/Gpio/Uart/I2c/Spi/Board` はemelinoが所有する。
+`crates/emelino-cli/lib/embedded` の6ソースを `bundled.rs` が埋め込み、通常のsourceとして
+公開APIへ渡す。本体の `Std.Embedded.*` は登録対象から除き、本体側の削除や変更へ依存しない。
+組み込みソースにはcore内部権限を与えず、ユーザーによる同名moduleの上書きは拒否する。
+取り込み時のソースとhashは記録するが、以後の変更を本体と同期させる契約にはしない。
+`Std.Embedded.*` の互換aliasは供給せず、型・effect・Board handlerは `Embedded.*` からimportする。
 Bytesも本体の `Std.Bytes` をそのまま使う。`Type::Bytes` と8個のBytes builtinを
 所有IRへ直接投影し、旧 `Emelino.Bytes` のソース・external識別処理・型ID再割当ては持たない。
-`crates/emelino-cli/lib` は不要になった。
+`lib/emelino/bytes.emel` は保持しない。ローカルの `lib` は組み込み用moduleの管理場所である。
 
 `upstream_adapter.rs` は本体Flowと所有IRの境界として残る。v0.26.1の標準Flowには
 Causeの失敗伝播とUnit→Any callbackのbackend向け補完が含まれないため、
@@ -92,6 +92,10 @@ backendの単体試験と本体経由のsource試験は区別し、移入だけ�
 追加moduleと接続契約を検討する。未接続項目は対応表に残す。
 
 ## ボード境界
+
+組み込み用Emela module、C backend・runtime・生成header・adapterはemelino側で管理する。
+本体の `emela-codegen-emb` / `emela-codegen-c` crateには依存せず、本体側での削除に備える。
+管理範囲と移管検証は[組み込みライブラリーの所有範囲](reports/embedded-library-ownership.md)に記録する。
 
 ボード名、SDK、toolchainはFlowやcompilerへ持ち込まない。
 CLIが選ぶ追加moduleは本体の公開入力APIへ渡し、C側adapterが生成headerに従って

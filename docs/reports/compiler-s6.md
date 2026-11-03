@@ -5,6 +5,7 @@
 
 本書は旧pin `ec1031c` での移植完了時点の記録である。
 現在の依存はv0.26.1へ更新し、独自Bytesを廃止した。[更新と再検証](compiler-v0.26.1.md)を参照。
+組み込みmoduleの所有元は、その後[emelino管理へ移管](embedded-library-ownership.md)した。
 
 ## 完了範囲
 

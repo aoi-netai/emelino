@@ -60,8 +60,8 @@ IRを加工するものは、その加工も明示し、通常sourceだけで通
 
 ## 今回の担当変更
 
-名前解決・型検査・単相化・core/stdは固定版本体が所有する。独自frontendや標準ソースを
-再移植しない。backendは公開入口・Flow変換・入力契約・組み込み制約と生成Cを所有する。
+名前解決・型検査・単相化・汎用core/stdは固定版本体が所有する。独自frontendや汎用標準ソースを
+再移植しない。emelinoは組み込み用 `Embedded.*`、公開入口・Flow変換・入力契約・組み込み制約と生成Cを所有する。
 本体へ移した機能も必要なsourceの確認は残し、単に所有者が変わっただけで試験を捨てない。
 
 旧standalone_execution要件は、今回の依存方針に合わせて意味を変更する。
@@ -117,10 +117,11 @@ source対応表は174試験・169program・170source fileと、追加3件の拒�
 同じ値を返すconstの初期化回数をC側で測るような観測用hookは、試験専用の計測として明示する。
 
 
-固定版本体は `Std.Embedded.*` の6moduleを実際に供給している。
-旧frontendの「このnamespaceを供給せずimportを拒否する」という追加観測は、
-今回の標準ライブラリー委譲により `replaced` とする。未使用importの処理順による差分ではない。
-`Std.Embedded.*` の名前解決を本体に従わせ、emelino側の `Embedded.*` の予約名上書き拒否とは分ける。
+固定版本体には `Std.Embedded.*` が存在するが、組み込みライブラリーの管理移管後は登録しない。
+emelinoの `Embedded.*` 6moduleを通常のsourceとして供給し、予約名の上書きを拒否する。
+旧frontendの「Std.Embedded namespaceを供給せずimportを拒否する」という追加観測は、
+今回のユーザー指定により元の期待が復活するため `verified` へ戻す。
+過去の `replaced` 判定と理由は歴史として保存し、変更後の診断・供給元を別途検証する。
 
 ## S6完了時の確定結果
 
@@ -164,3 +165,12 @@ fixture hash・名前空間の変更を区別する。
 更新後も377試験が成功し、失敗・ignore・filteredは0。fmtとstrict clippyも通過した。
 既存の行別分類を維持し、UPSTREAM-001に該当する8観測は引き続き既知問題として扱う。
 検証した実装・試験revisionは `fce69bbb87e7c18ca556e099ae16c8ae828a550d`。
+
+## 組み込みライブラリーの管理移管
+
+ユーザー指定により、組み込み用の6moduleをemelinoの `lib/embedded` へ移管した。
+本体に残る `Std.Embedded.*` は登録対象から除外し、`Std.Bytes` などの汎用標準は引き続き本体から供給する。
+428定義・226文脈・115代表試験・10要件の集合と既知問題の分類は維持する。
+追加nonruntime観測3件は、旧Std namespaceの拒否を含めて3件とも `verified` とする。
+移管元、現行供給経路、検証結果は[所有範囲の報告](reports/embedded-library-ownership.md)に記録する。
+JSON台帳の `release_completion` はv0.26.1更新時点、`completion` は管理移管後の判定を表す。

@@ -275,8 +275,18 @@
     "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
     "baseline_report_revision": "0bb8ee5",
     "validation_report": "docs/reports/embedded-library-ownership.md",
-    "validation_status": "pending_revalidation",
+    "validation_status": "passed_workspace_revalidation",
     "ownership": "Emelino owns Embedded.* and the embedded C backend. Generic core/std including Std.Bytes remain delegated to upstream.",
-    "namespace": "Only Embedded.* is supplied for embedded libraries. Upstream Std.Embedded.* is excluded; no compatibility alias is registered."
+    "namespace": "Only Embedded.* is supplied for embedded libraries. Upstream Std.Embedded.* is excluded; no compatibility alias is registered.",
+    "implementation_and_test_revision": "7967eb96f13610dd30a29363ee1cfc5f7826564c",
+    "validation": {
+      "workspace_tests": 377,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "format": "passed",
+      "strict_all_target_clippy": "passed"
+    },
+    "classification_decision": "Fixed 428 records, 226 contexts, 115 representative tests, 10 requirements and 174 runtime source observations retain their classifications. All three additional nonruntime observations are now verified: the original Std.Embedded namespace-omission expectation is restored by the explicit ownership change."
   }
 }
