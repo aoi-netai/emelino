@@ -1,4 +1,45 @@
-# STM32F4 I2Cの通信試験用モデル
+# I2Cの通信試験用モデル
+
+## nRF52840 TWI
+
+`EmelinoNRF52840I2C.cs` はNordic legacy TWIのmaster・7 bit通信を対象とする。
+[Renode公式NRF52840_I2C](https://github.com/renode/renode-infrastructure/blob/76fa7d720e52377ae1986c22fae84965c2aa72e9/src/Emulator/Peripherals/Peripherals/I2C/NRF52840_I2C.cs)
+を基に、使用するtask/eventの処理を整理した。著作権表示とMITライセンスを保持する。
+動作はnrfx v3.2.0の
+[legacy TWI driver](https://github.com/NordicSemiconductor/nrfx/blob/v3.2.0/drivers/src/nrfx_twi.c)
+と[nRF52840 Product Specification](https://docs.nordicsemi.com/bundle/ps_nrf52840/page/twi.html)
+のtask/event・SHORTS・ERRORSRCの契約に合わせる。
+
+- `TASKS_STARTTX/STARTRX` がアドレス段階を実行する。未登録アドレスはANACKとERRORを立てる。
+  address-only STARTTX/STOPでも検出し、データを読み書きせずreadyを確認できる。
+- 必要なバイトを`Read(1)`で取得する。`BB_SUSPEND`はバスを保持して次の受信を止め、
+  `RESUME`で再開する。`BB_STOP`は最後のRXDを保持したままSTOPPEDを立てる。
+- SHORTSを使わない場合も、RXD読出しとRXDREADY解除のどちらの順序でも受信を継続する。
+- SUSPENDまたはRepeated STARTでwrite prefixを相手へ渡し、最終STOPだけで
+  `FinishTransmission()`を呼ぶ。read中にセンサーの値やfirmware内の状態を参照しない。
+- ERRORSRCはlatched・write-one-to-clear、ERROR eventは別途解除する。
+  INTENSET/INTENCLRと全イベント状態からIRQを生成する。
+- disable/reset後は中断した処理を再開せず、余分なRead/Write/STOPを発生させない。
+
+独立試験は既存の`CountingPeer.cs`と共通runnerを使用する。
+
+```sh
+python3 tools/test_renode_i2c_model.py --port nrf52 --output-dir out/nano-model
+python3 tools/test_embedded.py --board arduino-nano-33-ble --scenario bmp180
+```
+
+独立MMIO試験114項目では、1/2/8バイト受信・連続pure read・prefix・NACK・IRQ mask・
+RXD/event解除順序・STOP・disable/resetを検証した。モデルのhashはreportへ保存する。
+Nanoのtargetは修正版を既定とし、`--stock-controller`で同梱モデルとの比較が可能。
+実機firmwareはモデルの有無で変更しない。
+同一BINでBMP180の19項目を比較すると、Renode 1.16.1同梱モデルは存在しないアドレスへの
+`is_device_ready`だけが誤って成功し、修正版では全項目が成功する。
+
+SCL周期、電気的open drain、clock stretching、multi-master、DMA/TWIM、slaveは対象外。
+データの進行はMMIO操作を境界とし、実際のwire時間を再現しない。
+指定アドレスの有無によるANACKを検証し、任意のDNACK・電気的バス異常は生成しない。
+
+## STM32F4 I2C
 
 `EmelinoSTM32F4I2C.cs` は、Renode 1.16.1に含まれる
 [STM32F4_I2C](https://github.com/renode/renode-infrastructure/blob/add012af003a0f620d3da52828262676f374d121/src/Emulator/Peripherals/Peripherals/I2C/STM32F4_I2C.cs)

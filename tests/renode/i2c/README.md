@@ -1,7 +1,11 @@
 # I2Cコントローラーモデルの独立試験
 
 `tools/test_renode_i2c_model.py` は、firmware・HAL・BSPを使わず、RenodeのSystemBusから
-`EmelinoSTM32F4I2C` のレジスターを直接操作する。期待値はSTM32F446の
+コントローラーのレジスターを直接操作する。`--port nrf52`では
+[nRF52840 TWIの114項目](../models/README.md#nrf52840-twi)を実行し、結果は
+`out/renode-i2c-model-nrf52/`へ保存する。counting peerとrunnerは共通である。
+
+以下は既定の`--port stm32f4`で操作する`EmelinoSTM32F4I2C`について示す。期待値はSTM32F446の
 [RM0390](https://www.st.com/resource/en/reference_manual/dm00135183.pdf)の
 controller receive、I2C_CR1、I2C_SR1、I2C_SR2の契約に基づく。
 
