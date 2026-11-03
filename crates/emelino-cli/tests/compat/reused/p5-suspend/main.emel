@@ -1,0 +1,14 @@
+
+effect Wait { suspend fn wait(value:Int)->Int }
+@external(c,"wait")
+suspend fn wait(value:Int)->Int
+handler Delayed:Wait {
+  suspend fn wait(value,resume) {resume(wait(value))}
+}
+
+pub fn run()->Int {
+  with Delayed {
+    callback=fn(value){(use Wait).wait(value)}
+    callback(40)+2
+  }
+}
