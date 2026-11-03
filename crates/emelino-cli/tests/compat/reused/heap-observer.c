@@ -1,0 +1,19 @@
+
+int test_heap_empty(void) {
+  if (!emela_heap_initialized) return 1;
+  for (unsigned char *p=emela_heap_storage;p<emela_heap_end();) {
+    emela_heap_block *block=(emela_heap_block *)(void *)p;
+    if (!block->is_free || block->size == 0 || block->size > (size_t)(emela_heap_end()-p)) return 0;
+    p+=block->size;
+  }
+  return 1;
+}
+size_t test_heap_used(void) {
+  size_t used=0;
+  for (unsigned char *p=emela_heap_storage;emela_heap_initialized && p<emela_heap_end();) {
+    emela_heap_block *block=(emela_heap_block *)(void *)p;
+    if (!block->is_free) used+=block->size;
+    p+=block->size;
+  }
+  return used;
+}

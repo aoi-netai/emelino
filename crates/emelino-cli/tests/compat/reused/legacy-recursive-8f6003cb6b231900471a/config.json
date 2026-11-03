@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "make",
+      "symbol": "legacy_make"
+    }
+  ],
+  "heap_bytes": 2048
+}
