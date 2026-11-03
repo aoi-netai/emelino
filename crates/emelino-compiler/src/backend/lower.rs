@@ -8,6 +8,7 @@ use std::collections::{HashMap, HashSet};
 
 mod capabilities;
 mod closure;
+mod const_eval;
 mod effects;
 mod error_types;
 mod exports;
@@ -95,7 +96,40 @@ pub(crate) fn lower_program(
         std::result::Result<crate::contract::lowered::ConstOutcome, &'static str>,
     > = HashMap::new();
     let mut runtime_consts: HashSet<FnId> = HashSet::new();
-
+    for (id, function) in program.functions.iter() {
+        if !function.constant {
+            continue;
+        }
+        if !function.params.is_empty()
+            || function.fails
+            || function.suspends
+            || function.external.is_some()
+        {
+            return Err(invalid(
+                &function.name,
+                "const must be a zero-argument, infallible synchronous definition",
+            ));
+        }
+        match const_eval::evaluate(&program, id) {
+            Ok(outcome) => {
+                let outcome = match outcome {
+                    const_eval::Outcome::Value(value) => {
+                        crate::contract::lowered::ConstOutcome::Value(value)
+                    }
+                    const_eval::Outcome::Defect { kind, message } => {
+                        crate::contract::lowered::ConstOutcome::Defect { kind, message }
+                    }
+                    const_eval::Outcome::SelfReference { message } => {
+                        crate::contract::lowered::ConstOutcome::SelfReference { message }
+                    }
+                };
+                const_outcomes.insert(id, Ok(outcome));
+            }
+            Err(_) => {
+                return Err(unsupported(&function.name, "runtime const initialization"));
+            }
+        }
+    }
     for &id in &runtime_consts {
         program.functions[id].constant = false;
     }

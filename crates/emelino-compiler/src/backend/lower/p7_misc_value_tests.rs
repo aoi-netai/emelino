@@ -1,6 +1,21 @@
 use super::*;
 
 #[test]
+fn static_string_constant_returns_a_nul_and_unicode_view_without_an_owner() {
+    let mut f = simple();
+    f.ret = TypeId::STRING;
+    f.constant = true;
+    f.seqs[f.body.unwrap()].term = Term::Return(Some(Const::String("a\0é".into()).into()));
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(
+        &output,
+        "#include <string.h>\n#include \"emela_embedded.h\"\nint main(void){const unsigned char expected[]={0x61,0,0xc3,0xa9};for(int i=0;i<1000;i++){EmelaString s=answer();if(s.length!=4||s.owner||memcmp(s.data,expected,4))return 1;}return 0;}\n",
+        0,
+    );
+}
+
+#[test]
 fn int64_decimal_conversion_uses_exactly_twenty_bytes_of_scratch() {
     let mut f = simple();
     f.ret = TypeId::BOOL;

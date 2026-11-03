@@ -1,6 +1,7 @@
 //! C formatting of a complete, immutable backend plan.
 use crate::contract::abi::{AggregateKind, CLayoutPlan as TypeLayouts};
 use crate::contract::ir::*;
+use crate::contract::lowered::ConstOutcome;
 use crate::contract::strings::StringBuffers as StringBufferPlan;
 use crate::semantics::abi::{LayoutRead, option_payload_type};
 use crate::semantics::c::variable_name;
@@ -25,7 +26,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let emitted_functions = &plan.emitted_functions;
     let heap_functions = &plan.heap_functions;
     let string_output_functions = &plan.string_output_functions;
-    let _const_outcomes = &plan.const_outcomes;
+    let const_outcomes = &plan.const_outcomes;
     let names = &plan.names;
     let public_names = &plan.public_names;
     let runtime = &plan.runtime;
@@ -316,6 +317,55 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
             )
         };
         source.begin_block(&function_signature);
+        if function.constant {
+            match &const_outcomes[&id] {
+                ConstOutcome::Value(crate::contract::ir::Const::Unit) => source.ret(None),
+                ConstOutcome::Value(value) => {
+                    let expression = constant_expression(value).map_err(|kind| {
+                        unsupported(&function.name, &format!("{kind} in a const value"))
+                    })?;
+                    let Some(expression) = expression else {
+                        return Err(invalid_flow_ir(
+                            &function.name,
+                            "non-Unit const value has no C expression",
+                        ));
+                    };
+                    source.ret(Some(&expression));
+                }
+                ConstOutcome::Defect { kind, message } => {
+                    let length = u16::try_from(message.len()).map_err(|_| {
+                        unsupported(
+                            &function.name,
+                            "a const defect message longer than the embedded C ABI supports",
+                        )
+                    })?;
+                    source.line(&format!(
+                        "emela_board_defect(EMELA_DEFECT_{kind}, {}, UINT16_C({length}));",
+                        c_string_literal(message.as_bytes())
+                    ));
+                }
+                ConstOutcome::SelfReference { message } => {
+                    let length = u16::try_from(message.len()).map_err(|_| {
+                        unsupported(
+                            &function.name,
+                            "a const defect message longer than the embedded C ABI supports",
+                        )
+                    })?;
+                    source.line(&format!(
+                        "{}(EMELA_DEFECT_PANIC, {}, UINT16_C({length}));",
+                        if runtime_consts.is_empty() {
+                            "emela_board_defect"
+                        } else {
+                            "emela_const_self_reference"
+                        },
+                        c_string_literal(message.as_bytes())
+                    ));
+                }
+            }
+            source.end_block();
+            source.blank();
+            continue;
+        }
 
         if layouts.runtime.has_cause_raise && layouts.runtime.has_unwind {
             source.line("unsigned emela_entry_holds = emela_current_fiber == NULL ? 0 : emela_current_fiber->holds;");

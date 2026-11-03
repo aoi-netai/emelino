@@ -1071,6 +1071,109 @@ fn string_parameter_tail_recursion_tracks_loop_ownership() {
     );
 }
 
+fn runtime_const_program(defect: bool) -> Program {
+    let mut p = program(vec![]);
+    let mut external = Function::new("read_once");
+    external.ret = TypeId::INT;
+    external.external = Some(External {
+        bindings: vec![ExternalBinding {
+            target: "c".into(),
+            host: HostRef::Global("read_once".into()),
+        }],
+    });
+    let external_id = p.functions.alloc(external);
+    let mut constant = Function::new("Once");
+    constant.ret = TypeId::INT;
+    constant.constant = true;
+    let value = variable(&mut constant, TypeId::INT);
+    let call = binding(
+        &mut constant,
+        Some(value),
+        Value::Call {
+            callee: Callee::Direct(external_id),
+            args: vec![],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let mut statements = vec![call];
+    let result = if defect {
+        let result = variable(&mut constant, TypeId::INT);
+        statements.push(binding(
+            &mut constant,
+            Some(result),
+            Value::Prim {
+                op: PrimOp::Div,
+                ty: PrimTy::I32,
+                args: vec![value.into(), Const::Int(0).into()],
+            },
+        ));
+        result
+    } else {
+        value
+    };
+    constant.body = Some(constant.seqs.alloc(Seq {
+        stmts: statements,
+        term: Term::Return(Some(result.into())),
+    }));
+    let constant_id = p.functions.alloc(constant);
+    let mut answer = simple();
+    let first = variable(&mut answer, TypeId::INT);
+    let second = variable(&mut answer, TypeId::INT);
+    let result = variable(&mut answer, TypeId::INT);
+    let a = binding(
+        &mut answer,
+        Some(first),
+        Value::Call {
+            callee: Callee::Direct(constant_id),
+            args: vec![],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let b = binding(
+        &mut answer,
+        Some(second),
+        Value::Call {
+            callee: Callee::Direct(constant_id),
+            args: vec![],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let add = binding(
+        &mut answer,
+        Some(result),
+        Value::Prim {
+            op: PrimOp::Add,
+            ty: PrimTy::I32,
+            args: vec![first.into(), second.into()],
+        },
+    );
+    answer.seqs[answer.body.unwrap()] = Seq {
+        stmts: vec![a, b, add],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(answer);
+    p
+}
+
+#[test]
+fn evaluated_const_does_not_emit_unused_initializer_helpers() {
+    let mut p = runtime_const_program(false);
+    let helper_id = p.functions.iter().next().unwrap().0;
+    let helper = &mut p.functions[helper_id];
+    helper.external = None;
+    helper.body = Some(helper.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Return(Some(Const::Int(21).into())),
+    }));
+    let lowered = lower_program(p.clone()).unwrap();
+    assert!(!lowered.emitted_functions.contains(&helper_id));
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    execute(&output, DEFECT_HARNESS, 0);
+}
+
 #[test]
 fn structural_equality_and_show_use_materialized_tuple_layouts() {
     let mut p = program(vec![]);

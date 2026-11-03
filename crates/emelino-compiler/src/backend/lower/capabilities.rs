@@ -12,11 +12,11 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         }]);
     }
     for (_, function) in program.functions.iter() {
-        if function.constant || function.canonical_const.is_some() {
+        if function.canonical_const.is_some() {
             return Err(vec![Error {
                 kind: ErrorKind::Unsupported,
                 message: format!(
-                    "function `{}`: const definitions are not supported by this backend",
+                    "function `{}`: shared const families are not supported by this backend",
                     function.name
                 ),
             }]);
