@@ -9,6 +9,7 @@ use std::collections::{HashMap, HashSet};
 mod capabilities;
 mod closure;
 mod const_eval;
+mod const_groups;
 mod effects;
 mod error_types;
 mod exports;
@@ -84,7 +85,7 @@ pub(crate) fn lower_program(
         validate_function(&program, function)?;
     }
     exports::normalize(&mut program);
-    let mut const_groups: Vec<crate::contract::lowered::ConstGroup> = Vec::new();
+    let mut const_groups = const_groups::prepare(&mut program)?;
     let (mut program, mut closures) = closure::lower(&program, options)?;
     fiber_failures::erase(&mut program, &mut closures, options)?;
     suspend::normalize_handlers(&mut program);

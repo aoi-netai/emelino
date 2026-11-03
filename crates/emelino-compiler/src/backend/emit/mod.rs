@@ -21,7 +21,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let runtime_consts = &compiled.runtime_consts;
     let layouts = &plan.layouts;
     let external_bindings = &plan.external_bindings;
-    let _const_bridges = &plan.const_bridges;
+    let const_bridges = &plan.const_bridges;
     let derived_plan = &plan.derived_plan;
     let emitted_functions = &plan.emitted_functions;
     let heap_functions = &plan.heap_functions;
@@ -252,7 +252,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         ));
     }
     source.blank();
-
+    const_bridges.emit(flow, layouts, names, heap_required, &mut source)?;
     error_runtime::emit_display(
         layouts,
         names,
@@ -304,7 +304,10 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
             return Err(unsupported(&function.name, "function without a body"));
         };
         let sequence = &function.seqs[body];
-
+        if const_bridges.getters.contains_key(&id) {
+            const_bridges.emit_getter(id, flow, layouts, names, &mut source);
+            continue;
+        }
         let initializer_name = format!("{}_const_init", names[&id]);
         let is_runtime_const = runtime_consts.contains(&id);
         let name = if is_runtime_const {
@@ -564,6 +567,9 @@ use values::{
 pub(super) mod layouts;
 
 pub(super) mod string_buffers;
+
+pub(super) mod const_bridge;
+use const_bridge::Emission as ConstBridgePlanEmission;
 
 pub(super) mod derive_runtime;
 use derive_runtime::Emission as DerivationPlanEmission;

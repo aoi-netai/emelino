@@ -33,6 +33,8 @@ pub(in crate::backend::plan) mod suspend;
 pub(in crate::backend::plan) mod strings;
 use strings::{StringPlanning, functions_with_string_output};
 
+pub(in crate::backend::plan) mod const_bridge;
+use const_bridge::Preparation as ConstBridgePlanPreparation;
 pub(in crate::backend::plan) mod derive_runtime;
 use derive_runtime::Preparation as DerivationPlanPreparation;
 pub(in crate::backend::plan) mod runtime;
@@ -74,7 +76,7 @@ pub(super) fn prepare<'a>(
     }
     let lowered_flow = &compiled.lowered;
     let closures = &compiled.closures;
-    let _const_groups = &compiled.const_groups;
+    let const_groups = &compiled.const_groups;
     let runtime_consts = &compiled.runtime_consts;
     let deferred_pool = compiled.deferred_pool;
     if deferred_pool && options.deferred_capacity() == 0 {
@@ -92,7 +94,7 @@ pub(super) fn prepare<'a>(
     let mut layouts = TypeLayouts::new(flow, &emitted_functions, closures, deferred_pool)?;
     layouts.functions.discarded_results = discarded_results;
     layouts.functions.runtime_consts = runtime_consts.clone();
-    let const_bridges = ConstBridgePlan::default();
+    let const_bridges = ConstBridgePlan::new(flow, const_groups, closures, &mut layouts)?;
     for &id in runtime_consts {
         if matches!(layouts.shapes.types[flow.functions[id].ret], Type::String) {
             layouts
