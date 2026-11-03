@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "board": "nucleo-f446re",
+  "renode_port": "stm32f4",
+  "scenarios": {
+    "gpio": {
+      "port": "stm32f4"
+    },
+    "uart": {
+      "port": "stm32f4"
+    },
+    "spi": {
+      "port": "stm32f4",
+      "wrap": [
+        "HAL_SPI_TransmitReceive",
+        "stm32f4_gpio_write_owned"
+      ]
+    },
+    "i2c": {
+      "port": "stm32f4",
+      "wrap": [
+        "HAL_I2C_Master_Seq_Transmit_IT"
+      ]
+    },
+    "peripherals": {
+      "port": "stm32f4"
+    }
+  }
+}

@@ -12,7 +12,9 @@ import sys
 import tempfile
 
 sys.dont_write_bytecode = True
-from test_stm32f4_gpio import run, value
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests/embedded"))
+from support.common import run, value
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "tests/renode/models/EmelinoSTM32F4I2C.cs"

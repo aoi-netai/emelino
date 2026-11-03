@@ -1,77 +1,30 @@
-#!/usr/bin/env python3
-"""Boot generated Emela I2C firmware with the original STM32F4 Renode controller."""
-import argparse
-import hashlib
-import json
-import os
-from pathlib import Path
+"""Scenario steps and assertions; execution is provided by the common runner."""
 import re
 import shutil
-import subprocess
-import sys
-import tempfile
-
-sys.dont_write_bytecode = True
-from test_stm32f4_gpio import run, value
-
-ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "tests/boards/stm32f4-i2c"
-
+from support.common import MODELS, build_firmware, renode_workspace, run_renode, value
 
 def test(args, report):
-    output = args.output_dir.resolve()
-    output.mkdir(parents=True, exist_ok=True)
-    for name in ("model.log", "renode.log", "report.json"):
-        (output / name).unlink(missing_ok=True)
-    found = shutil.which(args.renode or os.environ.get("RENODE") or "renode")
-    if not found:
-        raise ValueError("Renode not found; pass --renode or set RENODE")
-    renode = Path(found).resolve()
-    generated, firmware = output / "generated", output / "firmware"
-    commands = [[args.emelino.resolve(), "build", FIXTURE / "main.emel", "--config", FIXTURE / "config.json", "--out-dir", generated],
-                [sys.executable, ROOT / "tools/build_firmware.py", "--generated-dir", generated,
-                 "--output-dir", firmware, "--source", FIXTURE / "probe.c", "--optimization", args.optimization,
-                 "--link-arg=-Wl,--wrap=HAL_I2C_Master_Seq_Transmit_IT"]]
-    if args.cc:
-        commands[1] += ["--cc", args.cc]
-    if args.sdk_dir:
-        commands[1] += ["--sdk-dir", args.sdk_dir]
-    for index, command in enumerate(commands):
-        status, log = run(command, cwd=ROOT)
-        (output / f"build-{index}.log").write_text(log)
-        if status:
-            raise ValueError("firmware generation failed:\n" + log)
-    manifest = json.loads((firmware / "firmware.json").read_text())
-    symbols = json.loads((firmware / "symbols.json").read_text())
+    output, renode, manifest, symbols = build_firmware(args, report, "i2c")
     report.update({"board": manifest["board"], "resources": manifest["resources"],
                    "compiler": manifest["compiler"], "sdk": manifest["sdk"],
                    "firmware_sha256": manifest["sha256"]["firmware.bin"]})
-    original = renode.parent / "platforms/cpus/stm32f4.repl"
-    report["platform_sha256"] = hashlib.sha256(original.read_bytes()).hexdigest()
     report["model_limitations"] = ["generic STM32F4, not STM32F446 silicon",
         "I2C peer supplies a register window because Renode 1.16.1 requests Read(1) once",
-        "one-byte receive is tested as a known model Timeout: ADDR is absent and BTF is unconditional",
-        "NACK mapping/retries use a test-only HAL completion wrapper; absent targets do not set AF in this model",
+        "one-byte receive is tested as a known model Timeout: SR2 alone clears ADDR and BTF is unconditional",
+        "NACK mapping/retries use a test-only HAL completion wrapper; the old model clears AF on SR1 read",
         "I2C POS bit, open-drain drive and external pull resistors are not electrically modeled",
         "recovery tests controller reset and pin sequence, not a physically stuck bus"]
-    platform = "\n".join(line for line in original.read_text().splitlines() if "ApplySVD " not in line) + "\n"
-    platform = platform.replace("flash: Memory.MappedMemory @ sysbus 0x08000000",
-        "flash: Memory.MappedMemory @ { sysbus 0x08000000; sysbus 0x00000000 }")
-    (output / "stm32f4.repl").write_text(platform)
-    shutil.copyfile(FIXTURE / "I2cPeer.cs", output / "I2cPeer.cs")
-    with tempfile.TemporaryDirectory(prefix="emelino-i2c-", dir="/tmp") as temporary:
-        alias = Path(temporary) / "run"
-        alias.symlink_to(output, target_is_directory=True)
-        (output / "machine.repl").write_text(f'using "{alias}/stm32f4.repl"\n'
-            'nvic:\n    systickFrequency: 16000000\n'
-            'flash:\n    size: 0x80000\nsram:\n    size: 0x20000\n'
+    args.platform.prepare(renode, output, report)
+    shutil.copyfile(MODELS / "stm32f4-i2c-legacy/I2cPeer.cs", output / "I2cPeer.cs")
+    with renode_workspace(output) as (alias, temporary):
+        (output / "machine.repl").write_text(args.platform.machine_header(alias) +
             'peer: I2C.EmelinoI2cPeer @ i2c1 0x50\n')
         script = [f'logFile @{alias}/model.log', 'logLevel 1 file', 'logLevel 3 console',
             f'include @{alias}/I2cPeer.cs', 'mach create',
             f'machine LoadPlatformDescription @{alias}/machine.repl',
             'sysbus SetHookBeforePeripheralWrite sysbus.i2c1 "if offset == 0: self.Log(LogLevel.Info, \'EMELINO_I2C_CR1 value={0}\', value)"',
             f'sysbus.cpu AddHook 0x{symbols["I2C1_EV_IRQHandler"] & ~1:x} "self.Log(LogLevel.Info, \'EMELINO_I2C_EV_IRQ\')"',
-            f'sysbus LoadBinary @{alias}/firmware/firmware.bin 0x08000000',
+            args.platform.load_binary(alias),
             'sysbus.cpu PerformanceInMips 100', 'sysbus.cpu Reset',
             'sysbus.gpioPortB OnGPIO 8 true', 'sysbus.gpioPortB OnGPIO 9 true',
             'emulation RunFor "0:00:00.050"']
@@ -96,14 +49,8 @@ def test(args, report):
                                "AFRH": 0x40020424, "RCC": 0x40023840}.items():
             metric("I2C_REGISTER_" + label, address)
         script.append('quit')
-        (output / "run.resc").write_text("\n".join(script) + "\n")
-        env = dict(os.environ, XDG_CONFIG_HOME=str(output / "renode-config"), TMPDIR=temporary)
-        status, log = run([renode, "--disable-xwt", "--console", "--plain", "-e", f"include @{alias}/run.resc"],
-                          cwd=ROOT, env=env, timeout=args.timeout)
-        (output / "renode.log").write_text(log)
+        status, log = run_renode(renode, output, alias, temporary, script, report, args.timeout)
     model_log = (output / "model.log").read_text(encoding="utf-8-sig")
-    version = re.search(r"Renode, version (\S+)", log)
-    report["renode_version"] = version[1] if version else "unknown"
     if status or re.search(r"\[ERROR\]|There was an error executing command|Unhandled Exception", log + model_log):
         raise ValueError("Renode failed; see renode.log/model.log")
     warnings = [line for line in model_log.splitlines() if "[WARNING]" in line]
@@ -147,29 +94,3 @@ def test(args, report):
     report.update({"status": "passed", "writes": writes, "event_irq_log_entries": irq_count,
                    "start_stop_transactions": transactions,
                    "successful_behavior_checks": 19, "known_model_limit_checks": 1})
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--emelino", type=Path, default=ROOT / "target/debug/emelino")
-    parser.add_argument("--renode")
-    parser.add_argument("--cc")
-    parser.add_argument("--sdk-dir", type=Path)
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "out/stm32f4-i2c")
-    parser.add_argument("--optimization", choices=["O0", "O1", "O2", "Os"], default="Os")
-    parser.add_argument("--timeout", type=float, default=60)
-    args = parser.parse_args()
-    report = {"schema_version": 1, "status": "running", "boot": "raw-flash-reset", "optimization": args.optimization}
-    try:
-        test(args, report)
-        print("PASS: 19 I2C checks plus 1 known model limit; polling/IRQ, repeated START, timeout and recovery")
-    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
-        report.update({"status": "failed", "error": str(error)})
-        print(error, file=sys.stderr)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    (args.output_dir / "report.json").write_text(json.dumps(report, indent=2) + "\n")
-    return 0 if report["status"] == "passed" else 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())

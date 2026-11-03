@@ -9,8 +9,8 @@ volatile uint32_t i2c_test_injected_nacks;
 HAL_StatusTypeDef __real_HAL_I2C_Master_Seq_Transmit_IT(I2C_HandleTypeDef *, uint16_t, uint8_t *, uint16_t, uint32_t);
 HAL_StatusTypeDef __wrap_HAL_I2C_Master_Seq_Transmit_IT(I2C_HandleTypeDef *handle, uint16_t address,
         uint8_t *data, uint16_t size, uint32_t options) {
-    /* Renode's controller does not generate AF for an absent target. Test only
-       the driver's NACK mapping/retry path using an explicit HAL completion. */
+    /* The old model clears AF on SR1 read, unlike the hardware W0C flag.
+       Test this suite's NACK mapping/retry path via explicit HAL completion. */
     if (address == (81U << 1)) {
         i2c_test_injected_nacks++;
         handle->ErrorCode = HAL_I2C_ERROR_AF;

@@ -79,8 +79,8 @@ pub fn main() -> () {
     wait_stage(2)
     bus.recover(I2c.I2c1, 20)
     check(19, bus.write_read(I2c.I2c1, 80, [16], 2, 20) == [170, 187])
-    # Known Renode model limit: no ADDR event and unconditional BTF prevent
-    # HAL's single-byte receive sequence. This is not a hardware contract.
+    # The old model clears ADDR on SR2 alone and unconditionally sets BTF,
+    # preventing HAL's single-byte sequence. This is not a hardware contract.
     check(20, {
       bus.write_read(I2c.I2c1, 80, [16], 1, 2)
       False
