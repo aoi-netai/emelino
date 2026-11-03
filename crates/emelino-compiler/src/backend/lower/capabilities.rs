@@ -20,10 +20,14 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
             {
                 if !matches!(
                     op,
-                    crate::contract::ir::FiberOp::Attempt {
-                        suspends: false,
-                        ..
-                    } | crate::contract::ir::FiberOp::CauseKind { .. }
+                    crate::contract::ir::FiberOp::Scope { .. }
+                        | crate::contract::ir::FiberOp::Fork
+                        | crate::contract::ir::FiberOp::Deferred
+                        | crate::contract::ir::FiberOp::Attempt {
+                            suspends: false,
+                            ..
+                        }
+                        | crate::contract::ir::FiberOp::CauseKind { .. }
                         | crate::contract::ir::FiberOp::CauseToString
                         | crate::contract::ir::FiberOp::CauseRaise
                 ) {

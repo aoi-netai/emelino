@@ -3,6 +3,9 @@ pub(in crate::backend::emit) mod attempt;
 pub(in crate::backend::emit) mod cause_kind;
 pub(in crate::backend::emit) mod cause_raise;
 pub(in crate::backend::emit) mod cause_to_string;
+pub(in crate::backend::emit) mod deferred;
+pub(in crate::backend::emit) mod fork;
+pub(in crate::backend::emit) mod scope;
 pub(in crate::backend::emit) fn emit(
     context: &mut Context<'_, '_>,
     dst: &Option<VarId>,
@@ -12,13 +15,9 @@ pub(in crate::backend::emit) fn emit(
         unreachable!("Fiber dispatch")
     };
     match op {
-        crate::contract::ir::FiberOp::Scope { .. } => {
-            Err(unsupported(&context.function.name, "scope"))
-        }
-        crate::contract::ir::FiberOp::Fork => Err(unsupported(&context.function.name, "fork")),
-        crate::contract::ir::FiberOp::Deferred => {
-            Err(unsupported(&context.function.name, "deferred"))
-        }
+        crate::contract::ir::FiberOp::Scope { .. } => scope::emit(context, dst, value),
+        crate::contract::ir::FiberOp::Fork => fork::emit(context, dst, value),
+        crate::contract::ir::FiberOp::Deferred => deferred::emit(context, dst, value),
         crate::contract::ir::FiberOp::Join => Err(unsupported(&context.function.name, "join")),
         crate::contract::ir::FiberOp::Await { .. } => {
             Err(unsupported(&context.function.name, "await"))
