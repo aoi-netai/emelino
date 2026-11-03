@@ -1,0 +1,5 @@
+{
+  "entry": "main",
+  "exports": [{ "function": "main", "symbol": "gpio_example_main" }],
+  "heap_bytes": 1024
+}

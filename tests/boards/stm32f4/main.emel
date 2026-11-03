@@ -1,0 +1,167 @@
+import Embedded.Board.{BoardGpio}
+import Embedded.Gpio
+import Embedded.Interrupt.{Normal, High}
+
+@external(c, "gpio_test_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "gpio_test_record")
+fn record(tag: Int, pin: Int, level: Int) -> () use {}
+@external(c, "gpio_test_wait")
+fn wait_stage(stage: Int) -> () use {}
+@external(c, "gpio_test_seed")
+fn seed() -> Int use {}
+
+fn check(number: Int, success: Bool) -> () {
+  raw_check(number, if success { 1 } else { 0 })
+}
+
+fn is_high(state: Gpio.PinState) -> Bool {
+  state match {
+    Gpio.High -> True
+    Gpio.Low -> False
+  }
+}
+
+fn received(tag: Int, event: Gpio.GpioEvent) -> () {
+  event match {
+    Gpio.GpioEvent(Gpio.GpioPin(pin), level) -> {
+      record(tag, pin, level match {
+        Gpio.Low -> 0
+        Gpio.High -> 1
+      })
+    }
+  }
+  with BoardGpio {
+    (use Gpio.Gpio).toggle(Gpio.GpioPin(5))
+  } escape { Gpio.GpioError(_) -> raw_check(90, 0) }
+}
+
+fn original(event: Gpio.GpioEvent) -> () { received(10, event) }
+fn replacement(event: Gpio.GpioEvent) -> () { received(30, event) }
+
+fn install_capture(pin: Gpio.GpioPin) -> () fails Gpio.GpioError {
+  with BoardGpio {
+    tag = seed()
+    (use Gpio.Gpio).enable_interrupt(pin, Gpio.Rising, High,
+      fn(event: Gpio.GpioEvent) { received(tag, event) })
+  }
+}
+
+pub fn main() -> () {
+  with BoardGpio {
+    gpio = use Gpio.Gpio
+    led = Gpio.GpioPin(5)
+    first = Gpio.GpioPin(0)
+    second = Gpio.GpioPin(1)
+    gpio.configure(led, Gpio.OutputPushPull(Gpio.NoPull, Gpio.Low))
+    check(1, !is_high(gpio.read(led)))
+    gpio.write(led, Gpio.High)
+    check(2, is_high(gpio.read(led)))
+    gpio.toggle(led)
+    check(3, !is_high(gpio.read(led)))
+    gpio.write(led, Gpio.High)
+    gpio.configure(first, Gpio.Input(Gpio.Down))
+    gpio.configure(second, Gpio.Input(Gpio.Down))
+    check(4, !is_high(gpio.read(first)))
+    gpio.configure(Gpio.GpioPin(2), Gpio.OutputOpenDrain(Gpio.NoPull, Gpio.High))
+    gpio.write(Gpio.GpioPin(2), Gpio.Low)
+    gpio.write(Gpio.GpioPin(2), Gpio.High)
+    gpio.configure(Gpio.GpioPin(3), Gpio.Analog(Gpio.NoPull))
+    analog_read = {
+      gpio.read(Gpio.GpioPin(3))
+      False
+    } escape {
+      Gpio.GpioError(Gpio.InvalidState) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(15, analog_read)
+    analog_pull = {
+      gpio.configure(Gpio.GpioPin(3), Gpio.Analog(Gpio.Up))
+      False
+    } escape {
+      Gpio.GpioError(Gpio.Unsupported) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(16, analog_pull)
+
+    bad_pin = {
+      gpio.configure(Gpio.GpioPin(64), Gpio.Input(Gpio.NoPull))
+      False
+    } escape {
+      Gpio.GpioError(Gpio.InvalidArgument) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(5, bad_pin)
+    unconfigured = {
+      gpio.read(Gpio.GpioPin(4))
+      False
+    } escape {
+      Gpio.GpioError(Gpio.NotConfigured) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(6, unconfigured)
+    input_write = {
+      gpio.write(first, Gpio.High)
+      False
+    } escape {
+      Gpio.GpioError(Gpio.InvalidState) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(7, input_write)
+
+    gpio.enable_interrupt(first, Gpio.Both, Normal, original)
+    # The runtime owns the scalar capture after install_capture returns.
+    install_capture(second)
+    busy = {
+      gpio.configure(first, Gpio.Input(Gpio.Up))
+      False
+    } escape {
+      Gpio.GpioError(Gpio.Busy) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(8, busy)
+    gpio.configure(Gpio.GpioPin(16), Gpio.Input(Gpio.NoPull))
+    line_conflict = {
+      gpio.enable_interrupt(Gpio.GpioPin(16), Gpio.Rising, Normal, original)
+      False
+    } escape {
+      Gpio.GpioError(Gpio.ResourceConflict) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(9, line_conflict)
+
+    gpio.configure(Gpio.GpioPin(6), Gpio.Input(Gpio.NoPull))
+    gpio.configure(Gpio.GpioPin(7), Gpio.Input(Gpio.NoPull))
+    gpio.enable_interrupt(Gpio.GpioPin(6), Gpio.Rising, Normal, original)
+    priority_conflict = {
+      gpio.enable_interrupt(Gpio.GpioPin(7), Gpio.Rising, High, original)
+      False
+    } escape {
+      Gpio.GpioError(Gpio.ResourceConflict) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(10, priority_conflict)
+    gpio.enable_interrupt(Gpio.GpioPin(7), Gpio.Rising, Normal, original)
+    failed_replacement = {
+      gpio.enable_interrupt(Gpio.GpioPin(7), Gpio.Rising, High, replacement)
+      False
+    } escape {
+      Gpio.GpioError(Gpio.ResourceConflict) -> True
+      Gpio.GpioError(_) -> False
+    }
+    check(14, failed_replacement)
+
+    wait_stage(1)
+    check(11, !is_high(gpio.read(second)))
+    gpio.enable_interrupt(first, Gpio.Falling, Normal, replacement)
+    gpio.disable_interrupt(second)
+    gpio.disable_interrupt(Gpio.GpioPin(6))
+    wait_stage(2)
+    check(12, is_high(gpio.read(second)))
+    gpio.disable_interrupt(first)
+    gpio.disable_interrupt(first)
+    gpio.disable_interrupt(Gpio.GpioPin(7))
+    wait_stage(3)
+    check(13, !is_high(gpio.read(led)))
+  } escape { Gpio.GpioError(_) -> raw_check(99, 0) }
+}

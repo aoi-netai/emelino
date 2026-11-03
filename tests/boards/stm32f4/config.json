@@ -1,0 +1,6 @@
+{
+  "entry": "main",
+  "exports": [{ "function": "main", "symbol": "gpio_test_main" }],
+  "heap_bytes": 4096,
+  "isr_safe_externals": ["gpio_test_record", "gpio_test_check"]
+}
