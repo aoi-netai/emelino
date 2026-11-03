@@ -58,8 +58,11 @@ CLI binaryのCargoビルドには固定した本体crateを含む依存が必要
 - [数値・String・Unicode・Bytes](docs/architecture.md#numeric-text-bytes)
 - [closure・effect・State・failure](docs/architecture.md#functions-effects-failure)
 - [async task・Scope・Fiber・Deferred](docs/architecture.md#async-runtime)
+- [const・UPSTREAM-001](docs/architecture.md#const)
 
 Bytesは本体の`Std.Bytes`からimportします。
+
+汎化constの型特殊化をまたぐ共有には未修正の[UPSTREAM-001](docs/upstream-known-issues.md)があります。
 
 公開入口には具体型のwrapperを用意し、残るeffectをhandlerで処理します。
 追加ソースは設定の`sources`へentryからの相対moduleパスを列挙します。

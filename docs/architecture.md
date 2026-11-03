@@ -144,8 +144,7 @@ Bytesのソース・型・8個のbuiltinはv0.26.1の`Std.Bytes`を使う。
 `backend/emit/{numeric_runtime.rs,string_runtime.rs,unicode_grapheme.rs}`、
 `backend/emit/features/builtins/bytes.rs`、CLIのbuiltin投影が担当する。
 source観測は`crates/emelino-cli/tests/source_semantics.rs`、`legacy_strings.rs`、
-`legacy_string_alias.rs`、`legacy_bytes.rs`、`legacy_bytes_runtime.rs`にある。
-const Stringのfold観測はPR6で追加する。
+`legacy_string_alias.rs`、`legacy_static_strings.rs`、`legacy_bytes.rs`、`legacy_bytes_runtime.rs`にある。
 `legacy_bytes::bytes_decode_checks_the_full_u32_length_before_narrowing_to_string`は長さの切詰めを防ぎ、
 `legacy_string_alias::append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits`はaliasと容量境界を確認する。
 Unicode vectorは`crates/emelino-compiler/tests/data/GraphemeBreakTest-18.0.0.txt`に保持する。
@@ -218,3 +217,31 @@ pool枯渇はresource defectとして停止し、暗黙に拡張しない。
 `crates/emelino-cli/tests/reused_concurrency.rs`、`legacy_runtime.rs`、`legacy_more.rs`、
 `legacy_bytes_runtime.rs`は再開順・取消・所有値・slot再利用・pool枯渇を観測する。
 boardの所有値adapterとClockのC境界を使う観測はPR7で追加する。
+
+<a id="const"></a>
+## constの評価・cache・既知差分（PR6）
+
+定数化できる値は静的表現とし、runtime constは最初の参照で初期化し、値またはdefectをcacheする。
+初期化順、再帰的初期化、依存するconst間の順序を検査し、再呼出しで副作用を繰り返さない。
+heapを含む値のcacheは所有を保持し、runtime constのdefect表示には
+`const_diagnostic_bytes`（既定1024 byte）の専用領域を使う。
+その領域が不足した場合もheapへ逃がさず、別の固定緊急bufferでresource defectを報告する。
+
+本体仕様は汎化constにも型特殊化をまたぐ単一の値・単一初期化を求めるが、
+固定版本体は特殊化ごとにconstを分離したFlowを出力する。
+emelinoは受信したconst単位でcacheするため、異なる具体型から参照したときの共有を保証できない。
+これは[UPSTREAM-001](upstream-known-issues.md)として受け入れた未修正の本体差分であり、
+型別初期化を新しい言語仕様へ変更するものではない。
+名前からの同一性推測、由来追跡、private marker、追加単相化をemelinoへ設けず、
+C最適化で共有が復元されることも前提にしない。
+
+共有に関係する8件のsource観測だけを既知差分として分け、const全体を試験対象から外さない。
+修正版本体を採用するときは5 crateとlockを同一revisionへ更新し、共有初期化・型別参照・
+defect cache・所有権を回帰確認してから既知問題を閉じる。
+
+実装は`crates/emelino-compiler/src/backend/lower/{const_eval.rs,const_groups.rs}`、
+`backend/plan/{const_runtime.rs,const_bridge.rs}`と対応するemit/runtimeが担当する。
+`crates/emelino-cli/tests/reused_consts.rs`と`reused_source_seams.rs`は初期化・defect・所有値を扱う。
+`upstream_known_issues::upstream_001_specialized_consts_keep_two_initializers_until_upstream_fix`は
+未修正のFlow形状を明示的に確認する。
+source後にIRを加工するseam試験は通常sourceだけの成功と分けて記録する。
