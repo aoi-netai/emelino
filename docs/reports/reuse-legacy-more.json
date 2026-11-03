@@ -1,0 +1,964 @@
+{
+  "schema_version": 1,
+  "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "reference_revision": "2258716bab2e9e4bbaa5a2fd135f6999636125e2",
+  "fixtures": [
+    {
+      "name": "legacy-suspend-completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events",
+      "group": "suspend",
+      "program": "program:c4e9d4ec96be3e5df8d9",
+      "legacy_tests": [
+        "emit::suspend::completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/4c10e49f4bef3487611c6adaa88a7ff7014c0e904832b1b008445a8e55b73375.emel",
+      "source_sha256": "4c10e49f4bef3487611c6adaa88a7ff7014c0e904832b1b008445a8e55b73375",
+      "adapted_source_sha256": "4c10e49f4bef3487611c6adaa88a7ff7014c0e904832b1b008445a8e55b73375",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/suspend/completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events.c",
+      "harness_sha256": "ad33891e9a8c8f79da5144f064ac7e9b965b3e5e8b03380a6719f436b72fec21",
+      "harness_changes": [],
+      "options": {
+        "fiber_capacity": 2,
+        "frame_capacity": 4,
+        "frame_bytes": 512,
+        "task_capacity": 1,
+        "event_capacity": 1,
+        "heap_bytes": 2048,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": []
+      },
+      "reference_report": "docs/reports/p7-suspend-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_suspend.rs",
+      "old_test_symbol": "completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events",
+      "adapted_harness_sha256": "ad33891e9a8c8f79da5144f064ac7e9b965b3e5e8b03380a6719f436b72fec21",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_suspend_completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events"
+    },
+    {
+      "name": "legacy-suspend-immediate_resume_finishes_the_operation_body_before_the_caller_continues",
+      "group": "suspend",
+      "program": "program:0a4fad3a4ccb4b06bffb",
+      "legacy_tests": [
+        "emit::suspend::immediate_resume_finishes_the_operation_body_before_the_caller_continues"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/e7bc12acf2d0288dd7e6254cbf7315e61d1969cd73d5d6d5ea4a5f74d04f25ef.emel",
+      "source_sha256": "e7bc12acf2d0288dd7e6254cbf7315e61d1969cd73d5d6d5ea4a5f74d04f25ef",
+      "adapted_source_sha256": "e7bc12acf2d0288dd7e6254cbf7315e61d1969cd73d5d6d5ea4a5f74d04f25ef",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/suspend/immediate_resume_finishes_the_operation_body_before_the_caller_continues.c",
+      "harness_sha256": "116b22b525973bd4e5a6951939b305f2453eca53c97ac81f8c7bdfb1f9575b3b",
+      "harness_changes": [],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": []
+      },
+      "reference_report": "docs/reports/p7-suspend-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_suspend.rs",
+      "old_test_symbol": "immediate_resume_finishes_the_operation_body_before_the_caller_continues",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-immediate_resume_finishes_the_operation_body_before_the_caller_continues",
+      "adapted_harness_sha256": "116b22b525973bd4e5a6951939b305f2453eca53c97ac81f8c7bdfb1f9575b3b",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_suspend_immediate_resume_finishes_the_operation_body_before_the_caller_continues"
+    },
+    {
+      "name": "legacy-suspend-delayed_resume_runs_the_caller_until_its_next_suspension",
+      "group": "suspend",
+      "program": "program:1cffa4713ffb59946d7b",
+      "legacy_tests": [
+        "emit::suspend::delayed_resume_runs_the_caller_until_its_next_suspension"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/9da09eb6e858d975b6f94803cf383249a3fb5c5ef16704c5b931b84ec5cbff54.emel",
+      "source_sha256": "9da09eb6e858d975b6f94803cf383249a3fb5c5ef16704c5b931b84ec5cbff54",
+      "adapted_source_sha256": "9da09eb6e858d975b6f94803cf383249a3fb5c5ef16704c5b931b84ec5cbff54",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/suspend/delayed_resume_runs_the_caller_until_its_next_suspension.c",
+      "harness_sha256": "e9c330e763f5b80f6ac882f5fd0af41abc94b69c4ecc681d7d14d97df87208e0",
+      "harness_changes": [],
+      "options": {
+        "fiber_capacity": 6,
+        "frame_capacity": 12,
+        "frame_bytes": 512,
+        "task_capacity": 2,
+        "event_capacity": 2,
+        "heap_bytes": 4096,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": []
+      },
+      "reference_report": "docs/reports/p7-suspend-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_suspend.rs",
+      "old_test_symbol": "delayed_resume_runs_the_caller_until_its_next_suspension",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-delayed_resume_runs_the_caller_until_its_next_suspension",
+      "adapted_harness_sha256": "e9c330e763f5b80f6ac882f5fd0af41abc94b69c4ecc681d7d14d97df87208e0",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_suspend_delayed_resume_runs_the_caller_until_its_next_suspension"
+    },
+    {
+      "name": "legacy-suspend-duplicate_resume_reports_the_operation_and_handler",
+      "group": "suspend",
+      "program": "program:cf70ce9f702234122575",
+      "legacy_tests": [
+        "emit::suspend::duplicate_resume_reports_the_operation_and_handler"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/3e6bcaa0e2f1e947a5d3f3ac09aeb1f3f705998c81fe61399a1e78ada76a6677.emel",
+      "source_sha256": "3e6bcaa0e2f1e947a5d3f3ac09aeb1f3f705998c81fe61399a1e78ada76a6677",
+      "adapted_source_sha256": "3e6bcaa0e2f1e947a5d3f3ac09aeb1f3f705998c81fe61399a1e78ada76a6677",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/suspend/duplicate_resume_reports_the_operation_and_handler.c",
+      "harness_sha256": "08e3c033b11c40687229ac16ce7039fb6b6d022f899de5796eb369515ea8fc9c",
+      "harness_changes": [],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": false,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": []
+      },
+      "reference_report": "docs/reports/p7-suspend-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_suspend.rs",
+      "old_test_symbol": "duplicate_resume_reports_the_operation_and_handler",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-duplicate_resume_reports_the_operation_and_handler",
+      "adapted_harness_sha256": "08e3c033b11c40687229ac16ce7039fb6b6d022f899de5796eb369515ea8fc9c",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_suspend_duplicate_resume_reports_the_operation_and_handler"
+    },
+    {
+      "name": "legacy-suspend-suspend_handler_source_waits_and_resumes_into_the_callers_result",
+      "group": "suspend",
+      "program": "program:ceb0def2afdc33b84e2f",
+      "legacy_tests": [
+        "emit::suspend::suspend_handler_source_waits_and_resumes_into_the_callers_result"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/44125cff6f82a291bd652a039b83a0f52c9d49ae541c2f9bb2f6be37abaa52a6.emel",
+      "source_sha256": "44125cff6f82a291bd652a039b83a0f52c9d49ae541c2f9bb2f6be37abaa52a6",
+      "adapted_source_sha256": "44125cff6f82a291bd652a039b83a0f52c9d49ae541c2f9bb2f6be37abaa52a6",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/suspend/suspend_handler_source_waits_and_resumes_into_the_callers_result.c",
+      "harness_sha256": "e0a872c36a37db83d56d612032e1c8db890b434dfa8e803ba5949acbc2176e62",
+      "harness_changes": [],
+      "options": {
+        "fiber_capacity": 8,
+        "frame_capacity": 12,
+        "frame_bytes": 512,
+        "task_capacity": 2,
+        "event_capacity": 2,
+        "heap_bytes": 2048,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": []
+      },
+      "reference_report": "docs/reports/p7-suspend-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_suspend.rs",
+      "old_test_symbol": "suspend_handler_source_waits_and_resumes_into_the_callers_result",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-suspend_handler_source_waits_and_resumes_into_the_callers_result",
+      "adapted_harness_sha256": "e0a872c36a37db83d56d612032e1c8db890b434dfa8e803ba5949acbc2176e62",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_suspend_suspend_handler_source_waits_and_resumes_into_the_callers_result"
+    },
+    {
+      "name": "legacy-closures-e805431f1035638cad96",
+      "group": "closures",
+      "program": "program:e805431f1035638cad96",
+      "legacy_tests": [
+        "emit::captures_runtime_values_in_a_fixed_heap_closure_environment"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/751aab9621d7200844457b2d0750b398ba29f34ec74d6e3f3c309175aee816a2.emel",
+      "source_sha256": "751aab9621d7200844457b2d0750b398ba29f34ec74d6e3f3c309175aee816a2",
+      "adapted_source_sha256": "751aab9621d7200844457b2d0750b398ba29f34ec74d6e3f3c309175aee816a2",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "harness_sha256": "b867032f7e57d4cb5f86d9dc93ad0f4cf53ba376351db04641a2e289e911a779",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_scalar_closure_evidence_state_and_control_sources_keep_old_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-e805431f1035638cad96",
+      "adapted_harness_sha256": "b867032f7e57d4cb5f86d9dc93ad0f4cf53ba376351db04641a2e289e911a779",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_e805431f1035638cad96"
+    },
+    {
+      "name": "legacy-closures-2e02752865a6418a1e52",
+      "group": "closures",
+      "program": "program:2e02752865a6418a1e52",
+      "legacy_tests": [
+        "emit::lifts_nested_closures_that_capture_outer_closure_values"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/038a9c160aabd27172ce2d8ae4bd2f8f46ce1f8ace172ae549dd868766f85e1b.emel",
+      "source_sha256": "038a9c160aabd27172ce2d8ae4bd2f8f46ce1f8ace172ae549dd868766f85e1b",
+      "adapted_source_sha256": "038a9c160aabd27172ce2d8ae4bd2f8f46ce1f8ace172ae549dd868766f85e1b",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "harness_sha256": "b867032f7e57d4cb5f86d9dc93ad0f4cf53ba376351db04641a2e289e911a779",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 4096
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_scalar_closure_evidence_state_and_control_sources_keep_old_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-2e02752865a6418a1e52",
+      "adapted_harness_sha256": "b867032f7e57d4cb5f86d9dc93ad0f4cf53ba376351db04641a2e289e911a779",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_2e02752865a6418a1e52"
+    },
+    {
+      "name": "legacy-closures-31c21eecada04937f501",
+      "group": "closures",
+      "program": "program:31c21eecada04937f501",
+      "legacy_tests": [
+        "emit::dynamically_dispatches_through_a_fixed_heap_evidence_table"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/8eab40d3d50b7b5ae57555df046c24872fbb6a5464a1513f4fa8d973c51170ec.emel",
+      "source_sha256": "8eab40d3d50b7b5ae57555df046c24872fbb6a5464a1513f4fa8d973c51170ec",
+      "adapted_source_sha256": "e1a4f2ca7a7707f2980b68aac02f02ebfe22bb9f8ed6060c88be24ab17a7b2a0",
+      "source_changes": [
+        "Same private main root made public as in old source helper; body unchanged."
+      ],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "harness_sha256": "9697a6aeb55434361e255044cdf3d1096bc4fac94a03897bf193a10e448dcf49",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_scalar_closure_evidence_state_and_control_sources_keep_old_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-31c21eecada04937f501",
+      "adapted_harness_sha256": "9697a6aeb55434361e255044cdf3d1096bc4fac94a03897bf193a10e448dcf49",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_31c21eecada04937f501"
+    },
+    {
+      "name": "legacy-closures-9fa3708f819ff8b76dc2",
+      "group": "closures",
+      "program": "program:9fa3708f819ff8b76dc2",
+      "legacy_tests": [
+        "emit::passes_dynamic_effect_evidence_to_a_captured_closure"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/f38833ae543c2e6ae94205cdc0a8a539e39997397a486215859291c76000baf0.emel",
+      "source_sha256": "f38833ae543c2e6ae94205cdc0a8a539e39997397a486215859291c76000baf0",
+      "adapted_source_sha256": "f38833ae543c2e6ae94205cdc0a8a539e39997397a486215859291c76000baf0",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "harness_sha256": "b867032f7e57d4cb5f86d9dc93ad0f4cf53ba376351db04641a2e289e911a779",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 4096
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_scalar_closure_evidence_state_and_control_sources_keep_old_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-9fa3708f819ff8b76dc2",
+      "adapted_harness_sha256": "b867032f7e57d4cb5f86d9dc93ad0f4cf53ba376351db04641a2e289e911a779",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_9fa3708f819ff8b76dc2"
+    },
+    {
+      "name": "legacy-closures-903a9b99cfdf07a02684",
+      "group": "closures",
+      "program": "program:903a9b99cfdf07a02684",
+      "legacy_tests": [
+        "emit::state_run_shares_owned_cell_storage_with_its_handler"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/907032ecd7f3419a1812be221308f0d9285d409ec55e9dc61715fa6dc320548f.emel",
+      "source_sha256": "907032ecd7f3419a1812be221308f0d9285d409ec55e9dc61715fa6dc320548f",
+      "adapted_source_sha256": "907032ecd7f3419a1812be221308f0d9285d409ec55e9dc61715fa6dc320548f",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "harness_sha256": "edd8b223a382f72e33dbde3d14cd150fe2260db9e14d5dffb2ea64761d81457f",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 4096
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_scalar_closure_evidence_state_and_control_sources_keep_old_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-903a9b99cfdf07a02684",
+      "adapted_harness_sha256": "edd8b223a382f72e33dbde3d14cd150fe2260db9e14d5dffb2ea64761d81457f",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_903a9b99cfdf07a02684"
+    },
+    {
+      "name": "legacy-closures-09dfd633dcd1f95f6a18",
+      "group": "closures",
+      "program": "program:09dfd633dcd1f95f6a18",
+      "legacy_tests": [
+        "emit::synchronous_exhaustive_matches_and_list_loops_accept_unreachable_terminators"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/d9d8c32030891a0372b787291a80609d182174a9394eb4288660ca0d5d072e0a.emel",
+      "source_sha256": "d9d8c32030891a0372b787291a80609d182174a9394eb4288660ca0d5d072e0a",
+      "adapted_source_sha256": "d9d8c32030891a0372b787291a80609d182174a9394eb4288660ca0d5d072e0a",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "harness_sha256": "d450f707c6ff849d5346899f32b7f183ebabb6d2f7a7d2c6167079320d53502e",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_scalar_closure_evidence_state_and_control_sources_keep_old_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-09dfd633dcd1f95f6a18",
+      "adapted_harness_sha256": "d450f707c6ff849d5346899f32b7f183ebabb6d2f7a7d2c6167079320d53502e",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_09dfd633dcd1f95f6a18"
+    },
+    {
+      "name": "legacy-closures-c587ef1e19686afdfe06",
+      "group": "closures",
+      "program": "program:c587ef1e19686afdfe06",
+      "legacy_tests": [
+        "lib::compiler::separation_tests::common_closure_lowering_is_shared_and_native_managed_values_run"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/9b845aa81a15d730223fde291ab2c0b11ecde36d3df5a6017518e5df66f4a51c.emel",
+      "source_sha256": "9b845aa81a15d730223fde291ab2c0b11ecde36d3df5a6017518e5df66f4a51c",
+      "adapted_source_sha256": "9b845aa81a15d730223fde291ab2c0b11ecde36d3df5a6017518e5df66f4a51c",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "harness_sha256": "2ce066eded0f06fbd2dea2efb74b31ec0f64f34768f287da0b0bd7be428a1f51",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_scalar_closure_evidence_state_and_control_sources_keep_old_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-c587ef1e19686afdfe06",
+      "adapted_harness_sha256": "2ce066eded0f06fbd2dea2efb74b31ec0f64f34768f287da0b0bd7be428a1f51",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_c587ef1e19686afdfe06"
+    },
+    {
+      "name": "legacy-closures-45d10a963a24d47032c7",
+      "group": "closures",
+      "program": "program:45d10a963a24d47032c7",
+      "legacy_tests": [
+        "emit::cell::shared_cells_keep_string_updates_alive_across_capture_suspend_and_cancellation"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/596bf6715c9615a3f27037fbc12bb630406c8c90d4d5a73ab83d7491ea0659da.emel",
+      "source_sha256": "596bf6715c9615a3f27037fbc12bb630406c8c90d4d5a73ab83d7491ea0659da",
+      "adapted_source_sha256": "bf8036b38a1884d0dbe5ca8e8edf96e3cf5b00c9ef3830fd04d97c5874a0636f",
+      "source_changes": [
+        "The returned callback carries State[Int] in upstream typing; escaped_result supplies State.run around the same reader calls to make its public boundary concrete. Original C assertions, including the captured state result 83, remain unchanged."
+      ],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/closures/shared-state.c",
+      "harness_sha256": "9974594947633b54aa8deb6a20d86265d43255448c32d79bb40f697dae9730c8",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 8192,
+        "string_capacity": 128,
+        "fiber_capacity": 8,
+        "frame_capacity": 24,
+        "frame_bytes": 1024,
+        "task_capacity": 2,
+        "event_capacity": 2,
+        "deferred_capacity": 0,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": true,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_shared_state_owns_child_updates_results_failures_and_cancelled_captures",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-45d10a963a24d47032c7",
+      "adapted_harness_sha256": "9974594947633b54aa8deb6a20d86265d43255448c32d79bb40f697dae9730c8",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_45d10a963a24d47032c7"
+    },
+    {
+      "name": "legacy-closures-f9a6b6eea98c9abe5d11",
+      "group": "closures",
+      "program": "program:f9a6b6eea98c9abe5d11",
+      "legacy_tests": [
+        "emit::captured_sync_string_producers_return_owned_bytes_with_inferred_scratch"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/08a1e8380fcaae263306f70073caadbfce6a994072c22581d5abb902a63c7d4c.emel",
+      "source_sha256": "08a1e8380fcaae263306f70073caadbfce6a994072c22581d5abb902a63c7d4c",
+      "adapted_source_sha256": "08a1e8380fcaae263306f70073caadbfce6a994072c22581d5abb902a63c7d4c",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/closures/captured-strings.c",
+      "harness_sha256": "1b840c51d85bafcfe57370508ccc5f90c112040466515c0a4b8cf15191b47fb6",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [
+          {
+            "placeholder": "ty",
+            "function": "legacy_formatter",
+            "prefix": "emela_function_type_"
+          }
+        ],
+        "release_bindings": [],
+        "heapless_observer": true,
+        "c_contains": [
+          "[11]"
+        ],
+        "c_not_contains": [
+          "char emela_string_buffer_0[256]"
+        ]
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_captured_string_producers_keep_owners_and_eleven_byte_scratch",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-f9a6b6eea98c9abe5d11",
+      "adapted_harness_sha256": "1b840c51d85bafcfe57370508ccc5f90c112040466515c0a4b8cf15191b47fb6",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_f9a6b6eea98c9abe5d11"
+    },
+    {
+      "name": "legacy-closures-8e7fb878276e03451814",
+      "group": "closures",
+      "program": "program:8e7fb878276e03451814",
+      "legacy_tests": [
+        "lib::compiler::separation_tests::string_plans_preserve_aliases_while_other_buffers_and_calls_are_live"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/8b5c5d8f9f7c21c0650488a87616d0dff77342a5059bba6fe962eac6d1ce800c.emel",
+      "source_sha256": "8b5c5d8f9f7c21c0650488a87616d0dff77342a5059bba6fe962eac6d1ce800c",
+      "adapted_source_sha256": "8b5c5d8f9f7c21c0650488a87616d0dff77342a5059bba6fe962eac6d1ce800c",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/closures/string-plans.c",
+      "harness_sha256": "81aca72bd3070196f2e2355b84b7df5da78890a460625e8e09edc64c822718a6",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "string_capacity": 64,
+        "heap_bytes": 0
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true,
+        "c_not_contains": [
+          "emela_heap_storage"
+        ]
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_string_plans_preserve_alias_and_consumer_observations",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-8e7fb878276e03451814",
+      "adapted_harness_sha256": "81aca72bd3070196f2e2355b84b7df5da78890a460625e8e09edc64c822718a6",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_8e7fb878276e03451814"
+    },
+    {
+      "name": "legacy-closures-3bee0ac6dc33827ec422",
+      "group": "closures",
+      "program": "program:3bee0ac6dc33827ec422",
+      "legacy_tests": [
+        "lib::compiler::separation_tests::shared_string_helpers_support_multiple_consumers_in_one_translation_unit"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/94acedcb0cb510115d20ea32a8614be8ed88f29a241166aca4d0371835f30099.emel",
+      "source_sha256": "94acedcb0cb510115d20ea32a8614be8ed88f29a241166aca4d0371835f30099",
+      "adapted_source_sha256": "94acedcb0cb510115d20ea32a8614be8ed88f29a241166aca4d0371835f30099",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/closures/string-helpers.c",
+      "harness_sha256": "ae9e2eb2e2a7dd7fd19df2b6cb2131161cdfd4e8fd02dc341f97a4e080a6e322",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw format text; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 0
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true,
+        "c_not_contains": [
+          "emela_heap_storage"
+        ]
+      },
+      "reference_report": "docs/reports/p7-closures-state-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p7_legacy_closures_state.rs",
+      "old_test_symbol": "legacy_string_helpers_preserve_alias_and_consumer_observations",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-3bee0ac6dc33827ec422",
+      "adapted_harness_sha256": "ae9e2eb2e2a7dd7fd19df2b6cb2131161cdfd4e8fd02dc341f97a4e080a6e322",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_closures_3bee0ac6dc33827ec422"
+    },
+    {
+      "name": "legacy-recursive-4bd3bbef2dbb773478d2",
+      "group": "recursive",
+      "program": "program:4bd3bbef2dbb773478d2",
+      "legacy_tests": [
+        "emit::completion_types::finite_changing_recursive_enum_arguments_run_with_owned_back_edges"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/31ff51508cbd03e7ee8068b0ea50b1e9d4fc758df770d7dc88d43b8e6489ff81.emel",
+      "source_sha256": "31ff51508cbd03e7ee8068b0ea50b1e9d4fc758df770d7dc88d43b8e6489ff81",
+      "adapted_source_sha256": "31ff51508cbd03e7ee8068b0ea50b1e9d4fc758df770d7dc88d43b8e6489ff81",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/src/backend/lower/p7_recursive_source_tests.rs",
+      "harness_sha256": "cff4ae14b2962b083d136c258a8121e9767969003459a1d399b3a9998507aeaa",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw C string; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 4096
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-recursive-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/src/backend/lower/p7_recursive_source_tests.rs",
+      "old_test_symbol": "finite_recursive_source_shapes_preserve_old_layout_and_heap_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-4bd3bbef2dbb773478d2",
+      "adapted_harness_sha256": "cff4ae14b2962b083d136c258a8121e9767969003459a1d399b3a9998507aeaa",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_recursive_4bd3bbef2dbb773478d2"
+    },
+    {
+      "name": "legacy-recursive-8f6003cb6b231900471a",
+      "group": "recursive",
+      "program": "program:8f6003cb6b231900471a",
+      "legacy_tests": [
+        "emit::value_audit::changing_recursive_type_arguments_with_a_finite_type_graph_are_supported"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/a3a971f303c79f46b108f2208b4655d6b8661355fcce7147f67f657be400fd07.emel",
+      "source_sha256": "a3a971f303c79f46b108f2208b4655d6b8661355fcce7147f67f657be400fd07",
+      "adapted_source_sha256": "a3a971f303c79f46b108f2208b4655d6b8661355fcce7147f67f657be400fd07",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/src/backend/lower/p7_recursive_source_tests.rs",
+      "harness_sha256": "f2713f1ff9e55523df6ba674c40847c81aa429670e668da5b3563571d2b8356e",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw C string; original assertions unchanged.",
+        "Original aggregate-layout observation compiled and linked only; it did not run a returned value. This distinction is retained."
+      ],
+      "options": {
+        "heap_bytes": 2048
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true
+      },
+      "reference_report": "docs/reports/p7-recursive-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/src/backend/lower/p7_recursive_source_tests.rs",
+      "old_test_symbol": "finite_recursive_source_shapes_preserve_old_layout_and_heap_budgets",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-8f6003cb6b231900471a",
+      "adapted_harness_sha256": "f2713f1ff9e55523df6ba674c40847c81aa429670e668da5b3563571d2b8356e",
+      "observation_kind": "artifact_only",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_recursive_8f6003cb6b231900471a"
+    },
+    {
+      "name": "legacy-recursive-3e99d1b04faf8e90bba0",
+      "group": "recursive",
+      "program": "program:3e99d1b04faf8e90bba0",
+      "legacy_tests": [
+        "emit::completion_types::derived::nested_generic_error_payloads_have_finite_display_functions"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/legacy-corpus/sources/1daea07d6938ba513abc8cc3291e8726a3ed116585528191564b19456d89ad21.emel",
+      "source_sha256": "1daea07d6938ba513abc8cc3291e8726a3ed116585528191564b19456d89ad21",
+      "adapted_source_sha256": "1daea07d6938ba513abc8cc3291e8726a3ed116585528191564b19456d89ad21",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/src/backend/lower/p7_recursive_source_tests.rs",
+      "harness_sha256": "b9317b8402e1c1d33b98133a0e1f314d3a8f5ed054c3da69c0898e3725904281",
+      "harness_changes": [
+        "Expanded the same old HEADERS/raw C string; original assertions unchanged."
+      ],
+      "options": {
+        "heap_bytes": 2048,
+        "string_capacity": 128
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "heapless_observer": true,
+        "error_show_count": 1,
+        "max_concrete_functions": 63
+      },
+      "reference_report": "docs/reports/p7-recursive-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/src/backend/lower/p7_recursive_source_tests.rs",
+      "old_test_symbol": "nested_generic_error_source_keeps_one_finite_show_mapping_and_exact_text",
+      "status": "verified",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-3e99d1b04faf8e90bba0",
+      "adapted_harness_sha256": "b9317b8402e1c1d33b98133a0e1f314d3a8f5ed054c3da69c0898e3725904281",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_recursive_3e99d1b04faf8e90bba0"
+    },
+    {
+      "name": "legacy-lifecycle-rounds",
+      "group": "lifecycle",
+      "program": "program:48cb903c8f5703bd062c",
+      "legacy_tests": [
+        "emit::fiber::child_reclaim::long_lived_scope_reclaims_completed_children_with_copied_handles_and_repeated_join_await"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/p6/completed-children.emel",
+      "source_sha256": "80aeb97a49c6de058bc68bdc0a86d166af7ea26bdfbe935879af5586f1a577dd",
+      "adapted_source_sha256": "80aeb97a49c6de058bc68bdc0a86d166af7ea26bdfbe935879af5586f1a577dd",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p6/completed-rounds-harness.c",
+      "harness_sha256": "ad907c040a271717b9c731185cadf9f47b2c7c9fb986ccf9d7af63a366da29d8",
+      "harness_changes": [],
+      "options": {
+        "heap_bytes": 2048,
+        "fiber_capacity": 4,
+        "frame_capacity": 128,
+        "frame_bytes": 1024,
+        "task_capacity": 2,
+        "event_capacity": 2,
+        "deferred_capacity": 0,
+        "string_capacity": 32,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "instrumentation_file": "instrument.c"
+      },
+      "reference_report": "docs/reports/p6-lifecycle-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p6_scope_lifecycle.rs",
+      "old_test_symbol": "source_scopes_reclaim_completed_children_and_preserve_live_copied_handles",
+      "status": "verified",
+      "instrumentation_source": "crates/emela-emb-compiler/tests/compat/p6/completed-instrument.c",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-rounds",
+      "adapted_harness_sha256": "ad907c040a271717b9c731185cadf9f47b2c7c9fb986ccf9d7af63a366da29d8",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_lifecycle_rounds"
+    },
+    {
+      "name": "legacy-lifecycle-discard",
+      "group": "lifecycle",
+      "program": "program:48cb903c8f5703bd062c",
+      "legacy_tests": [
+        "emit::fiber::child_reclaim::discarded_completed_children_release_results_before_scope_end_and_survive_cancellation"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/p6/completed-children.emel",
+      "source_sha256": "80aeb97a49c6de058bc68bdc0a86d166af7ea26bdfbe935879af5586f1a577dd",
+      "adapted_source_sha256": "80aeb97a49c6de058bc68bdc0a86d166af7ea26bdfbe935879af5586f1a577dd",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p6/completed-discard-harness.c",
+      "harness_sha256": "ecc046e3096036d46056b70ea4f259882b401dfb692039e9dc2e08a20cca3581",
+      "harness_changes": [],
+      "options": {
+        "heap_bytes": 2048,
+        "fiber_capacity": 4,
+        "frame_capacity": 128,
+        "frame_bytes": 1024,
+        "task_capacity": 2,
+        "event_capacity": 2,
+        "deferred_capacity": 0,
+        "string_capacity": 32,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "instrumentation_file": "instrument.c"
+      },
+      "reference_report": "docs/reports/p6-lifecycle-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p6_scope_lifecycle.rs",
+      "old_test_symbol": "source_scopes_reclaim_completed_children_and_preserve_live_copied_handles",
+      "status": "verified",
+      "instrumentation_source": "crates/emela-emb-compiler/tests/compat/p6/completed-instrument.c",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-discard",
+      "adapted_harness_sha256": "ecc046e3096036d46056b70ea4f259882b401dfb692039e9dc2e08a20cca3581",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_lifecycle_discard"
+    },
+    {
+      "name": "legacy-lifecycle-kept",
+      "group": "lifecycle",
+      "program": "program:48cb903c8f5703bd062c",
+      "legacy_tests": [
+        "emit::fiber::child_reclaim::live_handles_keep_completed_results_for_repeated_join_await_after_execution_slot_reuse"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/p6/completed-children.emel",
+      "source_sha256": "80aeb97a49c6de058bc68bdc0a86d166af7ea26bdfbe935879af5586f1a577dd",
+      "adapted_source_sha256": "80aeb97a49c6de058bc68bdc0a86d166af7ea26bdfbe935879af5586f1a577dd",
+      "source_changes": [],
+      "exports": "same legacy_ aliases as the old test helper; source attributes are not added",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p6/completed-kept-harness.c",
+      "harness_sha256": "656254a0990c638d652e98cc0341b08cb84e31aad884c61477aabdc92c67a193",
+      "harness_changes": [],
+      "options": {
+        "heap_bytes": 4096,
+        "fiber_capacity": 4,
+        "frame_capacity": 128,
+        "frame_bytes": 1024,
+        "task_capacity": 2,
+        "event_capacity": 2,
+        "deferred_capacity": 0,
+        "string_capacity": 32,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "instrumentation_file": "instrument.c"
+      },
+      "reference_report": "docs/reports/p6-lifecycle-source-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p6_scope_lifecycle.rs",
+      "old_test_symbol": "source_scopes_reclaim_completed_children_and_preserve_live_copied_handles",
+      "status": "verified",
+      "instrumentation_source": "crates/emela-emb-compiler/tests/compat/p6/completed-instrument.c",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-kept",
+      "adapted_harness_sha256": "656254a0990c638d652e98cc0341b08cb84e31aad884c61477aabdc92c67a193",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_lifecycle_kept"
+    },
+    {
+      "name": "legacy-child-handleless",
+      "group": "child",
+      "program": "program:87aa60141422b5f9141c",
+      "legacy_tests": [
+        "emit::fiber::child_reclaim::failed_handleless_children_release_records_while_scope_waits_for_sibling_cleanup"
+      ],
+      "source_path": "crates/emela-emb-compiler/tests/compat/p6/fiber-handleless-failure.emel",
+      "source_sha256": "3d497118b6f1f8365af3cada8676e2b9fcf3e9e2b21a258a01000f210b90f9df",
+      "adapted_source_sha256": "3d497118b6f1f8365af3cada8676e2b9fcf3e9e2b21a258a01000f210b90f9df",
+      "source_changes": [],
+      "exports": "Old helper exposes work without legacy_ prefix; source body unchanged.",
+      "harness_path": "crates/emela-emb-compiler/tests/p6_child_waiters.rs",
+      "harness_sha256": "d68090162912d963ec4982f2e2f2c56b45929b7c1099c4831bca4e81ea65a065",
+      "harness_changes": [],
+      "options": {
+        "heap_bytes": 4096,
+        "string_capacity": 64,
+        "frame_capacity": 40,
+        "frame_bytes": 1024,
+        "task_capacity": 3,
+        "event_capacity": 3,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "observations": {
+        "heap_observer": true,
+        "cancel_root": false,
+        "type_bindings": [],
+        "release_bindings": [],
+        "instrumentation_file": "instrument.c"
+      },
+      "reference_report": "docs/reports/p6-child-waiters-compat.json",
+      "old_test_path": "crates/emela-emb-compiler/tests/p6_child_waiters.rs",
+      "old_test_symbol": "failed_handleless_children_release_records_during_sibling_cleanup",
+      "status": "verified",
+      "instrumentation_source": "crates/emela-emb-compiler/tests/p6_child_waiters.rs::failed_handleless_children_release_records_during_sibling_cleanup",
+      "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-child-handleless",
+      "adapted_harness_sha256": "d68090162912d963ec4982f2e2f2c56b45929b7c1099c4831bca4e81ea65a065",
+      "observation_kind": "runtime",
+      "current_test": "crates/emelino-cli/tests/legacy_more.rs::legacy_child_handleless"
+    }
+  ],
+  "status": "verified by current upstream source -> Flow -> saved BackendInput replay -> C generation and host C execution; no old verified status inherited",
+  "verification": {
+    "implementation_commit": "e73bef8",
+    "test_target": "legacy_more",
+    "tests": 23,
+    "passed": 23,
+    "failed": 0,
+    "ignored": 0,
+    "c_optimization_levels": [
+      "-O0",
+      "-O2"
+    ],
+    "source_removed_before_replay": true,
+    "exact_c_and_headers_replay_match": true,
+    "runtime_observations": 22,
+    "artifact_only_observations": 1,
+    "command": "CARGO_HOME=\"$PWD/.local/cargo-home\" cargo test -p emelino-cli --test legacy_more --locked --offline -- --test-threads=4",
+    "duration_seconds": 8.1,
+    "date": "2026-11-03"
+  },
+  "import_notes": [
+    "Imported source and C fixture trailing blank lines are retained; git diff --check uses core.whitespace=-blank-at-eof for these reference assets.",
+    "The escaped SharedState callback export uses an explicit source State.run wrapper because the pinned upstream preserves its effect evidence. Original C assertions, including the captured state value 83, remain unchanged.",
+    "The original completed-child discard observation detected premature lifetime extension in the adapter; e73bef8 releases unused results before subsequent suspension and passes all three original lifecycle observations."
+  ]
+}

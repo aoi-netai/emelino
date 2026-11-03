@@ -1,0 +1,1234 @@
+{
+  "schema_version": 1,
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "fixed_fork_revision": "c34c0aeefdd966d854371b3110db00a47798751d",
+  "purpose": "Restore the remaining fixed-corpus Bytes, String, ownership, trait and collection observations through the official frontend, owned Flow input, C backend and C execution; preserve source/runtime provenance separately.",
+  "reference_reports": [
+    {
+      "path": "docs/reports/p7-bytes-small-budget-compat.json",
+      "sha256": "b191f85753edc33a680ac7ab2e55f662ff6ca355597ac52faf7355a63f1fce1f"
+    },
+    {
+      "path": "docs/reports/p7-legacy-bytes-compat.json",
+      "sha256": "811ff5926700cbb26d30bb81247307425a135bfcd069c06f01c745c53392859b"
+    },
+    {
+      "path": "docs/reports/p7-legacy-strings-compat.json",
+      "sha256": "0dccbbc35b148e1ab633ffdbe00d2c9bb7ff704489fb3d7be678745b9b83ecc8"
+    },
+    {
+      "path": "docs/reports/p7-legacy-traits-compat.json",
+      "sha256": "3ad3317ec158ebcd570d447e0232eedb8920818c2e3c96760dcada2bef3b654a"
+    },
+    {
+      "path": "docs/reports/p7-legacy-helpers-collections-compat.json",
+      "sha256": "21c2b32d42be068c6d7aa1636f52cc88c8b832fcc23e4b6a4c12d9f21509e11b"
+    }
+  ],
+  "source_adaptation": [
+    "The test-only support/legacy.rs reads old @export(c, ...) annotations with the official syntax AST, removes those annotations and passes the aliases as configuration. Body parsing/type checking/lowering remain the official compiler responsibility.",
+    "Std.Bytes imports now use the standard library supplied by Emela v0.26.1 without a namespace rewrite. The local Emelino.Bytes implementation and its external markers have been removed.",
+    "Legacy Unit type spellings become official (). Actual native side effects in these fixtures are routed through explicit test effects and handlers, not a pure use {} declaration.",
+    "Original-source rows reuse the saved legacy-corpus bodies; export aliases are the only common adaptation; Std.Bytes module spelling is preserved. Broader-source replacements are explicitly marked.",
+    "Private C heap/cancellation inspection remains test-only generated-code instrumentation. It is not a new product API or an edit to Flow semantics."
+  ],
+  "entries": [
+    {
+      "program": "program:e7a338aa5771b67698db",
+      "legacy_tests": [
+        "emit::bytes::bytes_dynamic_capacity_is_independent_of_string_capacity"
+      ],
+      "reference_report": "docs/reports/p7-bytes-small-budget-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/c506ba1caba04956c992ea5305f2c676188e80e2026734b8772091d2d5162fb4.emel",
+          "sha256": "c506ba1caba04956c992ea5305f2c676188e80e2026734b8772091d2d5162fb4"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Old262144heap/String1, Bytes.slice(-1,100000) copiesfull70000byte view independent of Stringcapacity;3rounds exactly asold, fullheapfree."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 262144,
+          "string_capacity": 1,
+          "iterations": 3
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run."
+    },
+    {
+      "program": "program:738c3317d1a9dca5984d",
+      "legacy_tests": [
+        "emit::bytes::bytes_external_adapters_snapshot_borrowed_data_and_transfer_owned_data"
+      ],
+      "reference_report": "docs/reports/p7-bytes-small-budget-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/acf6256009e2b7a22dc4d7ad89bfcb556e7a2e776c83729efcc201af94500fc8.emel",
+          "sha256": "acf6256009e2b7a22dc4d7ad89bfcb556e7a2e776c83729efcc201af94500fc8"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_external_adapters_snapshot_borrowed_data_and_transfer_owned_data"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Old4096heap, Borrowed+Owned both preserve two sequentialstatic-buffer results1/2 and unsigned255/NUL with500repetitions each and fullheapfree.",
+        "NewOwned fixture creates its already-ownedBytes through the public exporter rather than the old private emela_external_own helper; ownership/byte observations are identical."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 4096,
+          "iterations": 500,
+          "external_result": [
+            "Borrowed",
+            "Owned"
+          ]
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run.",
+      "source_adjustments": [
+        "Side-effecting raw_bytes calls use the test-owned NativeBytes effect and ReadNativeBytes handler; no pure use {} contract is asserted. Native C body, external adapters and assertions are unchanged.",
+        "The owned native result uses the same public owned_bytes exporter as the reused compiler test."
+      ]
+    },
+    {
+      "program": "program:ee5ba136321c839df89e",
+      "legacy_tests": [
+        "emit::bytes::bytes_list_round_trips_and_invalid_elements_reclaim_every_allocation"
+      ],
+      "reference_report": "docs/reports/p7-bytes-small-budget-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/17515e0687dd97fa74b8c3ad7f3f37977a9ec69e858c784f9d87ea60fa1f7e39.emel",
+          "sha256": "17515e0687dd97fa74b8c3ad7f3f37977a9ec69e858c784f9d87ea60fa1f7e39"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Old4096heap is now directly executed in addition tolarge-output262144corpus.",
+        "Allold0/128/255/-1/256 produceTrue and reclaim partial/full List/Byte allocations500times."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 4096,
+          "string_capacity": 1,
+          "iterations": 500
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run."
+    },
+    {
+      "program": "program:36dfa29b6881b628bddb",
+      "legacy_tests": [
+        "emit::bytes::bytes_require_a_fixed_heap_and_defect_when_its_capacity_is_exhausted"
+      ],
+      "reference_report": "docs/reports/p7-bytes-small-budget-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/da3390d21542d59b21e579b4e85127c50ec7587fe49ae975e040b50f70fbc110.emel",
+          "sha256": "da3390d21542d59b21e579b4e85127c50ec7587fe49ae975e040b50f70fbc110"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_owned_results_require_a_heap_even_when_the_result_is_discarded"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Equivalent Bytes.encode_utf8 source allocation rejects heap0 before emission.",
+        "Old128heap plus1024byte input terminates in HeapExhausted; newexistingdiscard source also proves discardedallocation retains that check. OldC discards make return; no owningvalue is expected after terminaldefect."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 0,
+          "observation": "compile-time heap requirement diagnostic"
+        },
+        {
+          "heap_bytes": 128,
+          "input_bytes": 1024,
+          "observation": "terminal HeapExhausted; no successful-return reclamation claim"
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run."
+    },
+    {
+      "program": "program:831e8ca3bfd2e879fe38",
+      "legacy_tests": [
+        "emit::bytes::bytes_returns_lists_and_aliases_preserve_ownership_and_release_the_heap"
+      ],
+      "reference_report": "docs/reports/p7-bytes-small-budget-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/dac039194f9149e72917cea044b5d1ae70b34ee11628e0e893b37ab6a506c2bd.emel",
+          "sha256": "dac039194f9149e72917cea044b5d1ae70b34ee11628e0e893b37ab6a506c2bd"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Old4096heap/String1 is now directly executed in addition tolarge-output262144corpus.",
+        "Alloldmake/copy/slice/concat/List aliases, callerinput overwrite, returnedvalues surviving sourceownerrelease and borrowed0/128/255 snapshot match;500fullheapfree rounds.",
+        "BroaderexistingC additionallyreads retainedList head andchecksowning return."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 4096,
+          "string_capacity": 1,
+          "iterations": 500
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run."
+    },
+    {
+      "program": "program:e002041e4a426285da18",
+      "legacy_tests": [
+        "emit::bytes::discarded_bytes_still_check_capacity_and_release_owned_results"
+      ],
+      "reference_report": "docs/reports/p7-bytes-small-budget-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/f3d342101359f4d5eab67a0a64585f0c4af4901600e6bae3f9f9d5b3e89a8bba.emel",
+          "sha256": "f3d342101359f4d5eab67a0a64585f0c4af4901600e6bae3f9f9d5b3e89a8bba"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Discarded Bytes.encode_utf8 retains HeapExhausted atold128heap/1024byte input (existingterminaltest).",
+        "Newadditionalold256heap run checks1000abc inputs fullyreclaimed. Source body is the same unusedencode followed byUnit."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 256,
+          "iterations": 1000
+        },
+        {
+          "heap_bytes": 128,
+          "input_bytes": 1024,
+          "observation": "terminal HeapExhausted in additional_current_tests"
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run.",
+      "additional_current_tests": [
+        {
+          "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+          "symbol": "bytes_owned_results_require_a_heap_even_when_the_result_is_discarded"
+        }
+      ]
+    },
+    {
+      "program": "program:0e4c492fa71240d47260",
+      "legacy_tests": [
+        "emit::bytes::bytes_std_corpus_matches_other_targets_including_const_traits_and_invalid_utf8"
+      ],
+      "reference_report": "docs/reports/p7-legacy-bytes-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/1ad66c9f12980347b7e4a5d94fa35ad1c5c0f96b6e13e7f48e96e431d5119936.emel",
+          "sha256": "1ad66c9f12980347b7e4a5d94fa35ad1c5c0f96b6e13e7f48e96e431d5119936"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+        "symbol": "full_legacy_bytes_corpus_preserves_const_traits_and_every_debug_observation"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "Full old573byte debug stream exactly matches: hex/list/slice/UTF8valid and invalid/unsigned EqOrdShow/Packet derivedEq/PNGconst/128byte loop.",
+        "1000 executions retain only the persistent PNG const allocation; heap used after each call equals the first run.",
+        "Old embedded input already changes fn main to pubfn and20000 to128. New adaptation adds explicit C alias legacy_bytes only."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 131072,
+          "string_capacity": 512,
+          "iterations": 1000
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "program": "program:896c718072ff9a14cba6",
+      "legacy_tests": [
+        "emit::bytes::bytes_survive_suspension_and_release_on_completion_and_cancellation"
+      ],
+      "reference_report": "docs/reports/p7-legacy-bytes-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/94571daa8fcda4685ef21d04748964f732075d256ab472559d3595abcec69f41.emel",
+          "sha256": "94571daa8fcda4685ef21d04748964f732075d256ab472559d3595abcec69f41"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+        "symbol": "legacy_bytes_keep_owned_snapshots_across_suspend_null_output_and_cancellation"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "All3 routes×1000: sourceBytes{1,0,255} is snapshotted before caller overwrites input; completion returns256.",
+        "NULL result and private root cancellation both release every owned byte/frame/task allocation."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 4096,
+          "fiber_capacity": 2,
+          "frame_capacity": 8,
+          "frame_bytes": 512,
+          "task_capacity": 1,
+          "event_capacity": 1,
+          "deferred_capacity": 0,
+          "iterations_per_route": 1000
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "private_C_seam": "The unchanged test helper writes the generated root cancellation flag; it is not a public board API or a source/Flow rewrite."
+    },
+    {
+      "program": "program:b2f1d9d68d3fa5696d8c",
+      "legacy_tests": [
+        "emit::bytes::bytes_external_tasks_snapshot_arguments_and_results_and_release_cancelled_contexts"
+      ],
+      "reference_report": "docs/reports/p7-legacy-bytes-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/fcd6d29ec6ec8b5b668b3e8966a27dc8f2bf9884648a9e35390c8ea75f814a04.emel",
+          "sha256": "fcd6d29ec6ec8b5b668b3e8966a27dc8f2bf9884648a9e35390c8ea75f814a04"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+        "symbol": "legacy_bytes_tasks_release_contexts_after_queued_completion_or_cancellation"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "QueuedBytes completion snapshots borrowed source0/128/255 before caller overwrite.",
+        "Wrong scalar kind and duplicate completion rejected; producer and release run outside lock/ISR.",
+        "Cancellation suppresses producer yet releases context exactly once; NULLoutput, owned returnedBytes and full heap reclamation."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 4096,
+          "frame_bytes": 1024,
+          "iterations": 1000,
+          "other_capacities": "unchanged Options defaults from reused baseline test"
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "program": "program:b1c877211529f5d06063",
+      "legacy_tests": [
+        "emit::owned::returned_list_owns_formatted_strings_after_the_producer_stack_returns"
+      ],
+      "reference_report": "docs/reports/p7-legacy-strings-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/f130a10826818eb4cd74a4f09c9b54642108c6f3a94702482108085d6d932e76.emel",
+          "sha256": "f130a10826818eb4cd74a4f09c9b54642108c6f3a94702482108085d6d932e76"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+        "symbol": "strings_in_nested_lists_and_error_payloads_outlive_their_original_owners"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Same store/read List[(String,OptionString)] with Int32MIN returns owned11byte -2147483648 after list release; stack smashed;1000times full heap release.",
+        "Broader existing fixture adds other field/list/error observations. Old1024byte heap now used."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 1024,
+          "iterations": 1000
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run.",
+      "source_adjustments": [
+        "Stack mutation runs through the test-owned StackProbe effect and ProbeStack handler. The external C symbol board_smash, its body and all ownership assertions are unchanged.",
+        "Legacy Unit type spelling becomes official ()."
+      ]
+    },
+    {
+      "program": "program:de1b4707ec70dd24789b",
+      "legacy_tests": [
+        "emit::string_comparison::owned_string_views_compare_without_allocating_or_changing_ownership"
+      ],
+      "reference_report": "docs/reports/p7-legacy-strings-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/bb6461d89d845ae8f21ee6742db31a64cb08b002ad574640e288ba4225baee5f.emel",
+          "sha256": "bb6461d89d845ae8f21ee6742db31a64cb08b002ad574640e288ba4225baee5f"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+        "symbol": "owned_string_subviews_compare_without_allocating_or_changing_their_owner"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "preserved_observations": [
+        "Input x/a/NUL/b/y is copied into List; retained String view survives list/input release.",
+        "Subview a/NUL/b compares with equal/greater strings using all6 operators without heap usage increase, owner then fully reclaimed1000times.",
+        "Old scalar/UTF8/UInt16MAX boundary checks are independently preserved by p2_compat strings harness. Old1024byte heap now used."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 1024,
+          "iterations": 1000
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "scope": "C assertions run the broader source fixture. Original source compilation is separately recorded in adapter-coverage-review.json; this is not a claim that its original body was run."
+    },
+    {
+      "program": "program:e220b55ef04773e1daaa",
+      "legacy_tests": [
+        "emit::string_comparison::source_comparisons_are_heapless_and_allow_isr_and_constant_space_tail_loops"
+      ],
+      "reference_report": "docs/reports/p7-legacy-strings-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/36887fdd50ace6a21aeb4b08f49cc935bf137db1baeca65beecbe73f157e09e4.emel",
+          "sha256": "36887fdd50ace6a21aeb4b08f49cc935bf137db1baeca65beecbe73f157e09e4"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_strings.rs",
+        "symbol": "original_string_comparisons_remain_heapless_without_scratch_and_allow_isr"
+      },
+      "observation_kind": "original-source-artifact-plus-broader-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "All6 operators on emptyNULL, NUL, prefixes, Unicode ordered byte sequences and length65535.",
+        "Tail recursion1000000/1000001 uses no heap.",
+        "Missing original-artifact policy is now checked using original body+exports: ISR lt accepted, compare helper emitted, no heap and no char emela_string_buffer. Existing broader C runtime fixture has identical7comparison function bodies."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 0,
+          "isr_entry": "lt",
+          "string_scratch": "absent",
+          "observation": "original-source artifact"
+        },
+        {
+          "heap_bytes": 0,
+          "observation": "shared broader source runtime fixture",
+          "string_capacity": 64
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ],
+        "C_runtime_test": "additional_current_tests only; current_test checks original-source artifacts and replay"
+      },
+      "additional_current_tests": [
+        {
+          "path": "crates/emelino-cli/tests/reused_pipeline.rs",
+          "symbol": "string_views_and_bounded_returns"
+        }
+      ],
+      "scope": "The original seven comparison functions establish ISR acceptance, no heap and no String scratch. The separately executed broader fixture contains identical comparison bodies and preserves all six operators plus the million-step tail-loop observations."
+    },
+    {
+      "program": "program:b325a80621f2be6c4300",
+      "legacy_tests": [
+        "emit::string_comparison::suspend_source_comparisons_preserve_captured_bytes_and_release_on_completion_and_cancel"
+      ],
+      "reference_report": "docs/reports/p7-legacy-strings-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/e73ff5dc6bdbae6166012a370559dc06acda184140c57bffce000b364bb7beca.emel",
+          "sha256": "e73ff5dc6bdbae6166012a370559dc06acda184140c57bffce000b364bb7beca"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_strings.rs",
+        "symbol": "legacy_string_comparisons_preserve_captured_bytes_through_completion_and_cancel"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "Original body+export only, captured NUL strings survive caller overwrite before suspension.",
+        "1000times each3routes completion True/NULLoutput/private cancellation, allheap reclaimed.",
+        "Compare helper emitted; no String scratch. Old4096heap/2fibers/8frames/frame512/task1/event1/deferred0."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 4096,
+          "fiber_capacity": 2,
+          "frame_capacity": 8,
+          "frame_bytes": 512,
+          "task_capacity": 1,
+          "event_capacity": 1,
+          "deferred_capacity": 0,
+          "iterations_per_route": 1000
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      },
+      "private_C_seam": "The unchanged test helper writes the generated root cancellation flag; it is not a public board API or a source/Flow rewrite."
+    },
+    {
+      "program": "program:5fd9a0434fc95af6ecf6",
+      "legacy_tests": [
+        "emit::release_0_24::lambda_patterns_and_new_core_helpers_keep_dynamic_semantics"
+      ],
+      "reference_report": "docs/reports/p7-legacy-helpers-collections-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/aec1355cd027e7f537cecf16a009001890e7075427332b2744204853c841896f.emel",
+          "sha256": "aec1355cd027e7f537cecf16a009001890e7075427332b2744204853c841896f"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_collections_helpers.rs",
+        "symbol": "full_legacy_helper_source_preserves_lambda_patterns_numerics_and_nul_ascii"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "All original helper harness checks: 4*i+3 / 3*i+3, embedded NUL and Greek lambda ASCII bytes, Int/Int64 MIN wrap and negative maxima, NaN/-0/-Infinity, Bool True/False"
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 16384,
+          "string_capacity": 256,
+          "iterations": 1000
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "program": "program:ad481b3ab9e723eb715a",
+      "legacy_tests": [
+        "emit::release_0_24::ordered_maps_sets_and_rotations_reclaim_persistent_values"
+      ],
+      "reference_report": "docs/reports/p7-legacy-helpers-collections-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/d8521d9bfb49b8efe8d3039e21e481493720654a2545736f224a9d01da23f0aa.emel",
+          "sha256": "d8521d9bfb49b8efe8d3039e21e481493720654a2545736f224a9d01da23f0aa"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_collections_helpers.rs",
+        "symbol": "full_legacy_collection_source_preserves_updates_custom_keys_and_rotations"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "All original collection harness checks: collections(i)==3*i+41, rotations(i)==12*i, all source asserts for persistence/custom keys/Map.update/filter/union/Set operations, heap empty after each export"
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 16384,
+          "string_capacity": 256,
+          "iterations": 1000
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "program": "program:dc3d2de098f1b7e80a21",
+      "legacy_tests": [
+        "emit::release_0_24::derived_and_written_traits_keep_static_dispatch_and_escaped_display",
+        "emit::release_0_24::debug_and_error_display_respect_written_derived_and_missing_show"
+      ],
+      "reference_report": "docs/reports/p7-legacy-traits-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/c2cacb8eb0a458543a2c75f44e74015be514f14c24db2ca938af34204d514b74.emel",
+          "sha256": "c2cacb8eb0a458543a2c75f44e74015be514f14c24db2ca938af34204d514b74"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_traits.rs",
+        "symbol": "full_legacy_traits_preserve_structural_display_debug_and_typed_causes"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "n=7/text=xのEq/Ord/Score/Showとtuple/List/enum表示",
+        "NUL/quote/backslash/newline/interpolation/UTF-8 escape",
+        "debug <fn>/<fn>/K7の順序",
+        "written/derived/plain Cause表示",
+        "旧heap16384/String256、1000回全heap回収"
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 16384,
+          "string_capacity": 256
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "program": "program:dc3d2de098f1b7e80a21",
+      "legacy_tests": [
+        "emit::release_0_24::public_failure_entry_keeps_the_embedded_immediate_defect_contract"
+      ],
+      "reference_report": "docs/reports/p7-legacy-traits-compat.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/c2cacb8eb0a458543a2c75f44e74015be514f14c24db2ca938af34204d514b74.emel",
+          "sha256": "c2cacb8eb0a458543a2c75f44e74015be514f14c24db2ca938af34204d514b74"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_traits.rs",
+        "symbol": "full_legacy_traits_keep_public_failure_as_an_immediate_defect"
+      },
+      "observation_kind": "original-source-runtime",
+      "status": "verified",
+      "preserved_observations": [
+        "公開entry_failureがEMELA_DEFECT_UNHANDLED_ERRORで即時停止",
+        "hook文言unhandled error、正常returnなし"
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 16384,
+          "string_capacity": 256
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "program": "program:bb4cfa4d0a45d9128d84",
+      "legacy_tests": [
+        "emit::bytes::bytes_size_and_get_are_heapless_and_keep_lengths_above_u16"
+      ],
+      "reference_report": "docs/compiler-legacy-runtime-crosswalk.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/ea4da70cf3e5c3d3704ef6b410088f31076c8d6e1187e5286f632136436fdae8.emel",
+          "sha256": "ea4da70cf3e5c3d3704ef6b410088f31076c8d6e1187e5286f632136436fdae8"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_views_keep_u32_lengths_and_unsigned_elements_without_a_heap"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "scope": "Broader fixture preserves the original function bodies and stated observations; original program source compilation is recorded separately in adapter-coverage-review.json.",
+      "preserved_observations": [
+        "A 70000-byte borrowed view keeps its u32 size; indices 0 and 69999 return unsigned 128 and 255, negative and 70000 indices return None, NULL empty view has size zero.",
+        "ISR entry size is accepted and generated C contains no heap."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 0,
+          "isr_entry": "size"
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "program": "program:0024997995323a7d6563",
+      "legacy_tests": [
+        "emit::string_append::literal_prefixes_are_copied_without_treating_readonly_bytes_as_writable_output"
+      ],
+      "reference_report": "docs/compiler-legacy-runtime-crosswalk.json",
+      "original_files": [
+        {
+          "name": "main.emel",
+          "path": "crates/emelino-cli/tests/compat/legacy-corpus/sources/b2a6833624029496b4078075cb337280a9e3db09076b8a725305e9bbe374ddb2.emel",
+          "sha256": "b2a6833624029496b4078075cb337280a9e3db09076b8a725305e9bbe374ddb2"
+        }
+      ],
+      "current_test": {
+        "path": "crates/emelino-cli/tests/reused_pipeline.rs",
+        "symbol": "string_views_and_bounded_returns"
+      },
+      "observation_kind": "broader-source-observation-replacement",
+      "status": "verified",
+      "scope": "Broader fixture preserves the original function bodies and stated observations; original program source compilation is recorded separately in adapter-coverage-review.json.",
+      "preserved_observations": [
+        "The exact original message body nests append around the read-only literal Missing(text: .",
+        "Input a/NUL/b returns all 18 bytes into caller storage with NULL owner; repeated C assertions preserve literal bytes."
+      ],
+      "resource_runs": [
+        {
+          "heap_bytes": 0,
+          "string_capacity": 64
+        }
+      ],
+      "validation": {
+        "official_source_to_flow": true,
+        "saved_input_replay_equal": true,
+        "C_runtime": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    }
+  ],
+  "related_reports": [
+    {
+      "path": "docs/reports/reuse-state.json",
+      "program": "program:545fcfac2473e3be10a5",
+      "reason": "The separate State/Bytes ownership case is already restored and is not counted again here."
+    },
+    {
+      "path": "docs/reports/reuse-static-alias-strings.json",
+      "reason": "Static String constant folding, stack-only tail returns and append alias matrices are independently recorded."
+    }
+  ],
+  "supplemental_tests": [
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_unicode_decode_hex_and_unsigned_traits_match_the_fixed_corpus"
+      },
+      "observations": [
+        "UTF-8 decoding, hex, unsigned Bytes traits and invalid values execute with the unchanged bytes-transform C harness."
+      ],
+      "options": {
+        "heap_bytes": 16384,
+        "string_capacity": 512
+      }
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_decode_checks_the_full_u32_length_before_narrowing_to_string"
+      },
+      "observations": [
+        "70000-byte Bytes input raises StringCapacity before narrowing to a String length."
+      ],
+      "options": {
+        "heap_bytes": 4096,
+        "string_capacity": 8
+      }
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+        "symbol": "finite_changing_recursive_types_and_deep_recursive_release_execute_from_source"
+      },
+      "observations": [
+        "The unchanged recursive source and C harness exercise finite changing recursive types and deep recursive ownership release."
+      ],
+      "options": {
+        "heap_bytes": 4194304
+      }
+    }
+  ],
+  "current_test_inventory": [
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_views_keep_u32_lengths_and_unsigned_elements_without_a_heap"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_ownership_snapshots_aliases_and_invalid_list_elements_release_every_allocation"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_unicode_decode_hex_and_unsigned_traits_match_the_fixed_corpus"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_owned_results_require_a_heap_even_when_the_result_is_discarded"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_decode_checks_the_full_u32_length_before_narrowing_to_string"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "symbol": "bytes_external_adapters_snapshot_borrowed_data_and_transfer_owned_data"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+        "symbol": "full_legacy_bytes_corpus_preserves_const_traits_and_every_debug_observation"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+        "symbol": "legacy_bytes_keep_owned_snapshots_across_suspend_null_output_and_cancellation"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+        "symbol": "legacy_bytes_tasks_release_contexts_after_queued_completion_or_cancellation"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_collections_helpers.rs",
+        "symbol": "full_legacy_helper_source_preserves_lambda_patterns_numerics_and_nul_ascii"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_collections_helpers.rs",
+        "symbol": "full_legacy_collection_source_preserves_updates_custom_keys_and_rotations"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+        "symbol": "strings_in_nested_lists_and_error_payloads_outlive_their_original_owners"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+        "symbol": "owned_string_subviews_compare_without_allocating_or_changing_their_owner"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_ownership.rs",
+        "symbol": "finite_changing_recursive_types_and_deep_recursive_release_execute_from_source"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_strings.rs",
+        "symbol": "original_string_comparisons_remain_heapless_without_scratch_and_allow_isr"
+      },
+      "observation_kind": "source-artifact-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_strings.rs",
+        "symbol": "legacy_string_comparisons_preserve_captured_bytes_through_completion_and_cancel"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_traits.rs",
+        "symbol": "full_legacy_traits_preserve_structural_display_debug_and_typed_causes"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    },
+    {
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_traits.rs",
+        "symbol": "full_legacy_traits_keep_public_failure_as_an_immediate_defect"
+      },
+      "observation_kind": "source-C-runtime-and-replay",
+      "status": "passed"
+    }
+  ],
+  "fixture_review": [
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p2/strings.emel",
+      "reference_sha256": "8c701d96831f1a86d209fde86ffc33fe29dace691f80d0ae46723140a2e4e71e",
+      "current_path": "crates/emelino-cli/tests/compat/p2/strings.emel",
+      "current_sha256": "8c701d96831f1a86d209fde86ffc33fe29dace691f80d0ae46723140a2e4e71e",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-owned-harness.c",
+      "reference_sha256": "b8eed463296fcd4e296e041d84fe68eb5d3fe9edbc958184304f98ab8bc7967c",
+      "current_path": "crates/emelino-cli/tests/compat/p3/bytes-owned-harness.c",
+      "current_sha256": "b8eed463296fcd4e296e041d84fe68eb5d3fe9edbc958184304f98ab8bc7967c",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-owned.emel",
+      "reference_sha256": "8d09252d8d749656b47a83390cf0d745c51d4318cb4d72da18f16bcae0b22f64",
+      "current_path": "crates/emelino-cli/tests/compat/p3/bytes-owned.emel",
+      "current_sha256": "faea06c222ff639a52f27a73ef5d5d920efdb521df15c17044eff98757a422c9",
+      "byte_identical": false,
+      "changes": [
+        "Unit return type spelling becomes official ()."
+      ]
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-transform-harness.c",
+      "reference_sha256": "4c8eae45b5c3fd0c713e95ec37292e0988270f985f6f33e7cb2b0d421dff264b",
+      "current_path": "crates/emelino-cli/tests/compat/p3/bytes-transform-harness.c",
+      "current_sha256": "4c8eae45b5c3fd0c713e95ec37292e0988270f985f6f33e7cb2b0d421dff264b",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-transform.emel",
+      "reference_sha256": "0d0b079ddf28e2f954dea24a0c917f4d4b46eb10ce0b0ba35d40a9096b95b598",
+      "current_path": "crates/emelino-cli/tests/compat/p3/bytes-transform.emel",
+      "current_sha256": "0d0b079ddf28e2f954dea24a0c917f4d4b46eb10ce0b0ba35d40a9096b95b598",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-views.emel",
+      "reference_sha256": "996d3a7c535042c75b0d7e89a93d643165edc9f15dcbef8d8d804b5061141b25",
+      "current_path": "crates/emelino-cli/tests/compat/p3/bytes-views.emel",
+      "current_sha256": "996d3a7c535042c75b0d7e89a93d643165edc9f15dcbef8d8d804b5061141b25",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/owned-payload-harness.c",
+      "reference_sha256": "b7d2d3bd5d5c4e7957590042850d65879fc2857e3c9921f418b31d46d7488343",
+      "current_path": "crates/emelino-cli/tests/compat/p3/owned-payload-harness.c",
+      "current_sha256": "b7d2d3bd5d5c4e7957590042850d65879fc2857e3c9921f418b31d46d7488343",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/owned-payload.emel",
+      "reference_sha256": "e4a214afe0c65c8c8d0cde3443c56e284e8b56150df091d867b671324040f8cf",
+      "current_path": "crates/emelino-cli/tests/compat/p3/owned-payload.emel",
+      "current_sha256": "39e13e2aa490100d18f137fc19b4dd98669b24ef40fbae553fb82d0dd00de17a",
+      "byte_identical": false,
+      "changes": [
+        "Unit type spelling becomes official ().",
+        "board_smash runs through a test-owned StackProbe effect/ProbeStack handler; C harness and budgets are unchanged."
+      ]
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/recursive-harness.c",
+      "reference_sha256": "107c999718d4acc9ea62c57107bf49a06a636b516d12f3fa2e023aba7f6f0166",
+      "current_path": "crates/emelino-cli/tests/compat/p3/recursive-harness.c",
+      "current_sha256": "107c999718d4acc9ea62c57107bf49a06a636b516d12f3fa2e023aba7f6f0166",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p3/recursive.emel",
+      "reference_sha256": "b97f1a3abcc82848a0e64dfafc7c5de90baa286c2b357d017045ee1c85be19d5",
+      "current_path": "crates/emelino-cli/tests/compat/p3/recursive.emel",
+      "current_sha256": "b97f1a3abcc82848a0e64dfafc7c5de90baa286c2b357d017045ee1c85be19d5",
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "reference_path": "crates/emela-emb-compiler/tests/compat/p7/bytes-std.expected",
+      "current_path": "crates/emelino-cli/tests/compat/p7/bytes-std.expected",
+      "reference_sha256": "fac20b5ffa8bb472746fca5858a1c75b67acd212ee47f3d6733f0e52c159053e",
+      "current_sha256": "fac20b5ffa8bb472746fca5858a1c75b67acd212ee47f3d6733f0e52c159053e",
+      "byte_identical": true,
+      "bytes": 573,
+      "changes": []
+    }
+  ],
+  "C_harness_review": {
+    "embedded_fragments": [
+      {
+        "reference_path": "crates/emela-emb-compiler/tests/p3_bytes.rs",
+        "current_path": "crates/emelino-cli/tests/legacy_bytes.rs",
+        "byte_identical_C_fragments": 5,
+        "C_fragment_sha256": [
+          "edf578f038443ba0bcf929e33c5d086fb6de4ab867b2e1aab66d558ec7ba7b32",
+          "8f6d772a7109e7f72ae671f6f40cb77b7120c3e8ed84d9401763c118ceaf9cce",
+          "236251540f6c7c03ec8f0f9d89166f466a5ff1f8eae0e7f411c5e27aa8672b83",
+          "6368cd1ad9d80c2bc60d4c4222c1efdfbcdc9e50347009ac6ba3039c0b525f68",
+          "4bc21aaf5a617034aff782ee69588320f12ccf9c477a07abcd8127c9931eb82c"
+        ]
+      },
+      {
+        "reference_path": "crates/emela-emb-compiler/tests/p7_legacy_bytes.rs",
+        "current_path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs",
+        "byte_identical_C_fragments": 4,
+        "C_fragment_sha256": [
+          "9b95df49c6014e7600db7aa7304819f2ac042612001a1ed9c828fae028daf6a0",
+          "2a6b21689d4eb11a263ae65393f20e8666bb1da30c6b69db17b19333258d845e",
+          "b5c728e351c6e0adcf66a37936a49b80e4d2f5e7dc0e580ccb796593779bc677",
+          "a7b9212303a1e6dd32d7c091efcabf2b31814e0bf78a68c8f591dd03cd7d1a9e"
+        ]
+      },
+      {
+        "reference_path": "crates/emela-emb-compiler/tests/p7_legacy_collections_helpers.rs",
+        "current_path": "crates/emelino-cli/tests/legacy_collections_helpers.rs",
+        "byte_identical_C_fragments": 3,
+        "C_fragment_sha256": [
+          "b21b0844afe35869a740404b3bde00603ed55f97429d1e68ae30c231a4fa5112",
+          "8b8acc20068379c175fc3f86958da54fba13074c0f03da0e4c9f4c3642165279",
+          "650e7be60e98ca575801408fa7c6cf99845b74a85aef06d2aac438f662b1290d"
+        ]
+      },
+      {
+        "reference_path": "crates/emela-emb-compiler/tests/p3_ownership.rs",
+        "current_path": "crates/emelino-cli/tests/legacy_ownership.rs",
+        "byte_identical_C_fragments": 1,
+        "C_fragment_sha256": [
+          "e593ccf8d9c35e7fef5141e2defc0556673e4935b1513b850f9542e1b82addf2"
+        ]
+      },
+      {
+        "reference_path": "crates/emela-emb-compiler/tests/p7_legacy_strings.rs",
+        "current_path": "crates/emelino-cli/tests/legacy_strings.rs",
+        "byte_identical_C_fragments": 1,
+        "C_fragment_sha256": [
+          "53981e2b106345c732cafc86d412bc636ed0d76283ee36679d73cea44d02f123"
+        ]
+      },
+      {
+        "reference_path": "crates/emela-emb-compiler/tests/p7_legacy_traits.rs",
+        "current_path": "crates/emelino-cli/tests/legacy_traits.rs",
+        "byte_identical_C_fragments": 3,
+        "C_fragment_sha256": [
+          "eca125c2b654b7ec88ffe4ec86f4c4ce149a4744ce5cd1c67b663b28a7239675",
+          "0ef50dfb00f148931c4d007516b8c6fcd976977665285d074be35f1cb8dcb109",
+          "1de0cdf04193d887dbf83dfac00b58621dae6d3040613230fa28ecabda0d018b"
+        ]
+      }
+    ],
+    "total_byte_identical_embedded_C_fragments": 17,
+    "standalone_harnesses_byte_identical": 4,
+    "note": "Both the C fragments and all four standalone C harness files were compared byte for byte with the exact reuse revision. Rust compile helpers now route through the official frontend and saved-input replay. Resource capacities and assertions are preserved."
+  },
+  "validation": {
+    "command": "CARGO_HOME=\"$PWD/.local/cargo-home\" cargo test -p emelino-cli --test legacy_bytes --test legacy_bytes_runtime --test legacy_collections_helpers --test legacy_ownership --test legacy_strings --test legacy_traits --locked --offline",
+    "passed": 18,
+    "failed": 0,
+    "ignored": 0,
+    "source_C_runtime_tests": 17,
+    "source_artifact_only_tests": 1,
+    "additional_command": "CARGO_HOME=\"$PWD/.local/cargo-home\" cargo test -p emelino-cli --test reused_pipeline string_views_and_bounded_returns --locked --offline -- --exact",
+    "additional_passed": 1,
+    "C_flags": [
+      "-std=c11",
+      "-Wall",
+      "-Werror"
+    ],
+    "C_optimizations": [
+      "-O0",
+      "-O2"
+    ],
+    "saved_input_replay": "Successful compilation compares all Output artifacts with compilation after BackendInput JSON save/load. Terminal compile diagnostics have no C output to replay.",
+    "formatting": "The six new Rust test files were formatted with rustfmt --edition 2024 --config skip_children=true.",
+    "workspace_validation": "Full workspace tests and strict clippy are owned by the integration report; this report does not claim their result."
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
+  }
+}

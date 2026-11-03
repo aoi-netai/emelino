@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "purpose": "Raw upstream Flow to owned backend input audit; structural mapping and compile acceptance are separate from runtime verification.",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "legacy_fork_revision": "c34c0aeefdd966d854371b3110db00a47798751d",
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "adapter_reuse": {
+    "path": "crates/emela-codegen-emb/src/compiler/lower/adapter.rs",
+    "revision": "c34c0aeefdd966d854371b3110db00a47798751d",
+    "new_path": "crates/emelino-cli/src/upstream_adapter.rs",
+    "license": "Apache-2.0"
+  },
+  "reviewed_contracts": [
+    {
+      "contract": "IR variants and references",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs",
+      "result": "Exhaustive Rust matches cover all variants in the pinned upstream Builtin, Type, Term, Stmt, Value, FiberOp, RuntimeOp and supporting enums. Function/local/sequence/label/enum/effect IDs preserve arena order. The v0.26.1 canonical primitive table, including Bytes at index 10, matches the owned table; type_id preserves indexes and definitions verifies canonical interning. The former extension-specific TypeMap is removed. Rust exhaustiveness establishes structural handling only; runtime evidence is separate."
+    },
+    {
+      "contract": "Flow input stage",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs:adapt",
+      "result": "Only Stage::Flow is accepted; upstream verifier runs before conversion. Function env/defects metadata from later stages is rejected. Backend lowers closures, handlers and suspension exactly once."
+    },
+    {
+      "contract": "Public roots",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs:adapt",
+      "result": "Configured names must resolve uniquely to upstream public roots. Duplicate names/aliases and private helpers are rejected. Unselected public roots are not exposed to C. Frontend retains official annotation and target validation."
+    },
+    {
+      "contract": "Core declarations",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs:definitions",
+      "result": "Copies only type, enum and effect declarations. Core function bodies are neither examined nor rewritten. Error display function mapping is preserved from Flow. Standard generated Eq/Show implementations remain ordinary Flow bodies."
+    },
+    {
+      "contract": "Computed backend metadata",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs:adapt_function",
+      "result": "Positions, active statements, expanding enum analysis and has_scopes start empty/false and are recomputed by backend passes. They are not inherited from the old frontend or inferred from generated names."
+    },
+    {
+      "contract": "Const identity",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs:adapt",
+      "result": "Keeps each received const function as a distinct upstream identity. No const family tracing, canonical initializer reconstruction or extra monomorphization. UPSTREAM-001 remains a known upstream behavioral exception, not a completed sharing test."
+    },
+    {
+      "contract": "Standard Bytes",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs",
+      "result": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "tests": [
+        "crates/emelino-cli/src/upstream_adapter/tests.rs::standard_bytes_preserve_canonical_ids_and_project_intrinsics",
+        "crates/emelino-cli/src/upstream_adapter/tests.rs::user_bytes_name_keeps_its_nominal_type"
+      ]
+    },
+    {
+      "contract": "Erased Unit callback result",
+      "implementation": "crates/emelino-cli/src/upstream_adapter/unit_any.rs",
+      "upstream_evidence": "crates/emela-lir/src/from_core.rs:899",
+      "result": "The documented box_result wrapper encodes a no-representation callback result as an empty String reference. An exact typed closure/call/return shape is translated to an owned Unit box. Ordinary empty Strings are unchanged; callback invocation and its effect/failure channels remain."
+    },
+    {
+      "contract": "Infallible Cause.raise",
+      "implementation": "crates/emelino-cli/src/upstream_adapter/cause.rs",
+      "result": "Reuses the old backend landing policy on owned Program: an infallible raise gets a local failure landing and the existing checked runtime helper. No upstream module or Core body mutation."
+    },
+    {
+      "contract": "Defect source location metadata",
+      "implementation": "crates/emelino-cli/src/upstream_adapter.rs:adapt_term",
+      "result": "Term::Defect preserves its message operand. The optional assertion location field is absent from the inherited backend contract, matching the fixed old embedded adapter; precise assertion-location preservation is not newly claimed."
+    }
+  ],
+  "scope_findings": [
+    {
+      "id": "GENERIC-ERROR-SOURCE",
+      "status": "outside_fixed_legacy_source_grammar",
+      "observation": "The previous independent frontend added generic error declarations such as error Payload[A](value:A). Neither fixed c34 oldfork nor current official frontend parses this declaration. These source tests are not evidence required for fixed oldfork source parity; generic-error owned IR tests remain a separate backend contract.",
+      "evidence": [
+        {
+          "revision": "c34c0aeefdd966d854371b3110db00a47798751d",
+          "path": "crates/emela-syntax/src/parser/grammar/items.rs",
+          "lines": [
+            305,
+            314
+          ],
+          "fact": "error_decl parses name, optional fields and derive, without type_param_list."
+        },
+        {
+          "revision": "c34c0aeefdd966d854371b3110db00a47798751d",
+          "path": "spec/grammar.md",
+          "line": 66,
+          "fact": "error_decl has no optional type_params, unlike type_decl and enum_decl."
+        }
+      ],
+      "official_observation": {
+        "source": "error Payload[A](value: A)\nfn integer() -> Int fails Payload[Int] { fail Payload(42) }\npub fn answer() -> Int { integer() escape { Payload(value:) -> value } }\n",
+        "diagnostic": "E0122: expected newline after declaration at [ after Payload"
+      },
+      "raw_flow_policy": "AsError uses its declared destination type. IsError on a generic error enum without concrete type metadata is diagnosed, not guessed from names or unrelated statements."
+    },
+    {
+      "id": "LEGACY-PROJECT-PATHS",
+      "status": "test_input_adaptation",
+      "observation": "The multi-file Embedded.Local corpus program retains app/src paths from the original driver test. In the explicit source API, paths are supplied relative to that source root. Both original source bodies are retained; no module or source semantic implementation is added."
+    },
+    {
+      "id": "LEGACY-BYTES-IMPORT",
+      "status": "upstream_standard_library",
+      "observation": "Eleven original corpus programs import Std.Bytes. With v0.26.1 those imports pass unchanged to the official standard library. The earlier Emelino.Bytes namespace rewrite and external extension are removed; fixed source files and their original SHA256 values remain unchanged."
+    },
+    {
+      "id": "CONCRETE-PUBLIC-STATE-ENTRY",
+      "status": "explicit_entry_wrapper_required",
+      "program": "program:45d10a963a24d47032c7",
+      "observation": "The unchanged escaped_result function has unresolved State[Int] evidence. The corpus first asserts the adapter diagnostic, then wraps its two reader calls in State.run(0, fn(){...}). Runtime evidence keeps the original captured-state result83. This is1 concrete public-entry adaptation, not acceptance of the unchanged original.",
+      "runtime_evidence": "crates/emelino-cli/tests/compat/reused/legacy-closures-45d10a963a24d47032c7/main.emel"
+    }
+  ],
+  "validation": {
+    "adapter_tests": "cargo test -p emelino-cli --lib upstream_adapter --locked --offline",
+    "source_corpus_test": "cargo test -p emelino-cli --test legacy_source_corpus --locked --offline",
+    "runtime_tests": [
+      "reused_pipeline",
+      "reused_effects",
+      "reused_concurrency",
+      "reused_consts",
+      "board_boundary",
+      "legacy_runtime",
+      "reused_source_seams"
+    ],
+    "source_corpus_manifest": "crates/emelino-cli/tests/compat/legacy-corpus/manifest.json",
+    "source_corpus_counts": {
+      "programs": 169,
+      "content_files": 170,
+      "related_original_tests": 174,
+      "unwrapped_programs_reaching_C": 168,
+      "diagnosed_original_entry_then_concrete_wrapper": 1
+    },
+    "meaning": "The source corpus test verifies frontend acceptance, Flow adaptation and C artifact generation under explicit ample capacities. It does not execute C or replace old runtime assertions. Runtime verification uses separate reused source/C harnesses and their original capacities.",
+    "completion_status": "source corpus1/1 passed with169 programs (168 direct after documented module/path adaptation,1 diagnosed original entry plus concrete wrapper); source-seam runtime35/35 passed; broad runtime coverage is recorded by the separately linked reports",
+    "source_integrity": "All170 unique fixture SHA256 values verified against the fixed original manifest."
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "semantic_review": {
+      "const_identity": "Core mono.rs changed only Bytes Eq/Show handling; UPSTREAM-001 remains open.",
+      "flow_adaptation": "Standard from_core.rs changed only Sig::Bytes mapping. Unit-to-Any callback and infallible Cause.raise still require the owned backend ABI adaptations.",
+      "separate_upstream_backend": "The upstream emela-codegen-emb crate has private const origin and normalization passes. They are not part of the standard Core/Flow APIs adopted here and are not added as dependencies."
+    },
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
+  }
+}

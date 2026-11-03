@@ -1,0 +1,35 @@
+{
+  "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "fixtures": [
+    {
+      "name": "p2-consts",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p2/consts.emel",
+      "source_sha256": "3c3fab52668688f4c426a9d2e022fcab96acf9134daf8e25811055d17cbf880e",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。",
+      "adapted_source_sha256": "79e727823953c7588f6cbb3549554fbb6788f40243c1b41dd06b5854de6fb2ad",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p2/consts-harness.c",
+      "harness_sha256": "9b4b2382d386fb74f5269f9ff6d4bdfd359ee88fdc360f6f805b6bdac5def317",
+      "harness_change": "なし（byte一致）",
+      "options": {},
+      "heap_observer": false,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_consts",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "command": "cargo test -p emelino-cli --test reused_consts --locked --offline",
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "tests_ignored": 0,
+    "scope": "source/C fixtures only; no global parity completion claim"
+  }
+}
