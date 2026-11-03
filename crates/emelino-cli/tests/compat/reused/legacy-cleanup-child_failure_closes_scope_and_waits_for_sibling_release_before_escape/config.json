@@ -1,0 +1,20 @@
+{
+  "exports": [
+    {
+      "function": "caught",
+      "symbol": "legacy_caught"
+    }
+  ],
+  "heap_bytes": 8192,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 512,
+  "task_capacity": 3,
+  "event_capacity": 3,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}

@@ -5,6 +5,10 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
+#[path = "compat/seams/cause.rs"]
+mod cause;
+#[path = "compat/seams/cleanup.rs"]
+mod cleanup;
 #[path = "compat/seams/protect.rs"]
 mod protect;
 

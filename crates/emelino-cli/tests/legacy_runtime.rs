@@ -268,6 +268,191 @@ fn legacy_concurrency_leaked_join_callback_rejects_an_ended_scope_after_reusing_
 }
 
 #[test]
+fn legacy_cleanup_child_failure_closes_scope_and_waits_for_sibling_release_before_escape() {
+    support::run_fixture(
+        "legacy-cleanup-child_failure_closes_scope_and_waits_for_sibling_release_before_escape",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_delayed_failure_after_resume_formats_owned_error_after_the_call_frame_returns() {
+    support::run_fixture(
+        "legacy-cleanup-delayed_failure_after_resume_formats_owned_error_after_the_call_frame_returns",
+        false,
+    );
+}
+
+#[test]
+fn legacy_cleanup_failing_and_infallible_scopes_share_the_fork_operation_abi() {
+    support::run_fixture(
+        "legacy-cleanup-failing_and_infallible_scopes_share_the_fork_operation_abi",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_failing_suspend_closure_keeps_error_through_suspending_release() {
+    support::run_fixture(
+        "legacy-cleanup-failing_suspend_closure_keeps_error_through_suspending_release",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_operation_failure_after_resume_stops_without_writing_a_stale_error_pointer() {
+    support::run_fixture(
+        "legacy-cleanup-operation_failure_after_resume_stops_without_writing_a_stale_error_pointer",
+        false,
+    );
+}
+
+#[test]
+fn legacy_cleanup_suspend_failures_cross_calls_and_preserve_cleanup_before_escape() {
+    support::run_fixture(
+        "legacy-cleanup-suspend_failures_cross_calls_and_preserve_cleanup_before_escape",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_suspend_operation_failure_before_resume_reaches_its_call_edge() {
+    support::run_fixture(
+        "legacy-cleanup-suspend_operation_failure_before_resume_reaches_its_call_edge",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_uncaught_suspend_failure_stops_at_public_boundary_after_release() {
+    support::run_fixture(
+        "legacy-cleanup-uncaught_suspend_failure_stops_at_public_boundary_after_release",
+        false,
+    );
+}
+
+#[test]
+fn legacy_cleanup_await_of_interrupted_children_returns_owned_failures_repeatedly_and_for_unit() {
+    support::run_fixture(
+        "legacy-cleanup-await_of_interrupted_children_returns_owned_failures_repeatedly_and_for_unit",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_await_waiters_receive_failure_after_interrupt_cleanup_before_interrupt_waiters() {
+    support::run_fixture(
+        "legacy-cleanup-await_waiters_receive_failure_after_interrupt_cleanup_before_interrupt_waiters",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_interrupt_cancels_unstarted_children_and_does_not_yield_for_ended_children() {
+    support::run_fixture(
+        "legacy-cleanup-interrupt_cancels_unstarted_children_and_does_not_yield_for_ended_children",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_interrupt_waits_for_suspending_cleanup_and_ignores_old_task_notifications() {
+    support::run_fixture(
+        "legacy-cleanup-interrupt_waits_for_suspending_cleanup_and_ignores_old_task_notifications",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_interruption_causes_survive_scope_and_heap_reuse_and_can_be_released_by_the_caller()
+ {
+    support::run_fixture(
+        "legacy-cleanup-interruption_causes_survive_scope_and_heap_reuse_and_can_be_released_by_the_caller",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_join_of_an_interrupted_child_is_the_defined_panic_defect() {
+    support::run_fixture(
+        "legacy-cleanup-join_of_an_interrupted_child_is_the_defined_panic_defect",
+        false,
+    );
+}
+
+#[test]
+fn legacy_cleanup_leaked_interrupt_callback_reports_ended_scope_after_slot_reuse() {
+    support::run_fixture(
+        "legacy-cleanup-leaked_interrupt_callback_reports_ended_scope_after_slot_reuse",
+        false,
+    );
+}
+
+#[test]
+fn legacy_cleanup_multiple_interrupt_waiters_resume_fifo_after_release_finishes() {
+    support::run_fixture(
+        "legacy-cleanup-multiple_interrupt_waiters_resume_fifo_after_release_finishes",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_operation_tails_do_not_keep_a_copy_of_an_expired_cleanup_mask() {
+    support::run_fixture(
+        "legacy-cleanup-operation_tails_do_not_keep_a_copy_of_an_expired_cleanup_mask",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_list_error_payloads_survive_suspending_cleanup_and_are_dropped_on_cancellation() {
+    support::run_fixture(
+        "legacy-cleanup-list_error_payloads_survive_suspending_cleanup_and_are_dropped_on_cancellation",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_operation_failure_before_resume_transfers_and_releases_its_string_payload() {
+    support::run_fixture(
+        "legacy-cleanup-operation_failure_before_resume_transfers_and_releases_its_string_payload",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_a_root_waits_for_cleanup_of_its_resumed_operation_tail() {
+    support::run_fixture(
+        "legacy-cleanup-a_root_waits_for_cleanup_of_its_resumed_operation_tail",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_cancellation_preserves_a_suspending_release_and_its_pending_task() {
+    support::run_fixture(
+        "legacy-cleanup-cancellation_preserves_a_suspending_release_and_its_pending_task",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cleanup_defects_in_suspend_protect_keep_the_configured_immediate_stop_policy() {
+    support::run_fixture(
+        "legacy-cleanup-defects_in_suspend_protect_keep_the_configured_immediate_stop_policy",
+        false,
+    );
+}
+
+#[test]
+fn legacy_cleanup_scope_cancellation_runs_nested_releases_before_the_parent_continues() {
+    support::run_fixture(
+        "legacy-cleanup-scope_cancellation_runs_nested_releases_before_the_parent_continues",
+        true,
+    );
+}
+
+#[test]
 fn legacy_cause_attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect() {
     support::run_fixture(
         "legacy-cause-attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect",
@@ -292,6 +477,14 @@ fn legacy_cause_attempt_captures_sync_failure_and_returns_owned_cause() {
 }
 
 #[test]
+fn legacy_cause_raised_interruption_crosses_sync_calls_and_attempt_without_becoming_a_value() {
+    support::run_fixture(
+        "legacy-cause-raised_interruption_crosses_sync_calls_and_attempt_without_becoming_a_value",
+        true,
+    );
+}
+
+#[test]
 fn legacy_cause_cause_kind_reads_failure_without_consuming_the_cause() {
     support::run_fixture(
         "legacy-cause-cause_kind_reads_failure_without_consuming_the_cause",
@@ -311,6 +504,14 @@ fn legacy_cause_attempt_owns_managed_success_and_releases_discarded_results() {
 fn legacy_cause_cause_raise_preserves_the_error_and_runs_native_cleanup_before_escape() {
     support::run_fixture(
         "legacy-cause-cause_raise_preserves_the_error_and_runs_native_cleanup_before_escape",
+        true,
+    );
+}
+
+#[test]
+fn legacy_cause_attempt_waits_for_async_cleanup_before_catching_failure() {
+    support::run_fixture(
+        "legacy-cause-attempt_waits_for_async_cleanup_before_catching_failure",
         true,
     );
 }
