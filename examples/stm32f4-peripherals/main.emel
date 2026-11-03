@@ -1,0 +1,29 @@
+import Embedded.Board.{BoardUart, BoardSpi, BoardI2c}
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+import Embedded.Gpio.{GpioPin, Low}
+
+# NUCLEO-F446RE: UART2 PA2/PA3, SPI1 PA5/PA6/PA7, I2C1 PB8/PB9.
+# SPI1 uses the LD2 pin PA5, so do not also configure that pin as a GPIO LED.
+pub fn main() -> Int {
+  with BoardUart {
+    with BoardSpi {
+      with BoardI2c {
+        uart = use Uart.Uart
+        uart.configure(Uart.Uart2, Uart.UartConfig(115200, Uart.Bits8, Uart.One,
+          Uart.NoParity, Uart.Both, Uart.NoFlowControl, Uart.Native))
+        (use Spi.Spi).create_device(Spi.SpiDeviceConfig(Spi.Spi1,
+          Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits8, Spi.IdleLow,
+            Spi.FirstEdge, 1000000, Spi.MostSignificantFirst), GpioPin(4), Low, 0, 0))
+        (use I2c.I2c).configure(I2c.I2c1, I2c.I2cConfig(100000, I2c.Standard))
+        uart.transmit(Uart.Uart2, [82, 69, 65, 68, 89, 10], 20)
+        0
+      }
+    }
+  } escape {
+    Uart.UartError(_) -> 1
+    Spi.SpiTransactionError(_, _) -> 2
+    I2c.I2cError(_) -> 3
+  }
+}
