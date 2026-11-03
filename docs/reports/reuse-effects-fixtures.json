@@ -1,0 +1,89 @@
+{
+  "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "fixtures": [
+    {
+      "name": "p2-failures",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p2/failures.emel",
+      "source_sha256": "57cbd6285c4177a40ad1059adb362b64d425cee6bf31dfea19be066a62c60ea6",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 旧独自frontendのUnit表記を本体の()へ変更。 副作用を持つ同期external呼出しをテスト所有effect/handlerで包む。本体のExternalOutsideHandler規則に従い、C symbolと呼出し順の期待値は維持。",
+      "adapted_source_sha256": "aea4a27d34f17128ffacc3834006d0ce8647c5bca5ae609ed843870e5b189f08",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p2/failures-harness.c",
+      "harness_sha256": "b8de820f994338905dab9e164703ae3b82a030bca2bef968121d9ccaa0c98a35",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 4096,
+        "string_capacity": 64
+      },
+      "heap_observer": false,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_effects",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p4-closures",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p4/closures.emel",
+      "source_sha256": "5894d6c1937cc8d6acc05b9d942f0b3b793d3dbe3d36c5d66c6ff730f5f25b29",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 旧独自frontendのUnit表記を本体の()へ変更。 副作用を持つ同期external呼出しをテスト所有effect/handlerで包む。本体のExternalOutsideHandler規則に従い、C symbolと呼出し順の期待値は維持。",
+      "adapted_source_sha256": "0be19b78282773e166c51d99b4d28434056e97c46581319c0a0252eb655f62ee",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p4/closures-harness.c",
+      "harness_sha256": "78bd785366872a4a2e3f994bac55b0644f7c4bd2ab456a9b4e95b17064e4375e",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 16384,
+        "string_capacity": 256
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_effects",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p4-handlers",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p4/handlers.emel",
+      "source_sha256": "b1a5081e7afb452609397e8f94da0291f783cac9bcfe688d6d2fea326df7fdb1",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 副作用を持つ同期external呼出しをテスト所有effect/handlerで包む。本体のExternalOutsideHandler規則に従い、C symbolと呼出し順の期待値は維持。",
+      "adapted_source_sha256": "d826c038e77501533a2abdd8b398deaae65c1e82e43004204b9e1aac63b95975",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p4/handlers-harness.c",
+      "harness_sha256": "002b50c2fccb32cb4705573bed1d15e29a119083e1d61553819b50feafab77a0",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 16384
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_effects",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "command": "cargo test -p emelino-cli --test reused_effects --locked --offline",
+    "tests_passed": 3,
+    "tests_failed": 0,
+    "tests_ignored": 0,
+    "scope": "3 source/C fixtures; no global parity completion claim"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "exports": [
+    {
+      "function": "caught_value",
+      "symbol": "caught_value"
+    },
+    {
+      "function": "caught_text_matches",
+      "symbol": "caught_text_matches"
+    },
+    {
+      "function": "original_error_input_matches",
+      "symbol": "original_error_input_matches"
+    },
+    {
+      "function": "nested_catch",
+      "symbol": "nested_catch"
+    },
+    {
+      "function": "guarded_catch",
+      "symbol": "guarded_catch"
+    }
+  ],
+  "heap_bytes": 4096,
+  "string_capacity": 64
+}
