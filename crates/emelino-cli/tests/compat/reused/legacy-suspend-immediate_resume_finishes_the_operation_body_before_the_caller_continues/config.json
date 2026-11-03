@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "instant",
+      "symbol": "legacy_instant"
+    }
+  ],
+  "heap_bytes": 2048
+}

@@ -1,0 +1,10 @@
+{
+  "exports": [
+    {
+      "function": "render",
+      "symbol": "legacy_render"
+    }
+  ],
+  "string_capacity": 64,
+  "heap_bytes": 0
+}

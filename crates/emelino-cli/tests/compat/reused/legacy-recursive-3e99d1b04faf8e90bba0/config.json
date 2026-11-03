@@ -1,0 +1,10 @@
+{
+  "exports": [
+    {
+      "function": "show",
+      "symbol": "legacy_show"
+    }
+  ],
+  "heap_bytes": 2048,
+  "string_capacity": 128
+}

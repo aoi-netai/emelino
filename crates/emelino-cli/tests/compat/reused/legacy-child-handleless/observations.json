@@ -1,0 +1,7 @@
+{
+  "heap_observer": true,
+  "cancel_root": false,
+  "type_bindings": [],
+  "release_bindings": [],
+  "instrumentation_file": "instrument.c"
+}

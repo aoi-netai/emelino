@@ -1,0 +1,13 @@
+{
+  "exports": [
+    {
+      "function": "formatter",
+      "symbol": "legacy_formatter"
+    },
+    {
+      "function": "capture",
+      "symbol": "legacy_capture"
+    }
+  ],
+  "heap_bytes": 2048
+}

@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "work",
+      "symbol": "legacy_work"
+    }
+  ],
+  "heap_bytes": 2048
+}

@@ -1,0 +1,7 @@
+{
+  "heap_observer": true,
+  "cancel_root": true,
+  "type_bindings": [],
+  "release_bindings": [],
+  "heapless_observer": true
+}

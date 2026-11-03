@@ -1,0 +1,19 @@
+{
+  "heap_observer": true,
+  "cancel_root": false,
+  "type_bindings": [
+    {
+      "placeholder": "ty",
+      "function": "legacy_formatter",
+      "prefix": "emela_function_type_"
+    }
+  ],
+  "release_bindings": [],
+  "heapless_observer": true,
+  "c_contains": [
+    "[11]"
+  ],
+  "c_not_contains": [
+    "char emela_string_buffer_0[256]"
+  ]
+}
