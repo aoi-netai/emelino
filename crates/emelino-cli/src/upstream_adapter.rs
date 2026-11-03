@@ -6,24 +6,43 @@
 use emelino_compiler::ir as d;
 use std::collections::{HashMap, HashSet};
 
+mod bytes;
 mod cause;
 use la_arena::{Arena, Idx};
 
 fn id<T, U>(value: Idx<T>) -> Idx<U> {
     Idx::from_raw(value.into_raw())
 }
-// The reused contract reserves slot 10 for the old fork's Bytes extension.
-// Official upstream ec1031c has ten builtin types and no Bytes intrinsic.
-// Preserve upstream IDs relative to each other while retaining the backend ABI.
-fn backend_type_index(index: usize) -> usize {
-    if index < 10 { index } else { index + 1 }
+// IDs belong to their respective producers. The mapping also connects the
+// explicit emelino Bytes extension to the reused backend's reserved Bytes type.
+struct TypeMap {
+    ids: Vec<d::TypeId>,
+    bytes: Option<emela_core::EnumId>,
 }
 
-fn type_id(value: emela_core::TypeId) -> d::TypeId {
-    d::TypeId::from_index(backend_type_index(value.index()))
+impl TypeMap {
+    fn new(source: &emela_core::Module, bytes: Option<emela_core::EnumId>) -> Self {
+        let mut next = 11;
+        let ids = source.types.iter().enumerate().map(|(index, node)| {
+            if index < 10 {
+                d::TypeId::from_index(index)
+            } else if matches!(node, emela_core::Type::Enum(id, args) if Some(*id) == bytes && args.is_empty()) {
+                d::TypeId::BYTES
+            } else {
+                let result = d::TypeId::from_index(next);
+                next += 1;
+                result
+            }
+        }).collect();
+        Self { ids, bytes }
+    }
+
+    fn get(&self, value: emela_core::TypeId) -> d::TypeId {
+        self.ids[value.index()]
+    }
 }
 
-fn arena<T, U>(input: &Arena<T>, convert: fn(&T) -> U) -> Arena<U> {
+fn arena<T, U>(input: &Arena<T>, convert: impl Fn(&T) -> U) -> Arena<U> {
     let mut result = Arena::new();
     for (_, value) in input.iter() {
         result.alloc(convert(value));
@@ -65,10 +84,11 @@ pub fn adapt(
             ));
         }
     }
-    let mut core = definitions(&source.core)?;
+    let type_map = TypeMap::new(&source.core, bytes::identify(source)?);
+    let mut core = definitions(&source.core, &type_map)?;
     let mut functions = Arena::new();
     for (_, function) in source.functions.iter() {
-        let mut converted = adapt_function(function, &mut core)?;
+        let mut converted = adapt_function(function, &mut core, &type_map)?;
         converted.export_symbol = selected
             .get(function.name.as_str())
             .map(|name| (*name).to_owned());
@@ -88,22 +108,23 @@ pub fn adapt(
         const_function_groups: Vec::new(),
         has_scopes: false,
     };
+    bytes::lower(&mut program)?;
     cause::normalize(&mut program)?;
     Ok(program)
 }
 
-fn definitions(source: &emela_core::Module) -> Result<d::Definitions, String> {
+fn definitions(source: &emela_core::Module, type_map: &TypeMap) -> Result<d::Definitions, String> {
     let mut types = d::TypeTable::default();
     for (index, ty) in source.types.iter().enumerate() {
-        let actual = types.intern(adapt_type(ty));
-        if actual.index() != backend_type_index(index) {
+        let actual = types.intern(adapt_type(ty, type_map));
+        if actual != type_map.ids[index] {
             return Err("upstream type table does not preserve canonical identity".into());
         }
     }
     Ok(d::Definitions {
         types,
-        enums: arena(&source.enums, adapt_enum_def),
-        effects: arena(&source.effects, adapt_effect_def),
+        enums: arena(&source.enums, |item| adapt_enum_def(item, type_map)),
+        effects: arena(&source.effects, |item| adapt_effect_def(item, type_map)),
         // The backend derives recursive layout information after validation.
         expanding_enums: HashSet::new(),
     })
@@ -172,7 +193,7 @@ fn adapt_ctor_ref(source: &emela_core::CtorRef) -> d::CtorRef {
     }
 }
 
-fn adapt_effect_def(source: &emela_core::EffectDef) -> d::EffectDef {
+fn adapt_effect_def(source: &emela_core::EffectDef, type_map: &TypeMap) -> d::EffectDef {
     let emela_core::EffectDef {
         name,
         decl,
@@ -183,13 +204,16 @@ fn adapt_effect_def(source: &emela_core::EffectDef) -> d::EffectDef {
     d::EffectDef {
         name: name.clone(),
         decl: decl.clone(),
-        args: args.iter().map(|value| type_id(*value)).collect(),
-        ops: ops.iter().map(adapt_op_def).collect(),
+        args: args.iter().map(|value| type_map.get(*value)).collect(),
+        ops: ops
+            .iter()
+            .map(|item| adapt_op_def(item, type_map))
+            .collect(),
         label_of: label_of.as_ref().map(|value| id(*value)),
     }
 }
 
-fn adapt_enum_def(source: &emela_core::EnumDef) -> d::EnumDef {
+fn adapt_enum_def(source: &emela_core::EnumDef, type_map: &TypeMap) -> d::EnumDef {
     let emela_core::EnumDef {
         name,
         params,
@@ -200,7 +224,10 @@ fn adapt_enum_def(source: &emela_core::EnumDef) -> d::EnumDef {
     d::EnumDef {
         name: name.clone(),
         params: *params,
-        variants: variants.iter().map(adapt_variant_def).collect(),
+        variants: variants
+            .iter()
+            .map(|item| adapt_variant_def(item, type_map))
+            .collect(),
         error: *error,
         external: *external,
     }
@@ -242,15 +269,15 @@ fn adapt_fiber_op(source: &emela_core::FiberOp) -> d::FiberOp {
     }
 }
 
-fn adapt_fn_sets(source: &emela_core::FnSets) -> d::FnSets {
+fn adapt_fn_sets(source: &emela_core::FnSets, type_map: &TypeMap) -> d::FnSets {
     let emela_core::FnSets { errors, effects } = source;
     d::FnSets {
-        errors: type_id(*errors),
-        effects: type_id(*effects),
+        errors: type_map.get(*errors),
+        effects: type_map.get(*effects),
     }
 }
 
-fn adapt_fn_type(source: &emela_core::FnType) -> d::FnType {
+fn adapt_fn_type(source: &emela_core::FnType, type_map: &TypeMap) -> d::FnType {
     let emela_core::FnType {
         params,
         ret,
@@ -260,12 +287,12 @@ fn adapt_fn_type(source: &emela_core::FnType) -> d::FnType {
         sets,
     } = source;
     d::FnType {
-        params: params.iter().map(|value| type_id(*value)).collect(),
-        ret: type_id(*ret),
+        params: params.iter().map(|value| type_map.get(*value)).collect(),
+        ret: type_map.get(*ret),
         fails: *fails,
         suspends: *suspends,
         ev: *ev,
-        sets: sets.as_ref().map(adapt_fn_sets),
+        sets: sets.as_ref().map(|item| adapt_fn_sets(item, type_map)),
     }
 }
 
@@ -287,7 +314,7 @@ fn adapt_host_ref(source: &emela_core::HostRef) -> d::HostRef {
     }
 }
 
-fn adapt_op_def(source: &emela_core::OpDef) -> d::OpDef {
+fn adapt_op_def(source: &emela_core::OpDef, type_map: &TypeMap) -> d::OpDef {
     let emela_core::OpDef {
         name,
         suspend,
@@ -300,13 +327,13 @@ fn adapt_op_def(source: &emela_core::OpDef) -> d::OpDef {
         name: name.clone(),
         suspend: *suspend,
         type_params: *type_params,
-        params: params.iter().map(|value| type_id(*value)).collect(),
-        ret: type_id(*ret),
+        params: params.iter().map(|value| type_map.get(*value)).collect(),
+        ret: type_map.get(*ret),
         fails: *fails,
     }
 }
 
-fn adapt_set_summary(source: &emela_core::SetSummary) -> d::SetSummary {
+fn adapt_set_summary(source: &emela_core::SetSummary, type_map: &TypeMap) -> d::SetSummary {
     let emela_core::SetSummary {
         fails,
         suspends,
@@ -317,11 +344,11 @@ fn adapt_set_summary(source: &emela_core::SetSummary) -> d::SetSummary {
         fails: *fails,
         suspends: *suspends,
         ev: *ev,
-        params: params.iter().map(|value| type_id(*value)).collect(),
+        params: params.iter().map(|value| type_map.get(*value)).collect(),
     }
 }
 
-fn adapt_type(source: &emela_core::Type) -> d::Type {
+fn adapt_type(source: &emela_core::Type, type_map: &TypeMap) -> d::Type {
     match source {
         emela_core::Type::Int => d::Type::Int,
         emela_core::Type::Int64 => d::Type::Int64,
@@ -331,30 +358,35 @@ fn adapt_type(source: &emela_core::Type) -> d::Type {
         emela_core::Type::Unit => d::Type::Unit,
         emela_core::Type::Never => d::Type::Never,
         emela_core::Type::Tuple(value0) => {
-            d::Type::Tuple(value0.iter().map(|value| type_id(*value)).collect())
+            d::Type::Tuple(value0.iter().map(|value| type_map.get(*value)).collect())
         }
-        emela_core::Type::List(value0) => d::Type::List(type_id(*value0)),
+        emela_core::Type::List(value0) => d::Type::List(type_map.get(*value0)),
+        emela_core::Type::Enum(value0, value1)
+            if Some(*value0) == type_map.bytes && value1.is_empty() =>
+        {
+            d::Type::Bytes
+        }
         emela_core::Type::Enum(value0, value1) => d::Type::Enum(
             id(*value0),
-            value1.iter().map(|value| type_id(*value)).collect(),
+            value1.iter().map(|value| type_map.get(*value)).collect(),
         ),
         emela_core::Type::Param(value0) => d::Type::Param(*value0),
-        emela_core::Type::Fn(value0) => d::Type::Fn(adapt_fn_type(value0)),
+        emela_core::Type::Fn(value0) => d::Type::Fn(adapt_fn_type(value0, type_map)),
         emela_core::Type::Handler(value0) => d::Type::Handler(id(*value0)),
         emela_core::Type::Evidence => d::Type::Evidence,
-        emela_core::Type::Cell(value0) => d::Type::Cell(type_id(*value0)),
+        emela_core::Type::Cell(value0) => d::Type::Cell(type_map.get(*value0)),
         emela_core::Type::FiberScope => d::Type::FiberScope,
         emela_core::Type::Any => d::Type::Any,
-        emela_core::Type::Set(value0) => d::Type::Set(adapt_set_summary(value0)),
+        emela_core::Type::Set(value0) => d::Type::Set(adapt_set_summary(value0, type_map)),
     }
 }
 
-fn adapt_variant_def(source: &emela_core::VariantDef) -> d::VariantDef {
+fn adapt_variant_def(source: &emela_core::VariantDef, type_map: &TypeMap) -> d::VariantDef {
     let emela_core::VariantDef { name, fields, tys } = source;
     d::VariantDef {
         name: name.clone(),
         fields: adapt_variant_fields(fields),
-        tys: tys.iter().map(|value| type_id(*value)).collect(),
+        tys: tys.iter().map(|value| type_map.get(*value)).collect(),
     }
 }
 
@@ -426,6 +458,7 @@ fn adapt_const(source: &emela_lir::Const) -> d::Const {
 fn adapt_function(
     source: &emela_lir::Function,
     core: &mut d::Definitions,
+    type_map: &TypeMap,
 ) -> Result<d::Function, String> {
     if source.env.is_some() || source.defects {
         return Err(format!(
@@ -438,7 +471,7 @@ fn adapt_function(
         exported: false,
         export_symbol: None,
         params: source.params.iter().map(|value| id(*value)).collect(),
-        ret: type_id(source.ret),
+        ret: type_map.get(source.ret),
         fails: source.fails,
         suspends: source.suspends,
         constant: source.constant,
@@ -446,7 +479,7 @@ fn adapt_function(
         external: source.external.as_ref().map(adapt_external),
         env: None,
         body: source.body.map(id),
-        vars: arena(&source.vars, adapt_var_data),
+        vars: arena(&source.vars, |item| adapt_var_data(item, type_map)),
         stmts: Arena::new(),
         seqs: arena(&source.seqs, adapt_seq),
         labels: arena(&source.labels, adapt_label_data),
@@ -459,7 +492,9 @@ fn adapt_function(
         active_statements: HashSet::new(),
     };
     for (_, statement) in source.stmts.iter() {
-        function.stmts.alloc(adapt_stmt(statement, source, core)?);
+        function
+            .stmts
+            .alloc(adapt_stmt(statement, source, core, type_map)?);
     }
     Ok(function)
 }
@@ -542,6 +577,7 @@ fn adapt_stmt(
     source: &emela_lir::Stmt,
     function: &emela_lir::Function,
     core: &mut d::Definitions,
+    type_map: &TypeMap,
 ) -> Result<d::Stmt, String> {
     Ok(match source {
         emela_lir::Stmt::Let {
@@ -551,7 +587,7 @@ fn adapt_stmt(
             on_suspend,
         } => d::Stmt::Let {
             dst: dst.as_ref().map(|value| id(*value)),
-            value: adapt_value(value, *dst, function, core)?,
+            value: adapt_value(value, *dst, function, core, type_map)?,
             on_defect: on_defect.as_ref().map(|value| id(*value)),
             on_suspend: on_suspend.as_ref().map(adapt_suspend),
         },
@@ -641,6 +677,7 @@ fn adapt_value(
     dst: Option<emela_lir::VarId>,
     function: &emela_lir::Function,
     core: &mut d::Definitions,
+    type_map: &TypeMap,
 ) -> Result<d::Value, String> {
     Ok(match source {
         emela_lir::Value::Const(value0) => d::Value::Const(adapt_const(value0)),
@@ -722,12 +759,12 @@ fn adapt_value(
         emela_lir::Value::IsError { error, enum_id } => d::Value::IsError {
             error: id(*error),
             enum_id: id(*enum_id),
-            error_type: error_type(core, function, *enum_id, None)?,
+            error_type: error_type(core, function, *enum_id, None, type_map)?,
         },
         emela_lir::Value::AsError { error, enum_id } => d::Value::AsError {
             error: id(*error),
             enum_id: id(*enum_id),
-            error_type: error_type(core, function, *enum_id, dst)?,
+            error_type: error_type(core, function, *enum_id, dst, type_map)?,
         },
         emela_lir::Value::Runtime { op, args } => d::Value::Runtime {
             op: adapt_runtime_op(op),
@@ -737,12 +774,12 @@ fn adapt_value(
     })
 }
 
-fn adapt_var_data(source: &emela_lir::VarData) -> d::VarData {
+fn adapt_var_data(source: &emela_lir::VarData, type_map: &TypeMap) -> d::VarData {
     let emela_lir::VarData { hint, repr, ty } = source;
     d::VarData {
         hint: hint.clone(),
         repr: adapt_repr(repr),
-        ty: type_id(*ty),
+        ty: type_map.get(*ty),
     }
 }
 
@@ -763,10 +800,11 @@ fn error_type(
     function: &emela_lir::Function,
     enum_id: emela_core::EnumId,
     dst: Option<emela_lir::VarId>,
+    type_map: &TypeMap,
 ) -> Result<d::TypeId, String> {
     let converted = id(enum_id);
     if let Some(dst) = dst {
-        let ty = type_id(function.vars[dst].ty);
+        let ty = type_map.get(function.vars[dst].ty);
         if matches!(core.ty(ty), d::Type::Enum(candidate, _) if *candidate == converted) {
             return Ok(ty);
         }
