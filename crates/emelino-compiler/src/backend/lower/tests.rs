@@ -42,6 +42,8 @@ mod p7_switch_frames;
 mod services;
 #[path = "suspend_tests.rs"]
 mod suspend;
+#[path = "upstream_contract_tests.rs"]
+mod upstream_contract;
 
 fn lower_program(program: Program) -> Result<LoweredModule> {
     super::lower_program(program, &Options::default())

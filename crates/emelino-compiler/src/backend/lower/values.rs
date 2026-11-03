@@ -313,11 +313,20 @@ pub(super) fn value_type(
                     return Err(invalid(&f.name, "primitive operands have different types"));
                 }
                 first_type = Some(actual);
-                // Bool comparisons use the I32 primitive representation.
-                if !(ty == TypeId::INT
-                    && actual == TypeId::BOOL
-                    && matches!(op, PrimOp::Not | PrimOp::Eq | PrimOp::Ne))
-                {
+                // Bool and fieldless enum equality use upstream's I32
+                // primitive representation. Nominal operand identity still
+                // must agree; arithmetic on enum tags is not accepted.
+                let scalar_enum = matches!(program.core.ty(actual), Type::Enum(id, _) if {
+                    let definition = &program.core.enums[*id];
+                    !definition.error && !definition.external
+                        && !definition.variants.is_empty()
+                        && definition.variants.iter().all(|variant| variant.fields.is_empty())
+                });
+                let represented_i32 = ty == TypeId::INT
+                    && ((actual == TypeId::BOOL
+                        && matches!(op, PrimOp::Not | PrimOp::Eq | PrimOp::Ne))
+                        || (scalar_enum && matches!(op, PrimOp::Eq | PrimOp::Ne)));
+                if !represented_i32 {
                     expect_type(f, actual, ty)?;
                 }
             }
