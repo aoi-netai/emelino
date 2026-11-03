@@ -23,6 +23,8 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                     crate::contract::ir::FiberOp::Scope { .. }
                         | crate::contract::ir::FiberOp::Fork
                         | crate::contract::ir::FiberOp::Deferred
+                        | crate::contract::ir::FiberOp::Join
+                        | crate::contract::ir::FiberOp::Await { .. }
                         | crate::contract::ir::FiberOp::Attempt {
                             suspends: false,
                             ..

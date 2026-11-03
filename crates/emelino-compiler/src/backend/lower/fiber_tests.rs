@@ -4,6 +4,8 @@ use super::*;
 mod deferred;
 #[path = "p7_fiber_edge_tests.rs"]
 mod p7_edges;
+#[path = "fiber_scope_tests.rs"]
+mod scope_abi;
 #[path = "fiber_unit_tests.rs"]
 mod unit;
 
@@ -66,6 +68,69 @@ fn scope_function(p: &mut Program, f: &mut Function, scope_body: SeqId, scope: V
         stmts: vec![make, enter],
         term: Term::Return(Some(result.into())),
     };
+}
+
+#[test]
+fn scope_fork_and_join_reclaim_children_and_their_erased_values() {
+    let mut p = program(vec![]);
+    let child_type = function_type(&mut p, vec![], TypeId::ANY, false);
+    let handle_type = handle_type(&mut p, "Std.Fiber.Fiber", TypeId::INT);
+    let mut f = simple();
+    f.suspends = true;
+    let scope = aggregate_variable(&mut f, TypeId::FIBER_SCOPE);
+    let value = variable(&mut f, TypeId::INT);
+    let boxed = aggregate_variable(&mut f, TypeId::ANY);
+    let make_value = binding(&mut f, Some(value), Value::Const(Const::Int(42)));
+    let box_value = binding(&mut f, Some(boxed), Value::Coerce(value));
+    let child_body = f.seqs.alloc(Seq {
+        stmts: vec![make_value, box_value],
+        term: Term::Return(Some(boxed.into())),
+    });
+    let child = aggregate_variable(&mut f, child_type);
+    let handle = aggregate_variable(&mut f, handle_type);
+    let joined = variable(&mut f, TypeId::INT);
+    let make_child = binding(
+        &mut f,
+        Some(child),
+        Value::Closure(Box::new(Closure {
+            params: vec![],
+            captures: vec![],
+            body: child_body,
+            suspends: true,
+        })),
+    );
+    let fork = binding(
+        &mut f,
+        Some(handle),
+        Value::Fiber {
+            op: FiberOp::Fork,
+            args: vec![scope.into(), child.into()],
+            on_fail: None,
+        },
+    );
+    let join = binding(
+        &mut f,
+        Some(joined),
+        Value::Fiber {
+            op: FiberOp::Join,
+            args: vec![handle.into()],
+            on_fail: None,
+        },
+    );
+    let scope_body = f.seqs.alloc(Seq {
+        stmts: vec![make_child, fork, join],
+        term: Term::Return(Some(joined.into())),
+    });
+    scope_function(&mut p, &mut f, scope_body, scope);
+    p.functions.alloc(f);
+    let output = crate::backend::compile_saved_program(
+        p,
+        &Options::default()
+            .with_heap_bytes(8192)
+            .with_frame_bytes(1024),
+    )
+    .unwrap();
+    execute_answer(output);
 }
 
 fn check_bool(f: &mut Function, value: VarId, expected: bool) -> StmtId {
