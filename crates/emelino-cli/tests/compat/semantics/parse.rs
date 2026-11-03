@@ -7,28 +7,32 @@ use super::legacy::{ExternalAdapter, ExternalResult, Options, Source, compile_so
 
 const SOURCE: &str = r#"
 @external(c, "record_parse_error")
-fn record_parse_error(input: String, kind: Int) -> () use {}
+fn record_parse_error(input: String, kind: Int) -> ()
+effect ParseAudit { fn record(input: String, kind: Int) -> () }
+handler RecordParse: ParseAudit {
+  fn record(input, kind) { record_parse_error(input, kind) }
+}
 @export(c, "parse_float")
-pub fn parse_float(input: String) -> Float {
+pub fn parse_float(input: String) -> Float { with RecordParse {
   Float.parse(input) escape {
-    ParseError(input: original) -> { record_parse_error(original, 1)
+    ParseError(input: original) -> { (use ParseAudit).record(original, 1)
       0.0 }
   }
-}
+}}
 @export(c, "parse_int")
-pub fn parse_int(input: String) -> Int {
+pub fn parse_int(input: String) -> Int { with RecordParse {
   Int.parse(input) escape {
-    ParseError(input: original) -> { record_parse_error(original, 2)
+    ParseError(input: original) -> { (use ParseAudit).record(original, 2)
       0 }
   }
-}
+}}
 @export(c, "parse_bool")
-pub fn parse_bool(input: String) -> Bool {
+pub fn parse_bool(input: String) -> Bool { with RecordParse {
   Bool.parse(input) escape {
-    ParseError(input: original) -> { record_parse_error(original, 3)
+    ParseError(input: original) -> { (use ParseAudit).record(original, 3)
       False }
   }
-}
+}}
 "#;
 
 const HARNESS: &str = r#"

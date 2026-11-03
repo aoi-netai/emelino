@@ -13,8 +13,7 @@
     "Independent frontend-only Unit spelling changes to official () without changing C ABI.",
     "List.join changes to its official defining module String.join.",
     "Int.MAX convenience constant becomes its exact signed32 maximum literal2147483647.",
-    "Reserved default argument label in Option.or uses the equivalent positional call.",
-    "Two directly called synchronous test externals specify use{} per official external-call requirements; C hooks and exact side-effect counts remain."
+    "Side-effecting board_bool/board_value and record_parse_error calls are declared as ordinary external operations and invoked through explicit test effect handlers (BoardCalls/NativeBoard and ParseAudit/RecordParse); none is declared use{}. Exact C counts, side-effect order and ParseError payload checks are retained."
   ],
   "retained_observations": [
     "All853 Unicode18 extended grapheme vectors: byte length, grapheme length, cluster boundaries, decoded scalar values, joined original bytes and released owned clusters.",
@@ -281,7 +280,7 @@
     },
     {
       "path": "crates/emelino-cli/tests/compat/semantics/evaluation.rs",
-      "sha256": "130660aad6b48f6f6e79ae2176f3d069e2cd817336add6681db13ea715f73659"
+      "sha256": "8d019316e9a7bd168909f7119f9e06b176d60930a47d060a305dc98f8c3e05cb"
     },
     {
       "path": "crates/emelino-cli/tests/compat/semantics/float_parse_cases.rs",
@@ -301,11 +300,11 @@
     },
     {
       "path": "crates/emelino-cli/tests/compat/semantics/parse.rs",
-      "sha256": "72e48246bb01f79f5dfbbf9a9a7cbb5a96eea14260ea52b272bc1bc6d97bc66b"
+      "sha256": "13516f8715a56e430c475b97da35ed307a5481635c89f51e3a168139b53e3130"
     },
     {
       "path": "crates/emelino-cli/tests/compat/semantics/standard_api.rs",
-      "sha256": "ae020b9291eb7243b5a33f2729611190126d36ab25bc601cf3c2ae4e82024d76"
+      "sha256": "4a5b86a4b57a6751f199e2f341a380e5c77dd59a37b1645c4886b66c8e900535"
     },
     {
       "path": "crates/emelino-cli/tests/compat/semantics/unicode.emel",
@@ -329,5 +328,13 @@
     "clippy": "passed with -D warnings",
     "canonical_test_ids_with_supplemental_evidence": 12,
     "contexts_with_supplemental_evidence": 12
-  }
+  },
+  "resource_adaptations": [
+    {
+      "test": "short_circuiting_and_argument_evaluation_preserve_side_effect_order",
+      "old_heap_bytes": 0,
+      "new_heap_bytes": 4096,
+      "reason": "Explicit effect handlers allocate owned handler values; other numeric defect-only cases keep heap0 and parse audit keeps its original8192."
+    }
+  ]
 }

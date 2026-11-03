@@ -56,6 +56,8 @@ const FIXTURES: &[(&str, &str)] = &[
 // Old shared-family counts (2/1/1/1/2 ticks+6 logs) are recorded in the report;
 // these assert the observed per-specialization counts without changing values,
 // retry/cache behavior, or ownership assertions.
+// C-only counters instrument evaluation without exposing state to Emela; pure
+// hooks return stable values (tick always2), and mark always returns Unit.
 fn run(id: &str) {
     let original = FIXTURES.iter().find(|(name, _)| *name == id).unwrap().1;
     let program = adapted_public(original, "");
@@ -91,7 +93,7 @@ fn run(id: &str) {
             },
             "82d224" => (format!("{abort}{debug}"), "int main(void){for(int i=0;i<1000;i++)if(integer()!=42||text()!=42||logs!=2)return 1;return 0;}\n".to_owned()),
             "9d483c" => (format!("{abort}{debug}"), "int main(void){for(int i=0;i<1000;i++)if(read()!=0||logs!=2||!test_heap_empty())return 1;return 0;}\n".to_owned()),
-            "cd203f" => (format!("{abort}{debug}\nstatic int ticks,marks;int32_t tick(void){{return ++ticks;}}void mark(int32_t n){{if(n!=2)abort();marks++;}}\n"), "int main(void){for(int i=0;i<1000;i++)if(integer()!=42||text()!=42||ticks!=4||logs!=12||marks!=2*(i+1))return 1;return 0;}\n".to_owned()),
+            "cd203f" => (format!("{abort}{debug}\nstatic int ticks,marks;int32_t tick(void){{ticks++;return 2;}}void mark(int32_t n){{if(n!=2)abort();marks++;}}\n"), "int main(void){for(int i=0;i<1000;i++)if(integer()!=42||text()!=42||ticks!=4||logs!=12||marks!=2*(i+1))return 1;return 0;}\n".to_owned()),
             _ => unreachable!(),
         };
     execute(&output, &format!("{headers}{hooks}{main}"), 0);

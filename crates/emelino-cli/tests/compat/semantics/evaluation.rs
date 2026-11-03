@@ -4,11 +4,11 @@ use super::support;
 use super::legacy::{Options, Source, compile_sources};
 use support::compile_and_run;
 
-fn source_output(source: &str) -> emelino_compiler::Output {
+fn source_output(source: &str, heap_bytes: u32) -> emelino_compiler::Output {
     compile_sources(
         &[Source::new("main.emel", source)],
         "main.emel",
-        &Options::default(),
+        &Options::default().with_heap_bytes(heap_bytes),
     )
     .unwrap_or_else(|errors| panic!("P1 source rejected: {errors:#?}"))
 }
@@ -18,19 +18,28 @@ fn short_circuiting_and_argument_evaluation_preserve_side_effect_order() {
     let output = source_output(
         r#"
 @external(c, "board_bool")
-fn tick() -> Bool use {}
+fn host_tick() -> Bool
 @external(c, "board_value")
-fn value(n: Int) -> Int use {}
+fn host_value(n: Int) -> Int
+effect BoardCalls {
+  fn tick() -> Bool
+  fn value(n: Int) -> Int
+}
+handler NativeBoard: BoardCalls {
+  fn tick() { host_tick() }
+  fn value(n) { host_value(n) }
+}
 fn combine(a: Int, b: Int) -> Int { a * 10 + b }
 @export(c, "check_order")
-pub fn check_order() -> Int {
-  assert !(False && tick())
-  assert True || tick()
-  assert True && tick()
-  assert !(False || !tick())
-  combine(value(1), value(2))
-}
+pub fn check_order() -> Int { with NativeBoard {
+  assert !(False && (use BoardCalls).tick())
+  assert True || (use BoardCalls).tick()
+  assert True && (use BoardCalls).tick()
+  assert !(False || !(use BoardCalls).tick())
+  combine((use BoardCalls).value(1), (use BoardCalls).value(2))
+}}
 "#,
+        4096,
     );
     compile_and_run(
         &output,
@@ -85,7 +94,7 @@ fn unused_division_remainder_and_negative_shifts_still_raise_defects() {
             let source = format!(
                 "@export(c, \"probe\")\npub fn probe(a: {ty}, b: {argument_type}) -> () {{ unused = {expression}\n () }}"
             );
-            let output = source_output(&source);
+            let output = source_output(&source, 0);
             let divisor = if expression.contains("shift_") {
                 "INT32_MIN"
             } else {

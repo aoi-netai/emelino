@@ -1201,5 +1201,6 @@
       "runtime_O2": "passed"
     }
   ],
-  "backend_validation_commit": "e73bef8"
+  "backend_validation_commit": "e73bef8",
+  "test_instrumentation": "Const C hooks count evaluations only in the test harness; this is a test-only observation seam, not ordinary source-level side effects permitted by use{}. Pure hooks retain stable return values, including tick()=2 and mark()=Unit. The generic callable fixture keeps branch2, value42 and text-length assertions. The separate fixture_seed counter is actually declared through Seed/BoardSeed handlers in the original source."
 }

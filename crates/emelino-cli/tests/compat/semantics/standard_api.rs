@@ -26,7 +26,7 @@ pub fn standard_api() -> Int {
   parsed = Int.parse(s: "42") escape { ParseError(_) -> -1 }
   assert parsed == 42
   assert Option.is_none(opt: Int.checked_add(b: 1, a: 2147483647))
-  assert Option.or(String.from_code_point(n: 0x1f600), "bad") == "😀"
+  assert Option.or(default: "bad", opt: String.from_code_point(n: 0x1f600)) == "😀"
   assert Option.is_none(opt: String.from_code_point(n: 0xd800))
   assert Option.is_some(opt: String.from_code_point(n: 0x10ffff))
   nan = Float.parse(s: "NaN") escape { ParseError(_) -> 0.0 }
