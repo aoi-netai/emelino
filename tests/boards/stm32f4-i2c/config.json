@@ -1,0 +1,5 @@
+{
+  "entry": "main",
+  "exports": [{ "function": "main", "symbol": "i2c_test_main" }],
+  "heap_bytes": 8192
+}
