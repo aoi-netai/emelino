@@ -1,0 +1,29 @@
+{
+  "exports": [
+    {
+      "function": "all",
+      "symbol": "exercise_all"
+    },
+    {
+      "function": "bounded",
+      "symbol": "exercise_bounded"
+    },
+    {
+      "function": "sleep",
+      "symbol": "exercise_sleep"
+    },
+    {
+      "function": "logs",
+      "symbol": "exercise_logs"
+    }
+  ],
+  "heap_bytes": 8192,
+  "string_capacity": 96,
+  "peripheral_buffer_capacity": 4,
+  "fiber_capacity": 4,
+  "frame_capacity": 12,
+  "frame_bytes": 2048,
+  "task_capacity": 2,
+  "event_capacity": 2,
+  "deferred_capacity": 1
+}

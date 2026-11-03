@@ -1,0 +1,7 @@
+
+import Emelino.Bytes.{Bytes}
+const ANSWER=40+2
+fn unreachable(value:Int)->Int {1+unreachable(value)}
+pub fn read_static()->Int {ANSWER}
+pub fn compare(left:String,right:String)->Bool {left<right}
+pub fn bytes_size(value:Bytes)->Int {Bytes.size(value)}
