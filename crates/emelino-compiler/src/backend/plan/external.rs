@@ -1,6 +1,17 @@
 use super::*;
 use crate::ExternalResult;
 use crate::contract::bindings::{ExternalBindingPlan as Binding, ExternalBindings as Bindings};
+
+pub(super) fn validate_adapter_symbol(function: &Function, symbol: &str) -> Result<(), Vec<Error>> {
+    if !is_c_identifier(symbol) || c::is_reserved_alias(symbol) {
+        return Err(unsupported(
+            &function.name,
+            &format!("external adapter symbol `{symbol}` is invalid or reserved"),
+        ));
+    }
+    Ok(())
+}
+
 fn symbol(function: &Function) -> Result<String, Vec<Error>> {
     let binding = function
         .external
@@ -86,10 +97,8 @@ pub(in crate::backend::plan) fn resolve(
         let binding = if let Some(adapter) = adapter {
             let symbol = adapter.symbol();
             let result = adapter.result();
-            if !is_c_identifier(symbol)
-                || generated.contains(symbol)
-                || symbol.starts_with("emela_")
-            {
+            validate_adapter_symbol(f, symbol)?;
+            if generated.contains(symbol) {
                 return Err(unsupported(
                     &f.name,
                     "external adapter symbol conflicts with a generated declaration or is invalid",
@@ -182,6 +191,71 @@ pub(in crate::backend::plan) fn resolve(
         .iter()
         .any(|&(_, ty)| layouts.is_managed_value(ty));
     Ok(bindings)
+}
+
+/// Validate after suspension planning, when the generated wrapper and helper names are known.
+pub(super) fn validate_generated_symbols(plan: &PlannedModule<'_>) -> Result<(), Vec<Error>> {
+    let flow = &plan.input.lowered;
+    let mut generated = HashSet::new();
+    for (id, function) in flow
+        .functions
+        .iter()
+        .filter(|(id, _)| plan.emitted_functions.contains(id))
+    {
+        let name = &plan.names[&id];
+        let mut reserve = |symbol: String| {
+            if !generated.insert(symbol.clone()) {
+                return Err(unsupported(
+                    &function.name,
+                    &format!("generated C declaration `{symbol}` conflicts with another function"),
+                ));
+            }
+            Ok(())
+        };
+        if function.suspends {
+            reserve(format!("{name}_push"))?;
+            if let Some(suspension) = plan.suspensions.get(&id) {
+                for suffix in ["frame", "step", "drop"] {
+                    reserve(format!("{name}_{suffix}"))?;
+                }
+                if function.exported {
+                    reserve(format!("{name}_start"))?;
+                }
+                if suspension.has_failure {
+                    reserve(format!("{name}_has_failure"))?;
+                }
+                if suspension.graph.max_depth != 0 {
+                    reserve(format!("{name}_unwind"))?;
+                }
+            }
+        } else if function.external.is_none() || plan.external_bindings[&id].adapted {
+            reserve(name.clone())?;
+            if function.exported && plan.public_names[&id] != *name {
+                reserve(plan.public_names[&id].clone())?;
+            }
+        }
+    }
+    generated.extend(plan.aliases.iter().map(|(alias, _)| alias.clone()));
+    for (id, function) in flow.functions.iter().filter(|(id, function)| {
+        plan.emitted_functions.contains(id)
+            && function.external.is_some()
+            && !plan.services.contains_key(id)
+            && function.derivation.is_none()
+            && !function.infallible_cause_fail
+    }) {
+        let symbol = if function.suspends {
+            &plan.names[&id]
+        } else {
+            &plan.external_bindings[&id].symbol
+        };
+        if generated.contains(symbol) {
+            return Err(unsupported(
+                &function.name,
+                &format!("external symbol `{symbol}` conflicts with a generated declaration"),
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn contains_any(layouts: &TypeLayouts<'_>, ty: TypeId, seen: &mut HashSet<TypeId>) -> bool {

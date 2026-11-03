@@ -530,7 +530,7 @@ pub(super) fn prepare<'a>(
         );
     }
     let layouts = layouts::freeze(layouts);
-    Ok(PlannedModule {
+    let plan = PlannedModule {
         metadata,
         aliases,
         const_emergency_bytes,
@@ -556,7 +556,9 @@ pub(super) fn prepare<'a>(
         has_failing_tasks,
         task_value_types,
         runtime,
-    })
+    };
+    external::validate_generated_symbols(&plan)?;
+    Ok(plan)
 }
 
 mod interrupts;

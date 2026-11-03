@@ -134,9 +134,7 @@ pub(in crate::backend::plan) fn external_symbol(
                 "suspend external needs an explicit Options::with_task_adapter mapping",
             )
         })?;
-    if !is_c_identifier(symbol) {
-        return Err(unsupported(&function.name, "invalid C task adapter symbol"));
-    }
+    external::validate_adapter_symbol(function, symbol)?;
     Ok(symbol.clone())
 }
 
