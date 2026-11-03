@@ -1,5 +1,7 @@
 #[path = "memory_tests.rs"]
 mod memory;
+#[path = "p7_binding_tests.rs"]
+mod p7_binding;
 #[path = "p7_data_tests.rs"]
 mod p7_data;
 #[path = "p7_list_alias_tests.rs"]
