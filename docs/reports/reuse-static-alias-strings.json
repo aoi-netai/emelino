@@ -41,9 +41,9 @@
         "symbol": "tail_recursive_string_views_preserve_prepend_append_and_concat_without_heap_or_stack_growth"
       },
       "source_test_sha256": "94ade6056416696b361d1049b80ee5223d22daf9b57216978989d1aafc4ebf3c",
-      "current_file_sha256": "80e40a63ffd0502379efbf4e9fedf210fc8fef3513802fb3f9f3bfc8020eb6b8",
+      "current_file_sha256": "63408b7f9038c06a581865d271b6aa00bf50ecb2b36e9f44417cd9716318ee2f",
       "status": "verified",
-      "observation_kind": "source-to-C-with-saved-input-replay",
+      "observation_kind": "source-string-values-plus-explicit-C-only-observation-seam",
       "options": {
         "string_capacity": 64
       },
@@ -54,8 +54,8 @@
         "Caller-buffer append returns leftright with length9."
       ],
       "fixture_changes": [
-        "The test-only stack_mark external has explicit use {} so the official frontend accepts its ordinary C binding. The observer C implementation and all source operations are unchanged.",
-        "The shared helper converts old export annotations into configured aliases before official compilation."
+        "stack_mark is retained as a test-only C stack observation seam with explicit source use {}. Its C implementation reads a local address and updates harness-private first_stack; it has no Emela arguments/result or access to Emela state. No C pure attribute is emitted. This tests the generated C stack behavior for this pinned route and is not evidence for ordinary source side-effect handling.",
+        "The original heap_bytes=0 requirement and source string operations are unchanged. The helper moves export annotations into configuration. Every C raw fragment, including the internal append probes, remains byte-identical."
       ],
       "legacy_id_note": "Supplemental test from the reusable compiler baseline; no additional fixed-oldfork canonical test ID is invented."
     },
@@ -72,9 +72,9 @@
         "symbol": "append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits"
       },
       "source_test_sha256": "94ade6056416696b361d1049b80ee5223d22daf9b57216978989d1aafc4ebf3c",
-      "current_file_sha256": "80e40a63ffd0502379efbf4e9fedf210fc8fef3513802fb3f9f3bfc8020eb6b8",
+      "current_file_sha256": "63408b7f9038c06a581865d271b6aa00bf50ecb2b36e9f44417cd9716318ee2f",
       "status": "verified",
-      "observation_kind": "source-to-C-with-saved-input-replay",
+      "observation_kind": "source-string-values-plus-explicit-C-only-observation-seam",
       "options": {
         "string_capacity": 64
       },
@@ -85,7 +85,8 @@
         "The ordinary source containing append is compiled through upstream before adding the unchanged C-only internal observation probe."
       ],
       "fixture_changes": [
-        "Only the shared helper and explicit stack_mark use {} source declaration change; all C raw fragments and internal append calls remain byte-identical."
+        "stack_mark is retained as a test-only C stack observation seam with explicit source use {}. Its C implementation reads a local address and updates harness-private first_stack; it has no Emela arguments/result or access to Emela state. No C pure attribute is emitted. This tests the generated C stack behavior for this pinned route and is not evidence for ordinary source side-effect handling.",
+        "The original heap_bytes=0 requirement and source string operations are unchanged. The helper moves export annotations into configuration. Every C raw fragment, including the internal append probes, remains byte-identical."
       ],
       "legacy_id_note": "Supplies the explicit append overlap/literal-copy matrix used by the established replacement of the readonly-prefix canonical case; does not replace the separate original-source readonly-prefix fixture."
     }
@@ -107,5 +108,5 @@
     ],
     "clippy": "cargo clippy -p emelino-cli --test legacy_static_strings --test legacy_string_alias --locked --offline -- -D warnings"
   },
-  "scope": "Source and original C observations are preserved. The explicit appended C runtime probe is identified separately from ordinary source-level String.append; no upstream source or compiler production code was changed."
+  "scope": "Source string values and original C observations are preserved. stack_mark is a C-only test instrumentation seam, not an ordinary source effect contract. The appended C runtime alias probe is separate from source-level String.append. No upstream or compiler production code changed."
 }

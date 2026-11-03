@@ -5,6 +5,10 @@ mod support;
 use legacy::{Options, Output, Source, compile_sources};
 
 fn output() -> Output {
+    // Test-only observation seam: this C hook measures the stack and cannot
+    // change any Emela value. It is not evidence for ordinary source effects.
+    // The C declaration has no pure attribute; the unchanged harness observes
+    // calls at O0/O2. Keep the original heapless resource requirement.
     let source = r##"
 @external(c,"stack_mark")
 fn stack_mark()->() use {}

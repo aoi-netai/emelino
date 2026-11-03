@@ -2,9 +2,24 @@ import Std.State.{State}
 import Std.Bytes.{Bytes}
 
 @external(c, "mark")
-fn mark(value: Int) -> Int use {}
+fn host_mark(value: Int) -> Int
 @external(c, "mutate_input")
-fn mutate_input() -> () use {}
+fn host_mutate_input() -> ()
+
+effect HostProbe {
+  fn mark(value: Int) -> Int
+  fn mutate_input() -> ()
+}
+handler HostProbeHandler: HostProbe {
+  fn mark(value) { host_mark(value) }
+  fn mutate_input() { host_mutate_input() }
+}
+fn mark(value: Int) -> Int {
+  with HostProbeHandler { (use HostProbe).mark(value) }
+}
+fn mutate_input() -> () {
+  with HostProbeHandler { (use HostProbe).mutate_input() }
+}
 
 fn escaped(initial: Int) -> fn() -> Int {
   (reader, _) = State.run(initial, fn() {
