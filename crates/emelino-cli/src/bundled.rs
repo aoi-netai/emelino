@@ -1,5 +1,5 @@
 //! Ordinary compatibility modules derived from the pinned upstream standard sources.
-//! Only Emelino.Bytes owns an additional implementation in this repository.
+//! Standard sources, including Std.Bytes, come directly from Emela.
 
 use std::borrow::Cow;
 
@@ -13,10 +13,7 @@ const EMBEDDED: &[(&str, &str)] = &[
 ];
 
 pub(crate) fn sources() -> Result<Vec<(&'static str, Cow<'static, str>)>, String> {
-    let mut sources = vec![(
-        "emelino/bytes.emel",
-        Cow::Borrowed(include_str!("../lib/emelino/bytes.emel")),
-    )];
+    let mut sources = Vec::with_capacity(EMBEDDED.len());
     for &(path, module) in EMBEDDED {
         let (_, source) = emela_core::core_sources()
             .iter()
@@ -86,7 +83,7 @@ mod tests {
         ))
         .unwrap();
         let sources = sources().unwrap();
-        assert_eq!(sources.len(), 7);
+        assert_eq!(sources.len(), 6);
         let mut checked = 0;
         for module in report["modules"].as_array().unwrap() {
             let Some(path) = module["compatibility_path"].as_str() else {

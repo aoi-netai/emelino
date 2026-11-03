@@ -27,18 +27,7 @@ fn compile_case(program: &Value, directory: &Path, concrete_entry: bool) -> Resu
                 .to_owned();
             let text =
                 std::fs::read_to_string(directory.join(file["fixture"].as_str().unwrap())).unwrap();
-            // Bytes was a fixed fork extension. Its pure Emela implementation now
-            // belongs to Emelino.Bytes, supplied as an ordinary external module.
-            let text: String = text
-                .split_inclusive('\n')
-                .map(|line| {
-                    if line.trim_start().starts_with("import Std.Bytes") {
-                        line.replacen("Std.Bytes", "Emelino.Bytes", 1)
-                    } else {
-                        line.to_owned()
-                    }
-                })
-                .collect();
+            // Std.Bytes is supplied by upstream v0.26.1; preserve the original imports.
             let text = if concrete_entry {
                 assert_eq!(program["id"], "program:45d10a963a24d47032c7");
                 let original = "  reader = escaped(n)\n  reader() + reader()";

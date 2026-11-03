@@ -80,6 +80,10 @@ fn incompatible_envelopes_unknown_fields_and_operations_are_rejected() {
         ("/format", json!("emelino.flow.minimal")),
         ("/schema_version", json!(2)),
         ("/producer_revision", json!("latest")),
+        (
+            "/producer_revision",
+            json!("ec1031cb0b98386baf0e9b0ced67e8829bb2c529"),
+        ),
         ("/stage", json!("ref_counted")),
         ("/required_features", json!(["future_operation"])),
         ("/program/functions/0/seqs/0/term", json!({"Future":null})),

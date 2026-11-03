@@ -42,6 +42,10 @@ fn rejects_incompatible_envelopes() {
         ("/stage", serde_json::json!("ref_counted")),
         ("/producer/name", serde_json::json!("another-frontend")),
         ("/producer/revision", serde_json::json!("different")),
+        (
+            "/producer/revision",
+            serde_json::json!("ec1031cb0b98386baf0e9b0ced67e8829bb2c529"),
+        ),
     ] {
         let mut json = original.clone();
         *json.pointer_mut(path).unwrap() = value;

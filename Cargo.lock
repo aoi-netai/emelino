@@ -47,8 +47,8 @@ checksum = "7704b5fdd17b18ae31c4c1da5a2e0305a2bf17b5249300a9ee9ed7b72114c636"
 
 [[package]]
 name = "emela-core"
-version = "0.25.0"
-source = "git+https://github.com/emela-lang/emela.git?rev=ec1031cb0b98386baf0e9b0ced67e8829bb2c529#ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+version = "0.26.1"
+source = "git+https://github.com/emela-lang/emela.git?rev=6021115103dd830e0efd9bb96a56a0ca97859329#6021115103dd830e0efd9bb96a56a0ca97859329"
 dependencies = [
  "emela-resolve",
  "emela-types",
@@ -58,8 +58,8 @@ dependencies = [
 
 [[package]]
 name = "emela-lir"
-version = "0.25.0"
-source = "git+https://github.com/emela-lang/emela.git?rev=ec1031cb0b98386baf0e9b0ced67e8829bb2c529#ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+version = "0.26.1"
+source = "git+https://github.com/emela-lang/emela.git?rev=6021115103dd830e0efd9bb96a56a0ca97859329#6021115103dd830e0efd9bb96a56a0ca97859329"
 dependencies = [
  "emela-core",
  "la-arena",
@@ -68,8 +68,8 @@ dependencies = [
 
 [[package]]
 name = "emela-resolve"
-version = "0.25.0"
-source = "git+https://github.com/emela-lang/emela.git?rev=ec1031cb0b98386baf0e9b0ced67e8829bb2c529#ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+version = "0.26.1"
+source = "git+https://github.com/emela-lang/emela.git?rev=6021115103dd830e0efd9bb96a56a0ca97859329#6021115103dd830e0efd9bb96a56a0ca97859329"
 dependencies = [
  "emela-syntax",
  "indexmap",
@@ -81,8 +81,8 @@ dependencies = [
 
 [[package]]
 name = "emela-syntax"
-version = "0.25.0"
-source = "git+https://github.com/emela-lang/emela.git?rev=ec1031cb0b98386baf0e9b0ced67e8829bb2c529#ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+version = "0.26.1"
+source = "git+https://github.com/emela-lang/emela.git?rev=6021115103dd830e0efd9bb96a56a0ca97859329#6021115103dd830e0efd9bb96a56a0ca97859329"
 dependencies = [
  "logos",
  "rowan",
@@ -90,8 +90,8 @@ dependencies = [
 
 [[package]]
 name = "emela-types"
-version = "0.25.0"
-source = "git+https://github.com/emela-lang/emela.git?rev=ec1031cb0b98386baf0e9b0ced67e8829bb2c529#ec1031cb0b98386baf0e9b0ced67e8829bb2c529"
+version = "0.26.1"
+source = "git+https://github.com/emela-lang/emela.git?rev=6021115103dd830e0efd9bb96a56a0ca97859329#6021115103dd830e0efd9bb96a56a0ca97859329"
 dependencies = [
  "emela-resolve",
  "ena",

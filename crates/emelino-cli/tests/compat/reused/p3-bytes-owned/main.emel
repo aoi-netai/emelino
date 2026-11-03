@@ -1,4 +1,4 @@
-import Emelino.Bytes.{Bytes}
+import Std.Bytes.{Bytes}
 pub fn make(s: String) -> Bytes { Bytes.encode_utf8(s) }
 pub fn copy(b: Bytes) -> Bytes { b }
 pub fn part(b: Bytes, start: Int, end: Int) -> Bytes { Bytes.slice(b, start, end) }

@@ -32,10 +32,8 @@ pub fn compile_sources(
     let mut adapted = Vec::new();
     let base = Path::new(entry).parent().unwrap_or(Path::new(""));
     for input in sources {
-        // Std.Bytes belongs to the old fork; emelino supplies the ordinary extension module.
-        let source = input
-            .text
-            .replace("import Std.Bytes", "import Emelino.Bytes");
+        // Standard-library imports pass unchanged to the pinned upstream.
+        let source = input.text.to_owned();
         let parsed = emela_syntax::parse(&source);
         if !parsed.diagnostics().is_empty() {
             return Err(error(format!(

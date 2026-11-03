@@ -1,4 +1,4 @@
-import Emelino.Bytes.{Bytes}
+import Std.Bytes.{Bytes}
 pub fn decode_matches(b: Bytes, text: String) -> Bool { Bytes.decode_utf8(b) == Some(text) }
 pub fn decode_invalid(b: Bytes) -> Bool { Option.is_none(Bytes.decode_utf8(b)) }
 pub fn compare(a: Bytes, b: Bytes) -> Int { Ord.compare(a, b) match {

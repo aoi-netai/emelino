@@ -1,5 +1,5 @@
 
-import Emelino.Bytes.{Bytes}
+import Std.Bytes.{Bytes}
 const ANSWER=40+2
 fn unreachable(value:Int)->Int {1+unreachable(value)}
 pub fn read_static()->Int {ANSWER}

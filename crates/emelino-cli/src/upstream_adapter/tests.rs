@@ -204,61 +204,55 @@ fn const_specializations_keep_upstream_identity() {
 }
 
 #[test]
-fn bytes_external_contract_rejects_wrong_identity_and_signature() {
+fn standard_bytes_preserve_canonical_ids_and_project_intrinsics() {
     let generated = crate::frontend::generate(
-        "import Emelino.Bytes\npub fn answer() -> Int { Bytes.size(Bytes.empty()) }",
+        "import Std.Bytes\npub fn answer() -> Int { Bytes.size(Bytes.encode_utf8(\"abc\")) + 39 }",
         Path::new("main.emel"),
     )
     .unwrap();
-    let mut functions = generated.module.clone();
-    let (_, function) = functions
-        .functions
-        .iter_mut()
-        .find(|(_, f)| f.name == "Emelino.Bytes.size")
-        .unwrap();
-    function.name = "foreign_size".into();
+    let program = adapt(&generated.module, &[("answer".into(), "answer".into())]).unwrap();
+    assert_eq!(type_id(emela_core::TypeId::BYTES), d::TypeId::BYTES);
+    assert_eq!(program.core.ty(d::TypeId::BYTES), &d::Type::Bytes);
+    for (index, source_type) in generated.module.core.types.iter().enumerate() {
+        assert_eq!(
+            program.core.ty(d::TypeId::from_index(index)),
+            &adapt_type(source_type),
+        );
+    }
+    for expected in [d::Builtin::BytesEncodeUtf8, d::Builtin::BytesSize] {
+        assert!(program.functions.iter().any(|(_, function)| {
+            function.stmts.iter().any(|(_, statement)| {
+                matches!(statement, d::Stmt::Let { value: d::Value::Builtin { op, .. }, .. } if *op == expected)
+            })
+        }));
+    }
     assert!(
-        adapt(&functions, &[("answer".into(), "answer".into())])
-            .unwrap_err()
-            .contains("invalid emelino Bytes binding")
-    );
-
-    let mut functions = generated.module.clone();
-    let (_, function) = functions
-        .functions
-        .iter_mut()
-        .find(|(_, f)| f.name == "Emelino.Bytes.size")
-        .unwrap();
-    // A same-representation return type passes upstream's representation verifier,
-    // but it is not the byte service's declared Int result.
-    function.ret = emela_core::TypeId::BOOL;
-    assert!(
-        adapt(&functions, &[("answer".into(), "answer".into())])
-            .unwrap_err()
-            .contains("incompatible signature")
+        program
+            .functions
+            .iter()
+            .all(|(_, function)| function.external.is_none())
     );
 }
 
 #[test]
-fn bytes_external_contract_rejects_nonopaque_type() {
-    let mut generated = crate::frontend::generate(
-        "import Emelino.Bytes\npub fn answer() -> Int { Bytes.size(Bytes.empty()) }",
-        Path::new("main.emel"),
-    )
-    .unwrap();
-    let (_, definition) = generated
-        .module
+fn user_bytes_name_keeps_its_nominal_type() {
+    let program =
+        source_program("type Bytes(value: Int)\npub fn answer() -> Int { Bytes(value: 42).value }");
+    let (local, _) = program
         .core
         .enums
-        .iter_mut()
-        .find(|(_, d)| d.name == "Emelino.Bytes.Bytes")
+        .iter()
+        .find(|(_, definition)| definition.name == "Bytes")
         .unwrap();
-    definition.external = false;
     assert!(
-        adapt(&generated.module, &[("answer".into(), "answer".into())])
-            .unwrap_err()
-            .contains("opaque, non-generic external type")
+        program
+            .core
+            .types
+            .types
+            .iter()
+            .any(|ty| matches!(ty, d::Type::Enum(id, _) if *id == local))
     );
+    assert_eq!(program.core.ty(d::TypeId::BYTES), &d::Type::Bytes);
 }
 
 #[test]

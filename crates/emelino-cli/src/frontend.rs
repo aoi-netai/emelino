@@ -356,10 +356,10 @@ mod tests {
             .unwrap();
         assert!(error.contains("duplicate source name"), "{error}");
         let inputs = [Source {
-            name: "emelino//bytes.emel",
+            name: "embedded//gpio.emel",
             text: "pub fn fake()->Int {99}",
         }];
-        let error = generate_sources(&inputs, "emelino//bytes.emel", Path::new("bytes.emel"))
+        let error = generate_sources(&inputs, "embedded//gpio.emel", Path::new("gpio.emel"))
             .err()
             .unwrap();
         assert!(
