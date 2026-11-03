@@ -59,6 +59,53 @@ pub(super) fn normalize(module: &mut Module) -> Result<(), Vec<Error>> {
             operations.insert(*effect, types);
         }
     }
+    // Standard Flow can carry a conservative failure channel on a concrete
+    // callback even when the generated Scope handler initially has an
+    // infallible erased parameter. Widen that shared callback ABI before
+    // adapting handler bodies and call sites; otherwise a newly boxed callback
+    // would propagate a failure into a closure with no failure result channel.
+    for (_, function) in module.functions.iter() {
+        for (_, statement) in function.stmts.iter() {
+            let Stmt::Let {
+                value:
+                    Value::Call {
+                        callee: Callee::Op { effect, op, .. },
+                        args,
+                        ..
+                    },
+                ..
+            } = statement
+            else {
+                continue;
+            };
+            let Some(operation_types) = operations.get_mut(effect) else {
+                continue;
+            };
+            let Some(operation_type) = operation_types.get_mut(*op) else {
+                continue;
+            };
+            let Type::Fn(mut operation) = module.core.types[*operation_type].clone() else {
+                continue;
+            };
+            for (argument, expected) in args.iter().zip(&mut operation.params) {
+                let crate::ir::Operand::Var(argument) = argument else {
+                    continue;
+                };
+                let actual = super::variable(function, *argument)?;
+                let (Type::Fn(from), Type::Fn(mut to)) = (
+                    module.core.types[actual].clone(),
+                    module.core.types[*expected].clone(),
+                ) else {
+                    continue;
+                };
+                if from.params == to.params && from.ev == to.ev && from.fails && !to.fails {
+                    to.fails = true;
+                    *expected = module.core.types.intern(Type::Fn(to));
+                }
+            }
+            *operation_type = module.core.types.intern(Type::Fn(operation));
+        }
+    }
     for (&effect, operations) in &operations {
         for (operation, &ty) in module.core.effects[effect].ops.iter_mut().zip(operations) {
             let Type::Fn(ft) = &module.core.types[ty] else {

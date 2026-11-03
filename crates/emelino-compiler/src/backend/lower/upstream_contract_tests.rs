@@ -86,3 +86,70 @@ fn scalar_enum_equality_preserves_nominal_types_and_rejects_arithmetic() {
             .any(|error| error.message.contains("different types"))
     );
 }
+
+#[test]
+fn infallible_scope_accepts_conservative_body_flags_but_keeps_escaping_failures_invalid() {
+    let mut p = program(vec![]);
+    let ty = p.core.types.intern(Type::Fn(FnType {
+        params: vec![TypeId::FIBER_SCOPE],
+        ret: TypeId::INT,
+        fails: true,
+        suspends: true,
+        ev: false,
+        sets: None,
+    }));
+    let mut f = simple();
+    f.suspends = true;
+    let scope = aggregate_variable(&mut f, TypeId::FIBER_SCOPE);
+    let erased = aggregate_variable(&mut f, TypeId::ANY);
+    let value = variable(&mut f, TypeId::INT);
+    let literal = binding(&mut f, Some(value), Value::Const(Const::Int(42)));
+    let box_value = binding(&mut f, Some(erased), Value::Coerce(value));
+    let body = f.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Return(Some(Const::Int(42).into())),
+    });
+    let closure = aggregate_variable(&mut f, ty);
+    let make = binding(
+        &mut f,
+        Some(closure),
+        Value::Closure(Box::new(Closure {
+            params: vec![scope],
+            captures: vec![erased],
+            body,
+            suspends: true,
+        })),
+    );
+    let result = variable(&mut f, TypeId::INT);
+    let enter = binding(
+        &mut f,
+        Some(result),
+        Value::Fiber {
+            op: FiberOp::Scope { fails: false },
+            args: vec![closure.into()],
+            on_fail: None,
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![literal, box_value, make, enter],
+        term: Term::Return(Some(result.into())),
+    };
+    let id = p.functions.alloc(f);
+    let options = Options::default()
+        .with_heap_bytes(8192)
+        .with_frame_bytes(1024);
+    let output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){int32_t result=0;EmelaFiber f=answer_start(&result);while(!emela_fiber_done(f))if(!emela_scheduler_run(1))return 1;emela_fiber_release(f);return result==42?0:2;}\n",
+        0,
+    );
+    p.functions[id].seqs[body].term = Term::Fail(erased.into());
+    let errors = crate::compile_program(p, &options).unwrap_err();
+    assert!(
+        errors.iter().any(|error| error
+            .message
+            .contains("Scope body or failure ABI is invalid")),
+        "{errors:?}"
+    );
+}
