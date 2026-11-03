@@ -1,0 +1,333 @@
+{
+  "schema_version": 1,
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "purpose": "Supplemental exact source observations for canonical legacy coverage beyond the174 extracted source cases. Evidence supplements other mapped tests; it does not replace them by syntax coverage alone.",
+  "pipeline": "source -> officialfrontend -> rawFlow -> adapter -> BackendInput -> saved JSON replay -> identical C artifacts -> O0/O2 C execution",
+  "commands": [
+    "cargo test -p emelino-cli --test source_semantics --locked --offline",
+    "cargo clippy -p emelino-cli --test source_semantics --locked --offline -- -D warnings"
+  ],
+  "source_adaptations": [
+    "Explicit test @export(c) annotations move to config through the shared upstream-AST testhelper; production rejects those source annotations.",
+    "Independent frontend-only Unit spelling changes to official () without changing C ABI.",
+    "List.join changes to its official defining module String.join.",
+    "Int.MAX convenience constant becomes its exact signed32 maximum literal2147483647.",
+    "Reserved default argument label in Option.or uses the equivalent positional call.",
+    "Two directly called synchronous test externals specify use{} per official external-call requirements; C hooks and exact side-effect counts remain."
+  ],
+  "retained_observations": [
+    "All853 Unicode18 extended grapheme vectors: byte length, grapheme length, cluster boundaries, decoded scalar values, joined original bytes and released owned clusters.",
+    "Malformed UTF8 exact defect kind/message for String.length/chars/code_points, including discarded lists.",
+    "All fixed Float parse vectors with exact IEEE754 bits and original ParseError input;17 Int and11 Bool acceptance/rejection vectors.",
+    "Original bounded numeric formatter C harness including rounding and40 used/discarded invalidvalue defects, without snprintf/strtod/malloc.",
+    "Codepoint capacity2 observes exactly2 defects for used/discarded three-byte scalars while two-byte scalars succeed1000times.",
+    "Shortcircuit calls exactly2 bool hooks and argument order12; unused division/remainder/negative shifts preserve exact defects for Int and Int64."
+  ],
+  "entries": [
+    {
+      "legacy_tests": [],
+      "contexts": [],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p3_unicode.rs",
+        "symbol": "every_unicode_18_cluster_boundary_and_code_point_survives_owned_lists"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/unicode_lists.rs",
+        "symbol": "every_unicode_18_cluster_boundary_and_code_point_survives_owned_lists"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [],
+      "contexts": [],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p3_unicode.rs",
+        "symbol": "discarded_unicode_lists_preserve_invalid_utf8_defects"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/unicode_lists.rs",
+        "symbol": "discarded_unicode_lists_preserve_invalid_utf8_defects"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::string_length_uses_unicode_18_extended_grapheme_clusters"
+      ],
+      "contexts": [
+        {
+          "id": "emela_core::Builtin::StringLength",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::StringByteSize",
+          "context": "common"
+        }
+      ],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_compat.rs",
+        "symbol": "source_string_length_matches_every_unicode_18_grapheme_vector"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/numeric_unicode.rs",
+        "symbol": "source_string_length_matches_every_unicode_18_grapheme_vector"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::string_length_uses_unicode_18_extended_grapheme_clusters"
+      ],
+      "contexts": [
+        {
+          "id": "emela_core::Builtin::StringLength",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::StringByteSize",
+          "context": "common"
+        }
+      ],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_compat.rs",
+        "symbol": "malformed_utf8_string_length_raises_the_legacy_defect"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/numeric_unicode.rs",
+        "symbol": "malformed_utf8_string_length_raises_the_legacy_defect"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::builtin_audit::discarded_float_rounding_preserves_the_out_of_range_defect",
+        "emit::dynamic_float_formatting_uses_a_bounded_runtime_and_float_parse_uses_the_bounded_parser",
+        "emit::float_rounding_builtins_match_spec_and_defect_out_of_range"
+      ],
+      "contexts": [
+        {
+          "id": "emela_core::Builtin::IntToString",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::Int64ToString",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::FloatToString",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::FloatFloor",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::FloatCeil",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::FloatRound",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::FloatTruncate",
+          "context": "common"
+        }
+      ],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_compat.rs",
+        "symbol": "legacy_numeric_formatting_rounding_and_unused_defects_execute"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/numeric_unicode.rs",
+        "symbol": "legacy_numeric_formatting_rounding_and_unused_defects_execute"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::dynamic_float_formatting_uses_a_bounded_runtime_and_float_parse_uses_the_bounded_parser",
+        "emit::int_parse_accepts_decimal_signs_and_rejects_invalid_or_overflowing_text"
+      ],
+      "contexts": [
+        {
+          "id": "emela_core::Builtin::IntParse",
+          "context": "common"
+        },
+        {
+          "id": "emela_core::Builtin::FloatParse",
+          "context": "common"
+        }
+      ],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_parse.rs",
+        "symbol": "numeric_and_bool_parse_preserve_precision_and_original_error_input"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/parse.rs",
+        "symbol": "numeric_and_bool_parse_preserve_precision_and_original_error_input"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::string_byte_size_counts_utf8_bytes_from_a_view"
+      ],
+      "contexts": [],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_standard_api.rs",
+        "symbol": "standard_parameter_names_and_float_total_order_match_fixed_core"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/standard_api.rs",
+        "symbol": "standard_parameter_names_and_float_total_order_match_fixed_core"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [],
+      "contexts": [],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_standard_api.rs",
+        "symbol": "standard_private_intrinsics_and_unknown_parameter_labels_are_rejected"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/standard_api.rs",
+        "symbol": "standard_private_intrinsics_and_unknown_parameter_labels_are_rejected"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "diagnostic",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::dynamic_string_from_code_point_checks_capacity_before_writing"
+      ],
+      "contexts": [
+        {
+          "id": "emela_core::Builtin::StringFromCodePoint",
+          "context": "common"
+        }
+      ],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_standard_api.rs",
+        "symbol": "code_point_capacity_defects_are_preserved_when_only_the_tag_or_no_value_is_used"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/standard_api.rs",
+        "symbol": "code_point_capacity_defects_are_preserved_when_only_the_tag_or_no_value_is_used"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::compiles_if_statements_and_boolean_short_circuiting",
+        "emit::emits_and_runs_int32_primitive_operations"
+      ],
+      "contexts": [],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p1.rs",
+        "symbol": "short_circuiting_and_argument_evaluation_preserve_side_effect_order"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/evaluation.rs",
+        "symbol": "short_circuiting_and_argument_evaluation_preserve_side_effect_order"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    },
+    {
+      "legacy_tests": [
+        "emit::int32_division_by_zero_calls_the_board_defect_hook",
+        "emit::int64_shift_builtins_handle_width_and_negative_amount_boundaries",
+        "emit::int_shift_builtins_handle_width_and_negative_amount_boundaries"
+      ],
+      "contexts": [],
+      "original_test": {
+        "path": "crates/emela-emb-compiler/tests/p1.rs",
+        "symbol": "unused_division_remainder_and_negative_shifts_still_raise_defects"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/compat/semantics/evaluation.rs",
+        "symbol": "unused_division_remainder_and_negative_shifts_still_raise_defects"
+      },
+      "cargo_test_target": "source_semantics",
+      "observation_kind": "runtime",
+      "status": "verified"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/GraphemeBreakTest-18.0.0.txt",
+      "sha256": "42045da24db676334a73916c203e0645107170466c658f476b40aac0c261a379"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/evaluation.rs",
+      "sha256": "130660aad6b48f6f6e79ae2176f3d069e2cd817336add6681db13ea715f73659"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/float_parse_cases.rs",
+      "sha256": "755e9a4c89e843c5909ec5a7850eb04a7a18d64961a89682b5f15d32a4163bdd"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/numeric-format-harness.c",
+      "sha256": "9c39f478478535e0527be4efd341cf5d6ed20c9ba78b1a2cbbdb0eb3a4d362b1"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/numeric-format.emel",
+      "sha256": "af5761253ecf266ba18055a65102ddc0b5c9253c92375cfc1cbb5d87028c1b7e"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/numeric_unicode.rs",
+      "sha256": "032be2c423bfc590e82c1609549eeeb91670e3e7fb189a74fcb64f4f5bd018f5"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/parse.rs",
+      "sha256": "72e48246bb01f79f5dfbbf9a9a7cbb5a96eea14260ea52b272bc1bc6d97bc66b"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/standard_api.rs",
+      "sha256": "ae020b9291eb7243b5a33f2729611190126d36ab25bc601cf3c2ae4e82024d76"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/unicode.emel",
+      "sha256": "01845558fb86b809ed75190844939cc629070500d4fe0dee13284dc9b8c7a682"
+    },
+    {
+      "path": "crates/emelino-cli/tests/compat/semantics/unicode_lists.rs",
+      "sha256": "f54822b77d396570e4ce169c913d91c961101ee2968154b5ffb6d4704f3b5698"
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 0,
+    "ignored": 0,
+    "runtime_tests": 10,
+    "diagnostic_tests": 1,
+    "C_optimizations": [
+      "O0",
+      "O2"
+    ],
+    "clippy": "passed with -D warnings",
+    "canonical_test_ids_with_supplemental_evidence": 12,
+    "contexts_with_supplemental_evidence": 12
+  }
+}
