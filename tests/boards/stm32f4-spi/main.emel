@@ -1,0 +1,205 @@
+import Embedded.Board.{BoardSpi}
+import Embedded.Spi
+import Embedded.Gpio
+
+@external(c, "spi_test_check")
+fn raw_check(number: Int, success: Int) -> () use {}
+@external(c, "spi_test_control")
+fn control() -> Int use {}
+@external(c, "spi_test_wait")
+fn wait_stage(stage: Int) -> () use {}
+@external(c, "spi_test_inject")
+fn inject(mode: Int) -> () use {}
+@external(c, "spi_test_time")
+fn time_us() -> Int64 use {}
+
+fn check(number: Int, success: Bool) -> () {
+  raw_check(number, if success { 1 } else { 0 })
+}
+
+fn config(frequency: Int) -> Spi.SpiConfig {
+  Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits8,
+    Spi.IdleLow, Spi.FirstEdge, frequency, Spi.MostSignificantFirst)
+}
+
+pub fn main() -> () {
+  with BoardSpi {
+    spi = use Spi.Spi
+    check(1, {
+      spi.transfer(Spi.Spi1, [1], Int64.from_int(10))
+      False
+    } escape {
+      Spi.SpiError(Spi.NotConfigured) -> True
+      Spi.SpiError(_) -> False
+    })
+    check(2, {
+      spi.configure(Spi.Spi2, config(1000000))
+      False
+    } escape {
+      Spi.SpiError(Spi.Unsupported) -> True
+      Spi.SpiError(_) -> False
+    })
+    check(3, {
+      spi.configure(Spi.Spi1, config(0))
+      False
+    } escape {
+      Spi.SpiError(Spi.InvalidArgument) -> True
+      Spi.SpiError(_) -> False
+    })
+    check(4, {
+      spi.configure(Spi.Spi1, config(1000))
+      False
+    } escape {
+      Spi.SpiError(Spi.Unsupported) -> True
+      Spi.SpiError(_) -> False
+    })
+    spi.configure(Spi.Spi1, config(3000000))
+    # APB2 is 16 MHz; divisor 8 gives 2 MHz, never over the requested 3 MHz.
+    check(5, control() == 788)
+    check(6, spi.transfer(Spi.Spi1, [0, 1, 127, 255], Int64.from_int(20)) == [165, 164, 218, 90])
+    spi.transmit(Spi.Spi1, [16, 32], Int64.from_int(20))
+    check(7, spi.receive(Spi.Spi1, 3, Int64.from_int(20)) == [90, 90, 90])
+    check(8, spi.transfer(Spi.Spi1, [], Int64.from_int(20)) == [])
+    check(9, {
+      spi.transmit(Spi.Spi1, [256], Int64.from_int(20))
+      False
+    } escape {
+      Spi.SpiError(Spi.InvalidArgument) -> True
+      Spi.SpiError(_) -> False
+    })
+    check(10, {
+      spi.transfer(Spi.Spi1, [1], Int64.from_int(0))
+      False
+    } escape {
+      Spi.SpiError(Spi.InvalidArgument) -> True
+      Spi.SpiError(_) -> False
+    })
+    check(11, {
+      spi.receive(Spi.Spi1, -1, Int64.from_int(20))
+      False
+    } escape {
+      Spi.SpiError(Spi.InvalidArgument) -> True
+      Spi.SpiError(_) -> False
+    })
+    check(12, {
+      spi.receive(Spi.Spi1, 33, Int64.from_int(20))
+      False
+    } escape {
+      Spi.SpiError(Spi.CapacityExceeded) -> True
+      Spi.SpiError(_) -> False
+    })
+    check(13, {
+      spi.transmit(Spi.Spi1, [1], Int64.from_int(-1))
+      False
+    } escape {
+      Spi.SpiError(Spi.InvalidArgument) -> True
+      Spi.SpiError(_) -> False
+    })
+
+    first = spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1, config(1000000),
+      Gpio.GpioPin(4), Gpio.Low, Int64.from_int(15), Int64.from_int(20)))
+    second = spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1,
+      Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits8, Spi.IdleHigh,
+        Spi.SecondEdge, 500000, Spi.LeastSignificantFirst),
+      Gpio.GpioPin(3), Gpio.High, Int64.from_int(0), Int64.from_int(0)))
+    start = time_us()
+    results = spi.transaction(first,
+      [Spi.Write([1, 2]), Spi.Read(2), Spi.Transfer([3, 4])], Int64.from_int(20))
+    check(14, results == [[], [90, 90], [166, 161]])
+    check(15, time_us() - start >= Int64.from_int(35))
+    check(16, control() == 860)
+    check(17, spi.transaction(second, [Spi.Transfer([5])], Int64.from_int(20)) == [[160]])
+    check(18, control() == 999)
+    check(19, spi.transaction(first, [Spi.Transfer([6])], Int64.from_int(20)) == [[163]])
+    check(20, control() == 860)
+    check(21, {
+      spi.transaction(Spi.SpiDevice(99), [Spi.Read(1)], Int64.from_int(20))
+      False
+    } escape {
+      Spi.SpiTransactionError(Some(Spi.SpiFailure(Spi.InvalidArgument)), None) -> True
+      Spi.SpiTransactionError(_, _) -> False
+    })
+    check(22, {
+      spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1, config(1000000),
+        Gpio.GpioPin(4), Gpio.Low, Int64.from_int(0), Int64.from_int(0)))
+      False
+    } escape {
+      Spi.SpiTransactionError(Some(Spi.GpioFailure(Gpio.ResourceConflict)), None) -> True
+      Spi.SpiTransactionError(_, _) -> False
+    })
+    # The wrapper fails CS deassertion while the transfer has already timed out.
+    inject(1)
+    check(23, {
+      spi.transaction(first, [Spi.Read(1)], Int64.from_int(20))
+      False
+    } escape {
+      Spi.SpiTransactionError(Some(Spi.SpiFailure(Spi.Timeout)), Some(Gpio.InvalidState)) -> True
+      Spi.SpiTransactionError(_, _) -> False
+    })
+    inject(0)
+    spi.recover(Spi.Spi1)
+    check(24, spi.transaction(first, [Spi.Transfer([7])], Int64.from_int(20)) == [[162]])
+    inject(2)
+    check(25, {
+      spi.transaction(first, [Spi.Read(1)], Int64.from_int(20))
+      False
+    } escape {
+      Spi.SpiTransactionError(None, Some(Gpio.InvalidState)) -> True
+      Spi.SpiTransactionError(_, _) -> False
+    })
+    inject(0)
+    spi.recover(Spi.Spi1)
+    # HAL writes a complete uint16_t word to DR. The Renode SPI slave is byte-only.
+    spi.configure(Spi.Spi1, Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits16,
+      Spi.IdleLow, Spi.FirstEdge, 1000000, Spi.MostSignificantFirst))
+    spi.transmit(Spi.Spi1, [4660, 65535], Int64.from_int(20))
+    check(26, spi.receive(Spi.Spi1, 0, Int64.from_int(20)) == [])
+    check(27, {
+      spi.transmit(Spi.Spi1, [], Int64.from_int(2147483647) * Int64.from_int(3))
+      False
+    } escape {
+      Spi.SpiError(Spi.InvalidArgument) -> True
+      Spi.SpiError(_) -> False
+    })
+    huge = Int64.from_int(2147483647) * Int64.from_int(2147483647)
+    delayed = spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1, config(1000000),
+      Gpio.GpioPin(2), Gpio.Low, huge, huge))
+    check(28, {
+      spi.transaction(delayed, [Spi.Read(1)], Int64.from_int(1))
+      False
+    } escape {
+      Spi.SpiTransactionError(Some(Spi.SpiFailure(Spi.Timeout)), None) -> True
+      Spi.SpiTransactionError(_, _) -> False
+    })
+    held = spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1, config(1000000),
+      Gpio.GpioPin(1), Gpio.Low, Int64.from_int(0), huge))
+    check(29, {
+      spi.transaction(held, [Spi.Read(1)], Int64.from_int(1))
+      False
+    } escape {
+      Spi.SpiTransactionError(Some(Spi.SpiFailure(Spi.Timeout)), None) -> True
+      Spi.SpiTransactionError(_, _) -> False
+    })
+    wait_stage(1)
+    spi.configure(Spi.Spi1, config(1000000))
+    # Renode withholds RXNE, so the real HAL polling loop must time out.
+    inject(3)
+    stalled_start = time_us()
+    check(30, {
+      spi.transfer(Spi.Spi1, [9], Int64.from_int(2))
+      False
+    } escape {
+      Spi.SpiError(Spi.Timeout) -> True
+      Spi.SpiError(_) -> False
+    })
+    elapsed = time_us() - stalled_start
+    check(31, elapsed >= Int64.from_int(1000) && elapsed <= Int64.from_int(3000))
+    inject(0)
+    spi.recover(Spi.Spi1)
+    check(32, spi.transfer(Spi.Spi1, [10], Int64.from_int(20)) == [175])
+    wait_stage(2)
+  } escape {
+    Spi.SpiError(_) -> raw_check(99, 0)
+    Spi.SpiTransactionError(_, _) -> raw_check(98, 0)
+  }
+}
