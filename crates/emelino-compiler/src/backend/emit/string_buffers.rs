@@ -2,8 +2,15 @@ use super::*;
 use crate::contract::strings::StringBuffers;
 pub(in crate::backend::emit) trait StringBufferEmission {
     fn buffer(&self, variable: VarId) -> Option<(String, String)>;
+    fn array_capacity(&self, variable: VarId) -> Option<u16>;
 }
 impl StringBufferEmission for StringBuffers {
+    fn array_capacity(&self, variable: VarId) -> Option<u16> {
+        self.buffers
+            .get(&variable)
+            .and_then(|(slot, capacity)| slot.map(|_| *capacity))
+    }
+
     fn buffer(&self, variable: VarId) -> Option<(String, String)> {
         self.buffers
             .get(&variable)

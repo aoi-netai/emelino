@@ -145,9 +145,14 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                                     | Builtin::IntToString
                                     | Builtin::StringAppend
                                     | Builtin::StringByteSize
+                                    | Builtin::StringChars
+                                    | Builtin::StringCodePoints
                                     | Builtin::StringContains
                                     | Builtin::StringEndsWith
+                                    | Builtin::StringFromCodePoint
                                     | Builtin::StringJoin
+                                    | Builtin::StringLength
+                                    | Builtin::StringSplit
                                     | Builtin::StringStartsWith
                                     | Builtin::StringTrim
                             ) =>

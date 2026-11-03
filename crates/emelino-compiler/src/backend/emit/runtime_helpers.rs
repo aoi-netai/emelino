@@ -1,10 +1,10 @@
 use super::*;
 use crate::contract::runtime::{RuntimeHelper as Helper, RuntimeRequirements as Requirements};
 pub(in crate::backend::emit) trait HelperEmission: Sized {
-    fn emit(self, writer: &mut Writer) -> Result<(), Vec<Error>>;
+    fn emit(self, writer: &mut Writer);
 }
 impl HelperEmission for Helper {
-    fn emit(self, writer: &mut Writer) -> Result<(), Vec<Error>> {
+    fn emit(self, writer: &mut Writer) {
         match self {
             Self::StringComparison => {
                 features::primitive_operations::emit_string_comparison_helper(writer)
@@ -29,7 +29,7 @@ impl HelperEmission for Helper {
                 features::builtins::string_ends_with::emit_string_ends_with_helper(writer)
             }
             Self::Utf8Decode => string_runtime::emit_utf8_decode_helper(writer),
-            Self::Grapheme => return Err(unsupported("runtime", "Grapheme")),
+            Self::Grapheme => super::unicode_grapheme::emit_runtime(writer),
             Self::StringTrim => features::builtins::string_trim::emit_string_trim_helper(writer),
             Self::StringJoin => features::builtins::string_join::emit_string_join_helper(writer),
             Self::StringAppend => {
@@ -42,17 +42,15 @@ impl HelperEmission for Helper {
             Self::FloatToString => crate::backend::emit::float_to_string::emit_runtime(writer),
             Self::StringOutput => super::string_buffers::emit_string_output_helper(writer),
         }
-        Ok(())
     }
 }
 pub(in crate::backend::emit) trait RuntimeEmission: Sized {
-    fn emit_helpers(&self, writer: &mut Writer) -> Result<(), Vec<Error>>;
+    fn emit_helpers(&self, writer: &mut Writer);
 }
 impl RuntimeEmission for Requirements {
-    fn emit_helpers(&self, writer: &mut Writer) -> Result<(), Vec<Error>> {
+    fn emit_helpers(&self, writer: &mut Writer) {
         for &helper in &self.helpers {
-            helper.emit(writer)?;
+            helper.emit(writer);
         }
-        Ok(())
     }
 }

@@ -19,3 +19,5 @@ pub(crate) mod diagnostics;
 pub(crate) mod child;
 pub(crate) mod deferred;
 pub(crate) mod operands;
+
+pub(crate) mod unicode_grapheme;

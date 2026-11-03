@@ -576,6 +576,88 @@ fn float_constant_bits_and_non_finite_values_execute() {
 }
 
 #[test]
+fn strings_unicode_comparisons_and_float_rounding_execute() {
+    let mut f = simple();
+    let joined = f.vars.alloc(VarData {
+        hint: "joined".into(),
+        ty: TypeId::STRING,
+        repr: Repr::Ref,
+    });
+    let count = variable(&mut f, TypeId::INT);
+    let rounded = variable(&mut f, TypeId::INT);
+    let result = variable(&mut f, TypeId::INT);
+    let text = binding(
+        &mut f,
+        Some(joined),
+        Value::Builtin {
+            op: Builtin::StringAppend,
+            args: vec![
+                Const::String("a\u{0301}".into()).into(),
+                Const::String("Z".into()).into(),
+            ],
+        },
+    );
+    let length = binding(
+        &mut f,
+        Some(count),
+        Value::Builtin {
+            op: Builtin::StringLength,
+            args: vec![joined.into()],
+        },
+    );
+    let floor = binding(
+        &mut f,
+        Some(rounded),
+        Value::Builtin {
+            op: Builtin::FloatFloor,
+            args: vec![Const::Float(40.9).into()],
+        },
+    );
+    let add = binding(
+        &mut f,
+        Some(result),
+        Value::Prim {
+            op: PrimOp::Add,
+            ty: PrimTy::I32,
+            args: vec![count.into(), rounded.into()],
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![text, length, floor, add],
+        term: Term::Return(Some(result.into())),
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(&output, DEFECT_HARNESS, 0);
+    let mut f = simple();
+    f.ret = TypeId::BOOL;
+    let result = variable(&mut f, TypeId::BOOL);
+    let compare = binding(
+        &mut f,
+        Some(result),
+        Value::Prim {
+            op: PrimOp::Lt,
+            ty: PrimTy::String,
+            args: vec![
+                Const::String("a\0x".into()).into(),
+                Const::String("a\0y".into()).into(),
+            ],
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![compare],
+        term: Term::Return(Some(result.into())),
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(
+        &output,
+        &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_C(1)"),
+        0,
+    );
+}
+
+#[test]
 fn discarded_string_results_keep_capacity_checks() {
     let mut f = simple();
     let input = f.vars.alloc(VarData {

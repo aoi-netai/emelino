@@ -91,6 +91,96 @@ fn checked_add_preserves_all_four_legacy_option_boundaries() {
 }
 
 #[test]
+fn code_point_lists_require_a_heap_even_when_only_the_head_is_returned() {
+    let mut p = program(vec![]);
+    let list = p.core.types.intern(Type::List(TypeId::INT));
+    let mut f = simple();
+    let input = aggregate_variable(&mut f, TypeId::STRING);
+    f.params.push(input);
+    let points = aggregate_variable(&mut f, list);
+    let result = variable(&mut f, TypeId::INT);
+    let build = binding(
+        &mut f,
+        Some(points),
+        Value::Builtin {
+            op: Builtin::StringCodePoints,
+            args: vec![input.into()],
+        },
+    );
+    let head = binding(&mut f, Some(result), Value::ListHead(points));
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![build, head],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(f);
+    let errors = crate::backend::compile_saved_program(p, &Options::default()).unwrap_err();
+    assert!(
+        errors
+            .iter()
+            .any(|e| e.kind == ErrorKind::Unsupported && e.message.contains("heap_bytes = 0")),
+        "{errors:?}"
+    );
+}
+
+#[test]
+fn split_join_keeps_the_old_multibyte_value_and_capacity_five_defect() {
+    let mut p = program(vec![]);
+    let list = p.core.types.intern(Type::List(TypeId::STRING));
+    let mut f = simple();
+    f.ret = TypeId::BOOL;
+    let input = aggregate_variable(&mut f, TypeId::STRING);
+    f.params.push(input);
+    let parts = aggregate_variable(&mut f, list);
+    let joined = aggregate_variable(&mut f, TypeId::STRING);
+    let same = variable(&mut f, TypeId::BOOL);
+    let split = binding(
+        &mut f,
+        Some(parts),
+        Value::Builtin {
+            op: Builtin::StringSplit,
+            args: vec![input.into(), Const::String("::".into()).into()],
+        },
+    );
+    let join = binding(
+        &mut f,
+        Some(joined),
+        Value::Builtin {
+            op: Builtin::StringJoin,
+            args: vec![parts.into(), Const::String("|".into()).into()],
+        },
+    );
+    let compare = binding(
+        &mut f,
+        Some(same),
+        Value::Prim {
+            op: PrimOp::Eq,
+            ty: PrimTy::String,
+            args: vec![joined.into(), Const::String("alpha|βeta".into()).into()],
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![split, join, compare],
+        term: Term::Return(Some(same.into())),
+    };
+    p.functions.alloc(f);
+    let options = Options::default().with_heap_bytes(2048);
+    let mut output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
+    audit_owned_heap(&mut output);
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint test_heap_empty(void);\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){for(int i=0;i<1000;i++)if(!answer((EmelaString){\"alpha::βeta\",12,NULL})||!test_heap_empty())return 1;return 0;}\n",
+        0,
+    );
+    let output =
+        crate::backend::compile_saved_program(p, &options.with_string_capacity(5)).unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){exit(k==EMELA_DEFECT_STRING_CAPACITY&&n==24&&!memcmp(m,\"string capacity exceeded\",24)?0:2);}\nint main(void){(void)answer((EmelaString){\"alpha::beta\",11,NULL});return 1;}\n",
+        0,
+    );
+}
+
+#[test]
 fn debug_print_passes_the_original_string_view_to_the_board_hook() {
     let mut f = simple();
     f.ret = TypeId::UNIT;

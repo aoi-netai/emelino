@@ -105,7 +105,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         source.blank();
     }
 
-    runtime.emit_helpers(&mut source)?;
+    runtime.emit_helpers(&mut source);
 
     for (id, function) in flow
         .functions
@@ -331,6 +331,7 @@ use runtime_helpers::RuntimeEmission;
 mod features;
 use crate::writer::Writer;
 use crate::{GeneratedFile, Output};
+use features::builtins::string_split::emit_string_split_push;
 mod c;
 mod numeric_runtime;
 mod owned;
@@ -353,6 +354,8 @@ mod float_parse;
 mod float_to_string;
 
 use crate::semantics::operands::operand_type;
+
+mod unicode_grapheme;
 
 #[cfg(test)]
 mod tests {
