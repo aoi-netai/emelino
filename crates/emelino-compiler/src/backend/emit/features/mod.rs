@@ -40,6 +40,7 @@ pub(in crate::backend::emit) mod failures;
 pub(in crate::backend::emit) mod runtime;
 
 pub(in crate::backend::emit) mod case_keys;
+pub(in crate::backend::emit) mod fibers;
 pub(in crate::backend::emit) mod switches;
 
 pub(in crate::backend::emit) mod control_utilities;

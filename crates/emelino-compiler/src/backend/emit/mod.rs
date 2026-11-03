@@ -68,6 +68,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     c::emit_unused_attribute(&mut source);
     source.blank();
 
+    cause::emit_types(layouts, &mut source);
     error_runtime::emit_types(layouts, &mut source);
     emit_closure_environment_declarations(layouts, closures, &mut source);
     layouts.emit_runtime_value_declarations(&mut source);
@@ -105,6 +106,11 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         layouts.emit_noheap_ownership_stubs(&mut source);
         source.blank();
     }
+
+    cause::emit_runtime(layouts, &mut source);
+
+    cause::emit_attempts(layouts, &mut source)?;
+    cause::emit_infallible_raise(layouts, &mut source);
 
     runtime.emit_helpers(&mut source);
     derived_plan.emit(layouts, &mut source);
@@ -419,7 +425,7 @@ use crate::writer::Writer;
 use crate::{GeneratedFile, Output};
 use features::builtins::string_split::emit_string_split_push;
 mod c;
-
+mod cause;
 mod error_runtime;
 mod numeric_runtime;
 mod owned;

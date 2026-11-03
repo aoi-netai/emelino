@@ -9,6 +9,7 @@ pub(in crate::backend::emit) mod const_;
 pub(in crate::backend::emit) mod env_get;
 pub(in crate::backend::emit) mod ev_extend;
 pub(in crate::backend::emit) mod ev_lookup;
+pub(in crate::backend::emit) mod fiber;
 pub(in crate::backend::emit) mod field;
 pub(in crate::backend::emit) mod fn_ref;
 pub(in crate::backend::emit) mod handler;
@@ -50,7 +51,7 @@ pub(in crate::backend::emit) fn emit(
         Value::EvLookup { .. } => ev_lookup::emit(context, dst, value),
         Value::EvExtend { .. } => ev_extend::emit(context, dst, value),
         Value::Handler { .. } => handler::emit(context, dst, value),
-        Value::Fiber { .. } => Err(unsupported(&context.function.name, "fiber")),
+        Value::Fiber { .. } => fiber::emit(context, dst, value),
         Value::IsError { .. } => is_error::emit(context, dst, value),
         Value::AsError { .. } => as_error::emit(context, dst, value),
         Value::Runtime { .. } => runtime::emit(context, dst, value),

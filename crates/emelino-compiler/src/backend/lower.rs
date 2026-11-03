@@ -12,7 +12,7 @@ mod effects;
 mod error_types;
 mod exports;
 mod failures;
-
+mod fibers;
 mod function_abi;
 mod handler;
 mod types;

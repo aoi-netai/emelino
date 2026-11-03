@@ -55,17 +55,6 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         require("options", "external adapters and ISR entries")?;
     }
     for (_, f) in program.functions.iter() {
-        if f.stmts.iter().any(|(_, s)| {
-            matches!(
-                s,
-                Stmt::Let {
-                    value: Value::Fiber { .. },
-                    ..
-                }
-            )
-        }) {
-            require(&f.name, "Cause operations")?;
-        }
         if f.constant || f.canonical_const.is_some() {
             require(&f.name, "const definitions")?;
         }
