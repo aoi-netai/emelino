@@ -1,6 +1,7 @@
 //! C formatting of a complete, immutable backend plan.
 use crate::contract::abi::{AggregateKind, CLayoutPlan as TypeLayouts};
 use crate::contract::ir::*;
+use crate::contract::lowered::ConstOutcome;
 use crate::contract::strings::StringBuffers as StringBufferPlan;
 use crate::semantics::abi::{LayoutRead, option_payload_type};
 use crate::semantics::c::variable_name;
@@ -20,12 +21,12 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let runtime_consts = &compiled.runtime_consts;
     let layouts = &plan.layouts;
     let external_bindings = &plan.external_bindings;
-    let _const_bridges = &plan.const_bridges;
+    let const_bridges = &plan.const_bridges;
     let derived_plan = &plan.derived_plan;
     let emitted_functions = &plan.emitted_functions;
     let heap_functions = &plan.heap_functions;
     let string_output_functions = &plan.string_output_functions;
-    let _const_outcomes = &plan.const_outcomes;
+    let const_outcomes = &plan.const_outcomes;
     let names = &plan.names;
     let public_names = &plan.public_names;
     let runtime = &plan.runtime;
@@ -34,13 +35,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let task_value_types = &plan.task_value_types;
     let heap_required = !heap_functions.is_empty();
     let main_entry = plan.main_entry.map(|id| (id, &flow.functions[id]));
-    let target_headers: Vec<GeneratedFile> = Vec::new();
+    let target_headers = services::headers(flow, &plan.services)?;
     let function_ref_adapters = &plan.function_ref_adapters;
     let header = header::emit(header::Context {
         flow,
         layouts,
         emitted_functions,
-
+        external_bindings,
         names,
         public_names,
         string_output_functions,
@@ -71,7 +72,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     source.blank();
     c::emit_unused_attribute(&mut source);
     source.blank();
-
+    if !runtime_consts.is_empty() {
+        crate::backend::emit::const_runtime::emit_runtime(
+            plan.const_emergency_bytes,
+            options,
+            &mut source,
+        )?;
+    }
     if has_scheduler {
         if !task_value_types.is_empty() || plan.has_failing_tasks {
             source.line("#define EMELA_TASK_CONTEXT_RUNTIME 1");
@@ -134,6 +141,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         crate::backend::emit::heap::emit_public_retain(&mut source);
         crate::backend::emit::heap::emit_public_release(&mut source);
         emit_public_string_ownership(&mut source);
+        external::emit_ownership_helpers(flow, external_bindings, layouts, &mut source);
     } else {
         source.line(
             "static inline EMELA_UNUSED void emela_heap_retain(void *value) { (void)value; }",
@@ -245,7 +253,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         ));
     }
     source.blank();
-
+    const_bridges.emit(flow, layouts, names, heap_required, &mut source)?;
     error_runtime::emit_display(
         layouts,
         names,
@@ -290,17 +298,42 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
                 derive_runtime::emit_adapter(layouts, function, &names[&id], &mut source);
                 continue;
             }
-
+            if let Some(operation) = plan.services.get(&id) {
+                services::emit_adapter(
+                    flow,
+                    operation,
+                    layouts,
+                    function,
+                    &names[&id],
+                    options.peripheral_buffer_capacity(),
+                    &mut source,
+                )?;
+                continue;
+            }
+            external::emit_adapter(
+                layouts,
+                function,
+                &external_bindings[&id],
+                &names[&id],
+                &mut source,
+            );
             continue;
         }
         let Some(body) = function.body else {
             return Err(unsupported(&function.name, "function without a body"));
         };
         let sequence = &function.seqs[body];
-
-        let _initializer_name = format!("{}_const_init", names[&id]);
+        if const_bridges.getters.contains_key(&id) {
+            const_bridges.emit_getter(id, flow, layouts, names, &mut source);
+            continue;
+        }
+        let initializer_name = format!("{}_const_init", names[&id]);
         let is_runtime_const = runtime_consts.contains(&id);
-        let name = &names[&id];
+        let name = if is_runtime_const {
+            &initializer_name
+        } else {
+            &names[&id]
+        };
         let is_static = is_runtime_const || !function.exported || function.fails;
         let takes_string_output = string_output_functions.contains(&id);
         let function_signature = if closures.functions.contains_key(&id) {
@@ -316,7 +349,55 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
             )
         };
         source.begin_block(&function_signature);
-
+        if function.constant {
+            match &const_outcomes[&id] {
+                ConstOutcome::Value(crate::contract::ir::Const::Unit) => source.ret(None),
+                ConstOutcome::Value(value) => {
+                    let expression = constant_expression(value).map_err(|kind| {
+                        unsupported(&function.name, &format!("{kind} in a const value"))
+                    })?;
+                    let Some(expression) = expression else {
+                        return Err(invalid_flow_ir(
+                            &function.name,
+                            "non-Unit const value has no C expression",
+                        ));
+                    };
+                    source.ret(Some(&expression));
+                }
+                ConstOutcome::Defect { kind, message } => {
+                    let length = u16::try_from(message.len()).map_err(|_| {
+                        unsupported(
+                            &function.name,
+                            "a const defect message longer than the embedded C ABI supports",
+                        )
+                    })?;
+                    source.line(&format!(
+                        "emela_board_defect(EMELA_DEFECT_{kind}, {}, UINT16_C({length}));",
+                        c_string_literal(message.as_bytes())
+                    ));
+                }
+                ConstOutcome::SelfReference { message } => {
+                    let length = u16::try_from(message.len()).map_err(|_| {
+                        unsupported(
+                            &function.name,
+                            "a const defect message longer than the embedded C ABI supports",
+                        )
+                    })?;
+                    source.line(&format!(
+                        "{}(EMELA_DEFECT_PANIC, {}, UINT16_C({length}));",
+                        if runtime_consts.is_empty() {
+                            "emela_board_defect"
+                        } else {
+                            "emela_const_self_reference"
+                        },
+                        c_string_literal(message.as_bytes())
+                    ));
+                }
+            }
+            source.end_block();
+            source.blank();
+            continue;
+        }
         if layouts.runtime.has_cause_raise && layouts.runtime.has_unwind {
             source.line("unsigned emela_entry_holds = emela_current_fiber == NULL ? 0 : emela_current_fiber->holds;");
             source.line("(void)emela_entry_holds;");
@@ -372,6 +453,16 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         )?;
         source.end_block();
         source.blank();
+        if is_runtime_const {
+            emit_const_getter(
+                layouts,
+                id,
+                function,
+                &names[&id],
+                &initializer_name,
+                &mut source,
+            );
+        }
     }
     for adapter in function_ref_adapters {
         let target = adapter.target;
@@ -481,9 +572,9 @@ use functions::signature;
 use functions::{
     closure_signature, emit_any_ownership, emit_any_ownership_declarations,
     emit_closure_capture_loads, emit_closure_environment_declarations,
-    emit_closure_string_copy_helper, emit_fallible_wrapper, emit_function_coerce_adapter,
-    emit_function_ref_adapter, emit_local_declarations, emit_owned_cleanup,
-    emit_public_string_ownership, emit_release_if_owned, emit_retain_operand,
+    emit_closure_string_copy_helper, emit_const_getter, emit_fallible_wrapper,
+    emit_function_coerce_adapter, emit_function_ref_adapter, emit_local_declarations,
+    emit_owned_cleanup, emit_public_string_ownership, emit_release_if_owned, emit_retain_operand,
     function_ref_adapter_signature,
 };
 use values::{
@@ -496,11 +587,16 @@ pub(super) mod layouts;
 
 pub(super) mod string_buffers;
 
+pub(super) mod const_bridge;
+use const_bridge::Emission as ConstBridgePlanEmission;
+
 pub(super) mod derive_runtime;
 use derive_runtime::Emission as DerivationPlanEmission;
 
 pub(super) mod runtime_helpers;
 use runtime_helpers::RuntimeEmission;
+
+pub(super) mod external;
 
 mod features;
 use crate::writer::Writer;
@@ -526,6 +622,7 @@ const HEADER_FILE: &str = "emela_embedded.h";
 const SOURCE_FILE: &str = "emela_embedded.c";
 
 mod entry;
+mod services;
 
 mod bytes_runtime;
 mod heap;
@@ -533,6 +630,8 @@ mod heap;
 mod float_parse;
 
 mod float_to_string;
+
+mod const_runtime;
 
 use crate::semantics::operands::operand_type;
 

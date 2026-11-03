@@ -6,7 +6,7 @@ emelinoはEmela v0.26.1の公開APIから受けたFlowを、組み込み向けC�
 
 ## 責任と対象範囲
 
-対応目標は最終確認PRで同梱する固定Flow対応表の対象機能を組み込み制約下で扱うことであり、固定本体v0.26.1のC targetで検証する。
+対応目標は同梱する[固定Flow対応表](compiler-coverage.md)の対象機能を組み込み制約下で扱うことであり、固定本体v0.26.1のC targetで検証する。
 全Emela機能や全targetへの保証ではない。固定台帳を対応範囲の正本とする。
 
 | 所有者 | 責任 |
@@ -70,3 +70,6 @@ UPSTREAM-001は型特殊化をまたぐconst共有の未修正差分である。
 影響する8件の観測を分け、受信Flowのconstごとの初期化・cache・defect・所有は通常どおり検証する。
 この例外を新たな差分の自動承認や、任意の入力に対する正しさの証明に使わない。
 汎用のroot指定API、本体const修正、project driver、実機接続は、それぞれ契約と試験を確認する後続変更とする。
+
+現在の行別判定と実行revisionは[対応表](compiler-coverage.md)に記録する。
+旧S段階の報告・採用元・旧commitは[履歴索引](reports/README.md)から参照する。

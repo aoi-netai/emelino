@@ -6,8 +6,9 @@ use crate::contract::lowered::LoweredModule;
 use crate::{Error, ErrorKind};
 use std::collections::{HashMap, HashSet};
 
-mod capabilities;
 mod closure;
+mod const_eval;
+mod const_groups;
 mod effects;
 mod error_types;
 mod exports;
@@ -46,7 +47,6 @@ pub(crate) fn lower_program(
     options: &crate::Options,
 ) -> Result<LoweredModule> {
     types::validate_catalog(&program)?;
-    capabilities::validate(&program, options)?;
     types::project_concurrency_rows(&mut program.core);
     effects::normalize(&mut program)?;
     types::normalize_catalog(&mut program)?;
@@ -83,19 +83,49 @@ pub(crate) fn lower_program(
         validate_function(&program, function)?;
     }
     exports::normalize(&mut program);
-    let mut const_groups: Vec<crate::contract::lowered::ConstGroup> = Vec::new();
+    let mut const_groups = const_groups::prepare(&mut program)?;
     let (mut program, mut closures) = closure::lower(&program, options)?;
     fiber_failures::erase(&mut program, &mut closures, options)?;
     suspend::normalize_handlers(&mut program);
     fibers::normalize_values(&mut program);
     let deferred_pool = fibers::needs_deferred_pool(&program, &closures, options);
     handler::lower(&mut program, options);
-    let mut const_outcomes: HashMap<
-        FnId,
-        std::result::Result<crate::contract::lowered::ConstOutcome, &'static str>,
-    > = HashMap::new();
-    let mut runtime_consts: HashSet<FnId> = HashSet::new();
-
+    let mut const_outcomes = HashMap::new();
+    let mut runtime_consts = HashSet::new();
+    for (id, function) in program.functions.iter() {
+        if !function.constant {
+            continue;
+        }
+        if !function.params.is_empty()
+            || function.fails
+            || function.suspends
+            || function.external.is_some()
+        {
+            return Err(invalid(
+                &function.name,
+                "const must be a zero-argument, infallible synchronous definition",
+            ));
+        }
+        match const_eval::evaluate(&program, id) {
+            Ok(outcome) => {
+                let outcome = match outcome {
+                    const_eval::Outcome::Value(value) => {
+                        crate::contract::lowered::ConstOutcome::Value(value)
+                    }
+                    const_eval::Outcome::Defect { kind, message } => {
+                        crate::contract::lowered::ConstOutcome::Defect { kind, message }
+                    }
+                    const_eval::Outcome::SelfReference { message } => {
+                        crate::contract::lowered::ConstOutcome::SelfReference { message }
+                    }
+                };
+                const_outcomes.insert(id, Ok(outcome));
+            }
+            Err(_) => {
+                runtime_consts.insert(id);
+            }
+        }
+    }
     for &id in &runtime_consts {
         program.functions[id].constant = false;
     }

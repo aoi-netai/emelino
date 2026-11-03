@@ -1,0 +1,14 @@
+{
+  "exports": [
+    {
+      "function": "maker",
+      "symbol": "legacy_maker"
+    },
+    {
+      "function": "native",
+      "symbol": "legacy_native"
+    }
+  ],
+  "heap_bytes": 2048,
+  "string_capacity": 64
+}

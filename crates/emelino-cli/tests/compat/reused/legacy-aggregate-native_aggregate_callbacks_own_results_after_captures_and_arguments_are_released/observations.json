@@ -1,0 +1,27 @@
+{
+  "heap_observer": true,
+  "cancel_root": false,
+  "type_bindings": [
+    {
+      "placeholder": "packet",
+      "function": "legacy_native",
+      "prefix": "emela_type_"
+    },
+    {
+      "placeholder": "callback",
+      "function": "legacy_maker",
+      "prefix": "emela_function_type_"
+    }
+  ],
+  "release_bindings": [
+    {
+      "placeholder": "release",
+      "type_placeholder": "packet"
+    }
+  ],
+  "callback_result_binding": {
+    "placeholder": "pair",
+    "callback_placeholder": "callback",
+    "prefix": "emela_type_"
+  }
+}

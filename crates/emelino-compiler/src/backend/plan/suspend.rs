@@ -112,6 +112,9 @@ pub(in crate::backend::plan) fn external_symbol(
     function: &Function,
     options: &Options,
 ) -> Result<String, Vec<Error>> {
+    if let Some(symbol) = super::services::task_symbol(function) {
+        return Ok(symbol.into());
+    }
     let binding = function
         .external
         .as_ref()

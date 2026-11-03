@@ -58,12 +58,18 @@ CLI binaryのCargoビルドには固定した本体crateを含む依存が必要
 - [数値・String・Unicode・Bytes](docs/architecture.md#numeric-text-bytes)
 - [closure・effect・State・failure](docs/architecture.md#functions-effects-failure)
 - [async task・Scope・Fiber・Deferred](docs/architecture.md#async-runtime)
+- [const・UPSTREAM-001](docs/architecture.md#const)
+- [C ABI・ISR・Embedded.*・board hook](docs/architecture.md#c-abi-embedded)
 
 Bytesは本体の`Std.Bytes`からimportします。
 
+汎化constの型特殊化をまたぐ共有には未修正の[UPSTREAM-001](docs/upstream-known-issues.md)があります。
+
+組み込みmoduleはemelinoが管理する`Embedded.*`からimportします。`Std.Embedded.*`は供給しません。
+
 公開入口には具体型のwrapperを用意し、残るeffectをhandlerで処理します。
 追加ソースは設定の`sources`へentryからの相対moduleパスを列挙します。
-公開名と導入済み機能の容量・入口設定を明示し、生成headerをC側のABIの正本とします。
+容量・起動入口・adapter・ISR入口も設定で明示し、生成headerをC側のABIの正本とします。
 
 Pome/project loader、`@test`/`@internal`のdriver処理、物理BSP、firmware build/flash、実機検証は後続範囲です。
 採用範囲と終了条件は[実装計画](docs/implementation-plan.md)に定義します。
@@ -78,3 +84,6 @@ cargo test --workspace --locked
 
 sourceからの生成と保存入力の再生成を照合し、生成Cを`-O0`/`-O2`で実行します。
 既存cacheだけを使う場合はCargoコマンドに`--offline`を追加し、依存の新規取得とは区別します。
+
+現在の検証revision・結果は[対応表](docs/compiler-coverage.md)と[再現検証記録](docs/reports/reconstruction-validation.json)を参照してください。
+旧S報告・取得元・ライセンス・過去の実行SHAは[履歴索引](docs/reports/README.md)に分けて保持します。

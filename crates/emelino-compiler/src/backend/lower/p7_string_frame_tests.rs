@@ -118,6 +118,110 @@ int main(void){for(int i=0;i<1000;i++){char bytes[]={'a',0,'b','|',(char)0xce,(c
 }
 
 #[test]
+fn constant_numeric_and_string_values_fold_and_constant_float_append_keeps_its_exact_bound() {
+    let mut p = program(vec![]);
+    let mut round = Function::new("round");
+    round.exported = true;
+    round.export_symbol = Some("rounded".into());
+    round.constant = true;
+    round.ret = TypeId::INT;
+    let n = variable(&mut round, TypeId::INT);
+    let calc = binding(
+        &mut round,
+        Some(n),
+        Value::Builtin {
+            op: Builtin::FloatRound,
+            args: vec![Const::Float(-2.5).into()],
+        },
+    );
+    round.body = Some(round.seqs.alloc(Seq {
+        stmts: vec![calc],
+        term: Term::Return(Some(n.into())),
+    }));
+    p.functions.alloc(round);
+    let mut joined = Function::new("joined");
+    joined.exported = true;
+    joined.export_symbol = Some("joined".into());
+    joined.constant = true;
+    joined.ret = TypeId::STRING;
+    let s = aggregate_variable(&mut joined, TypeId::STRING);
+    let join = binding(
+        &mut joined,
+        Some(s),
+        Value::Builtin {
+            op: Builtin::StringAppend,
+            args: vec![
+                Const::String("a".into()).into(),
+                Const::String("é".into()).into(),
+            ],
+        },
+    );
+    joined.body = Some(joined.seqs.alloc(Seq {
+        stmts: vec![join],
+        term: Term::Return(Some(s.into())),
+    }));
+    p.functions.alloc(joined);
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    assert!(!output.c_source.contains("emela_emb_string_append("));
+    execute(
+        &output,
+        "#include <string.h>\n#include \"emela_embedded.h\"\nint main(void){EmelaString s=joined();return rounded()!=-3||s.length!=3||memcmp(s.data,\"a\\xc3\\xa9\",3);}\n",
+        0,
+    );
+    let mut f = simple();
+    let input = variable(&mut f, TypeId::INT);
+    f.params.push(input);
+    let float_text = aggregate_variable(&mut f, TypeId::STRING);
+    let integer_text = aggregate_variable(&mut f, TypeId::STRING);
+    let combined = aggregate_variable(&mut f, TypeId::STRING);
+    let length = variable(&mut f, TypeId::INT);
+    let a = binding(
+        &mut f,
+        Some(float_text),
+        Value::Builtin {
+            op: Builtin::FloatToString,
+            args: vec![Const::Float(1.0e-6).into()],
+        },
+    );
+    let b = binding(
+        &mut f,
+        Some(integer_text),
+        Value::Builtin {
+            op: Builtin::IntToString,
+            args: vec![input.into()],
+        },
+    );
+    let c = binding(
+        &mut f,
+        Some(combined),
+        Value::Builtin {
+            op: Builtin::StringAppend,
+            args: vec![float_text.into(), integer_text.into()],
+        },
+    );
+    let d = binding(
+        &mut f,
+        Some(length),
+        Value::Builtin {
+            op: Builtin::StringByteSize,
+            args: vec![combined.into()],
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![a, b, c, d],
+        term: Term::Return(Some(length.into())),
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    assert!(output.c_source.contains("UINT16_C(19)"));
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){return answer(42)!=10;}\n",
+        0,
+    );
+}
+
+#[test]
 fn selected_entry_supplies_dynamic_string_buffers_at_minimum_and_maximum_capacities() {
     let mut p = program(vec![]);
     let mut read = Function::new("read_number");

@@ -9,9 +9,19 @@ use std::sync::atomic::{AtomicU64, Ordering};
 mod cause;
 #[path = "compat/seams/cleanup.rs"]
 mod cleanup;
+#[path = "compat/seams/consts.rs"]
+mod consts;
+#[path = "compat/seams/generic_consts.rs"]
+mod generic_consts;
+#[path = "compat/seams/integration.rs"]
+mod integration;
 #[path = "compat/seams/protect.rs"]
 mod protect;
 
+fn adapted(source: &str, aliases: &[(String, String)]) -> Program {
+    let generated = emelino_cli::frontend::generate(source, Path::new("main.emel")).unwrap();
+    emelino_cli::upstream_adapter::adapt(&generated.module, aliases).unwrap()
+}
 fn adapted_public(source: &str, prefix: &str) -> Program {
     let generated = emelino_cli::frontend::generate(source, Path::new("main.emel")).unwrap();
     let aliases: Vec<_> = generated
@@ -23,7 +33,24 @@ fn adapted_public(source: &str, prefix: &str) -> Program {
         .collect();
     emelino_cli::upstream_adapter::adapt(&generated.module, &aliases).unwrap()
 }
-
+fn simple() -> Function {
+    let mut function = Function::new("answer");
+    function.exported = true;
+    function.export_symbol = Some("answer".into());
+    function.ret = TypeId::INT;
+    function.body = Some(function.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Return(Some(Const::Int(42).into())),
+    }));
+    function
+}
+fn aggregate_variable(function: &mut Function, ty: TypeId) -> VarId {
+    function.vars.alloc(VarData {
+        hint: String::new(),
+        ty,
+        repr: Repr::Ref,
+    })
+}
 fn binding(function: &mut Function, dst: Option<VarId>, value: Value) -> StmtId {
     function.stmts.alloc(Stmt::Let {
         dst,

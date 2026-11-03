@@ -33,6 +33,8 @@ pub(in crate::backend::plan) mod suspend;
 pub(in crate::backend::plan) mod strings;
 use strings::{StringPlanning, functions_with_string_output};
 
+pub(in crate::backend::plan) mod const_bridge;
+use const_bridge::Preparation as ConstBridgePlanPreparation;
 pub(in crate::backend::plan) mod derive_runtime;
 use derive_runtime::Preparation as DerivationPlanPreparation;
 pub(in crate::backend::plan) mod runtime;
@@ -45,6 +47,7 @@ use validation::{
 };
 
 mod adapters;
+mod const_runtime;
 pub(in crate::backend::plan) mod task_values;
 
 use crate::contract::auxiliary::{ConstBridgePlan, DerivationPlan};
@@ -73,7 +76,7 @@ pub(super) fn prepare<'a>(
     }
     let lowered_flow = &compiled.lowered;
     let closures = &compiled.closures;
-    let _const_groups = &compiled.const_groups;
+    let const_groups = &compiled.const_groups;
     let runtime_consts = &compiled.runtime_consts;
     let deferred_pool = compiled.deferred_pool;
     if deferred_pool && options.deferred_capacity() == 0 {
@@ -91,7 +94,7 @@ pub(super) fn prepare<'a>(
     let mut layouts = TypeLayouts::new(flow, &emitted_functions, closures, deferred_pool)?;
     layouts.functions.discarded_results = discarded_results;
     layouts.functions.runtime_consts = runtime_consts.clone();
-    let const_bridges = ConstBridgePlan::default();
+    let const_bridges = ConstBridgePlan::new(flow, const_groups, closures, &mut layouts)?;
     for &id in runtime_consts {
         if matches!(layouts.shapes.types[flow.functions[id].ret], Type::String) {
             layouts
@@ -100,7 +103,16 @@ pub(super) fn prepare<'a>(
                 .insert(flow.functions[id].name.clone());
         }
     }
-    let services: HashMap<FnId, crate::contract::services::Operation> = HashMap::new();
+    let services = flow
+        .functions
+        .iter()
+        .filter(|(id, _)| emitted_functions.contains(id))
+        .filter_map(|(id, f)| match services::resolve(flow, f) {
+            Ok(Some(operation)) => Some(Ok((id, operation))),
+            Ok(None) => None,
+            Err(errors) => Some(Err(errors)),
+        })
+        .collect::<Result<HashMap<_, _>, Vec<Error>>>()?;
     let external_bindings =
         external::resolve(flow, &emitted_functions, &mut layouts, options, &services)?;
     let derived_plan = DerivationPlan::new(flow, &emitted_functions, &layouts)?;
@@ -143,7 +155,7 @@ pub(super) fn prepare<'a>(
         })
         .map(|(_, f)| f.name.clone())
         .collect();
-    let empty_list_functions = HashSet::new();
+    let empty_list_functions = const_runtime::empty_list_functions(flow);
     let heap_functions: HashSet<_> = flow
         .functions
         .iter()
@@ -239,7 +251,14 @@ pub(super) fn prepare<'a>(
         };
         names.insert(id, implementation_name);
     }
-    let isr_safe_symbols = Vec::new();
+    let isr_safe_symbols = interrupts::validate_isr_entries(
+        flow,
+        &emitted_functions,
+        &heap_functions,
+        &layouts,
+        &names,
+        options,
+    )?;
     let main_entry = flow
         .functions
         .iter()
@@ -541,6 +560,9 @@ pub(super) fn prepare<'a>(
     external::validate_generated_symbols(&plan)?;
     Ok(plan)
 }
+
+mod interrupts;
+mod services;
 
 use crate::semantics::c::type_name;
 use crate::semantics::{child, deferred, operands::operand_type};

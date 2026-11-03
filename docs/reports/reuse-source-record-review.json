@@ -1,0 +1,597 @@
+{
+  "schema_version": 1,
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "policy": "Each source variant is reviewed against the current source observations and the backend representation boundary. These groups establish tested behavior in the fixed scope; they are not proofs that all IR shapes are emitted by source, nor proofs for arbitrary programs. Raw-only exceptions are recorded individually.",
+  "groups": {
+    "scalar_numeric": {
+      "reason": "Signed wrap/division/remainder, all comparisons, bitwise/shift boundaries, Int64 conversions, NaN/infinity and exact floating bits execute through current upstream source. Unused invalid operations keep their defects.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_pipeline.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/reused/p1-numeric/harness.c"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/evaluation.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-source-semantics.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::FloatFromInt",
+        "emela_core::Builtin::Int64BitAnd",
+        "emela_core::Builtin::Int64BitNot",
+        "emela_core::Builtin::Int64BitOr",
+        "emela_core::Builtin::Int64BitXor",
+        "emela_core::Builtin::Int64FromInt",
+        "emela_core::Builtin::Int64ShiftLeft",
+        "emela_core::Builtin::Int64ShiftRight",
+        "emela_core::Builtin::Int64ShiftRightUnsigned",
+        "emela_core::Builtin::Int64ToInt",
+        "emela_core::Builtin::IntBitAnd",
+        "emela_core::Builtin::IntBitNot",
+        "emela_core::Builtin::IntBitOr",
+        "emela_core::Builtin::IntBitXor",
+        "emela_core::Builtin::IntShiftLeft",
+        "emela_core::Builtin::IntShiftRight",
+        "emela_core::Builtin::IntShiftRightUnsigned",
+        "emela_core::Type::Bool",
+        "emela_core::Type::Float",
+        "emela_core::Type::Int",
+        "emela_core::Type::Int64",
+        "emela_core::Type::Unit",
+        "emela_lir::Const::Bool",
+        "emela_lir::Const::Float",
+        "emela_lir::Const::Int",
+        "emela_lir::Const::Int64",
+        "emela_lir::Const::Unit",
+        "emela_lir::Operand::Const",
+        "emela_lir::Operand::Var",
+        "emela_lir::PrimOp::Add",
+        "emela_lir::PrimOp::Div",
+        "emela_lir::PrimOp::Eq",
+        "emela_lir::PrimOp::Ge",
+        "emela_lir::PrimOp::Gt",
+        "emela_lir::PrimOp::Le",
+        "emela_lir::PrimOp::Lt",
+        "emela_lir::PrimOp::Mul",
+        "emela_lir::PrimOp::Ne",
+        "emela_lir::PrimOp::Neg",
+        "emela_lir::PrimOp::Not",
+        "emela_lir::PrimOp::Rem",
+        "emela_lir::PrimOp::Sub",
+        "emela_lir::PrimTy::F64",
+        "emela_lir::PrimTy::I32",
+        "emela_lir::PrimTy::I64",
+        "emela_lir::Repr::F64",
+        "emela_lir::Repr::I32",
+        "emela_lir::Repr::I64",
+        "emela_lir::Repr::Void",
+        "emela_lir::Value::Const",
+        "emela_lir::Value::Prim"
+      ]
+    },
+    "numeric_format_parse": {
+      "reason": "Current source preserves bounded numeric formatting, exact Float parsing bits, original parse failure payloads, rounding boundaries and used/discarded defects.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/numeric_unicode.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/parse.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-source-semantics.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::FloatCeil",
+        "emela_core::Builtin::FloatFloor",
+        "emela_core::Builtin::FloatParse",
+        "emela_core::Builtin::FloatRound",
+        "emela_core::Builtin::FloatToString",
+        "emela_core::Builtin::FloatTruncate",
+        "emela_core::Builtin::Int64ToString",
+        "emela_core::Builtin::IntParse",
+        "emela_core::Builtin::IntToString"
+      ]
+    },
+    "strings_views": {
+      "reason": "The original C observations retain byte/grapheme lengths, borrowed slices, append aliasing, embedded NUL and UTF8 search/trim/ordering. Source tests preserve bounded buffers and owned lifetimes.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_pipeline.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/reused/p2-strings/harness.c"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_strings.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_string_alias.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_static_strings.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-static-alias-strings.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::StringAppend",
+        "emela_core::Builtin::StringContains",
+        "emela_core::Builtin::StringEndsWith",
+        "emela_core::Builtin::StringStartsWith",
+        "emela_core::Builtin::StringTrim",
+        "emela_core::Type::String",
+        "emela_lir::Const::String",
+        "emela_lir::PrimTy::String"
+      ]
+    },
+    "strings_unicode": {
+      "reason": "All 853 fixed Unicode18 vectors validate grapheme/scalar boundaries and owned lists. Invalid UTF8, discarded results and String.from_code_point capacity defects remain observable.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/unicode_lists.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/numeric_unicode.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/standard_api.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-source-semantics.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::StringByteSize",
+        "emela_core::Builtin::StringChars",
+        "emela_core::Builtin::StringCodePoints",
+        "emela_core::Builtin::StringFromCodePoint",
+        "emela_core::Builtin::StringLength"
+      ]
+    },
+    "string_collections": {
+      "reason": "String split/join and list consumers execute with ordinary upstream standard definitions; dynamic owned results and aliases retain their lifetimes.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_ownership.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_collections_helpers.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::StringJoin",
+        "emela_core::Builtin::StringSplit"
+      ]
+    },
+    "checked_values": {
+      "reason": "Concrete Option values, overflow tags, Float payloads and Unicode scalar boundaries execute using fixed standard APIs; evaluation order and capacity defects remain.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_pipeline.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/reused/p2-standard-values/harness.c"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/standard_api.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-source-semantics.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::IntCheckedAdd"
+      ]
+    },
+    "bytes_standard_library": {
+      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_bytes.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_bytes_runtime.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/src/upstream_adapter.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-boundary-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::BytesConcat",
+        "emela_core::Builtin::BytesDecodeValidUtf8",
+        "emela_core::Builtin::BytesEncodeUtf8",
+        "emela_core::Builtin::BytesFromList",
+        "emela_core::Builtin::BytesGet",
+        "emela_core::Builtin::BytesSize",
+        "emela_core::Builtin::BytesSlice",
+        "emela_core::Builtin::BytesToList",
+        "emela_core::Type::Bytes"
+      ]
+    },
+    "cells": {
+      "reason": "SharedState cells retain escaped closure captures, string updates and returned values across suspension/cancellation; original C values and heap emptiness are preserved. The explicit State.run wrapper discharges the published callback effect.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_more.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_state.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/reused/legacy-closures-45d10a963a24d47032c7/harness.c"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-state.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::CellGet",
+        "emela_core::Builtin::CellNew",
+        "emela_core::Builtin::CellSet"
+      ]
+    },
+    "source_builtins": {
+      "reason": "Official upstream lowers Dbg/Inspect/Show/Panic/Todo/assert operations to ordinary Flow/runtime/defect. Exact custom display, once-only evaluation, escaping and board-stop behavior execute. Residual source-only builtin input is rejected separately.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/source_builtins.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-compiler/src/backend/lower/source_builtin_tests.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/backend-coverage-review.json"
+        }
+      ],
+      "records": [
+        "emela_core::Builtin::AssertFail",
+        "emela_core::Builtin::Dbg",
+        "emela_core::Builtin::DebugPrint",
+        "emela_core::Builtin::Inspect",
+        "emela_core::Builtin::Panic",
+        "emela_core::Builtin::ShowNested",
+        "emela_core::Builtin::ShowString",
+        "emela_core::Builtin::Todo",
+        "emela_lir::RuntimeOp::DebugPrint",
+        "emela_lir::RuntimeOp::ShowString"
+      ]
+    },
+    "fibers": {
+      "reason": "Original Scope/Fork/Join/Await/Deferred/Complete/Poll/Interrupt/Attempt/Cause observations retain FIFO, owned typed values, completion/cancellation cleanup, task context release and old capacity budgets. Test-only IR seams are named separately.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_runtime.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_more.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_source_seams.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-runtime.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-source-seams.json"
+        }
+      ],
+      "records": [
+        "emela_core::FiberOp::Attempt",
+        "emela_core::FiberOp::Await",
+        "emela_core::FiberOp::CauseKind",
+        "emela_core::FiberOp::CauseRaise",
+        "emela_core::FiberOp::CauseToString",
+        "emela_core::FiberOp::Complete",
+        "emela_core::FiberOp::Deferred",
+        "emela_core::FiberOp::DeferredAwait",
+        "emela_core::FiberOp::Fork",
+        "emela_core::FiberOp::Interrupt",
+        "emela_core::FiberOp::Join",
+        "emela_core::FiberOp::Poll",
+        "emela_core::FiberOp::Scope",
+        "emela_core::Type::FiberScope",
+        "emela_lir::Value::Fiber"
+      ]
+    },
+    "aggregates": {
+      "reason": "Concrete tuple/list/enum fields, tags, recursive declaration substitution, owned return values and deep release execute through ordinary upstream source. Recursive declaration types are distinct from invalid cyclic type-table child graphs.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_pipeline.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_runtime.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_more.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-runtime.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-values-strings.json"
+        }
+      ],
+      "records": [
+        "emela_core::Type::Enum",
+        "emela_core::Type::List",
+        "emela_core::Type::Param",
+        "emela_core::Type::Tuple",
+        "emela_lir::Value::Field",
+        "emela_lir::Value::List",
+        "emela_lir::Value::ListHead",
+        "emela_lir::Value::ListIsEmpty",
+        "emela_lir::Value::ListTail",
+        "emela_lir::Value::Make",
+        "emela_lir::Value::Tag",
+        "emela_lir::Value::Tuple",
+        "emela_lir::Value::TupleGet"
+      ]
+    },
+    "functions_effects": {
+      "reason": "Source direct/indirect calls, captured closures, handler lookup/extension and internal effect evidence retain dynamic dispatch and ownership. Public entries must discharge effect evidence. Raw-only failure ABI forms remain separate.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_effects.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_more.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/board_boundary.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-effects-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-more.json"
+        }
+      ],
+      "records": [
+        "emela_core::Type::Evidence",
+        "emela_core::Type::Fn",
+        "emela_lir::Callee::Direct",
+        "emela_lir::Callee::Indirect",
+        "emela_lir::Callee::Op",
+        "emela_lir::Value::Call",
+        "emela_lir::Value::Closure",
+        "emela_lir::Value::Coerce",
+        "emela_lir::Value::EvExtend",
+        "emela_lir::Value::EvLookup",
+        "emela_lir::Value::FnRef",
+        "emela_lir::Value::Handler"
+      ]
+    },
+    "control_failures": {
+      "reason": "Source branches/loops/tail recursion/exhaustive matches and fail/cleanup propagation retain control order and owned payloads in synchronous and suspended paths. Runtime Retire is an actual official Flow operation; cleanup evidence includes that control transition.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/evaluation.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_effects.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_more.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_runtime.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_source_seams.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-effects-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-more.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-legacy-runtime.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-source-seams.json"
+        }
+      ],
+      "records": [
+        "emela_core::Type::Never",
+        "emela_lir::OnFail::Break",
+        "emela_lir::OnFail::Propagate",
+        "emela_lir::RuntimeOp::Hold",
+        "emela_lir::RuntimeOp::Retire",
+        "emela_lir::RuntimeOp::Unhold",
+        "emela_lir::Stmt::Block",
+        "emela_lir::Stmt::If",
+        "emela_lir::Stmt::Let",
+        "emela_lir::Stmt::Loop",
+        "emela_lir::Stmt::Protect",
+        "emela_lir::Term::Break",
+        "emela_lir::Term::Defect",
+        "emela_lir::Term::Fail",
+        "emela_lir::Term::Recur",
+        "emela_lir::Term::Return",
+        "emela_lir::Term::Unreachable",
+        "emela_lir::Term::Yield",
+        "emela_lir::Value::AsError",
+        "emela_lir::Value::IsError",
+        "emela_lir::Value::Runtime"
+      ]
+    },
+    "external": {
+      "reason": "Normal source handlers reach configured host symbols and retain native scalar bits, borrowed/owned aggregate values, asynchronous completion and typed task adapters.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_externals.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/legacy_services.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-external-services.json"
+        }
+      ],
+      "records": [
+        "emela_core::HostRef::Global"
+      ]
+    },
+    "ordinary_builtin_dispatch": {
+      "reason": "Ordinary numeric/string/collection builtins survive official raw Flow as Value::Builtin and retain their typed operands. This dispatch representation is distinct from the eight source-only operations expanded by upstream.",
+      "evidence": [
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/reused_pipeline.rs"
+        },
+        {
+          "kind": "source_test",
+          "path": "crates/emelino-cli/tests/compat/semantics/parse.rs"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-fixtures.json"
+        },
+        {
+          "kind": "run_report",
+          "path": "docs/reports/reuse-source-semantics.json"
+        }
+      ],
+      "records": [
+        "emela_lir::Value::Builtin"
+      ]
+    }
+  },
+  "release_migration": {
+    "from_upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+    "to_release": "v0.26.1",
+    "to_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "f29bafe",
+    "validation_report": "docs/reports/compiler-v0.26.1.md",
+    "validation_status": "passed_workspace_revalidation",
+    "interpretation": "Existing S6 validation fields and upstream_revision identify historical observations. Current implementation links, source adaptation descriptions and fixture hashes are maintained for v0.26.1. The release validation report records new executions separately; previous isolated-checkout results are not relabelled.",
+    "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
+    "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
+  }
+}

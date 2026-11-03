@@ -1,0 +1,284 @@
+{
+  "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "entries": [
+    {
+      "program": "program:7e82f10b73354f97dfeb",
+      "legacy_tests": [
+        "emit::external_scalar::source_handler_can_call_native_external_int64_and_float_with_mixed_arguments"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/bc210d5804c41bf6cdb42d590c11d39f690e77177f8e47511fcf00690a86e8b8.emel",
+          "source_id": "source:bc210d5804c41bf6cdb4",
+          "sha256": "bc210d5804c41bf6cdb42d590c11d39f690e77177f8e47511fcf00690a86e8b8"
+        }
+      ],
+      "route": "original-source",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_legacy_externals.rs",
+        "symbol": "source_handler_can_call_native_external_int64_and_float_with_mixed_arguments"
+      },
+      "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+      "observations": [
+        "Int64.MIN and exact negative NaN payload through the ordinary effect handler, 1000 rounds, old heap1024 option; no heap emitted."
+      ],
+      "provenance_report": "p7-external-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_externals.rs",
+        "symbol": "source_handler_can_call_native_external_int64_and_float_with_mixed_arguments"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:092ecc4b39a71f6fe329",
+      "legacy_tests": [
+        "emit::sync_external::source_string_adapters_snapshot_borrowed_results_and_board_held_arguments"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/5b95ad4781764f3526b371629863ca1271698e574ddc705ebf5ddaf197310c1c.emel",
+          "source_id": "source:5b95ad4781764f3526b3",
+          "sha256": "5b95ad4781764f3526b371629863ca1271698e574ddc705ebf5ddaf197310c1c"
+        }
+      ],
+      "route": "original-source",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_legacy_externals.rs",
+        "symbol": "source_string_adapters_snapshot_borrowed_results_and_board_held_arguments"
+      },
+      "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+      "observations": [
+        "Borrowed String result and board-held argument independently snapshot embedded NUL before input overwrite; direct/indirect/discard paths release all heap at old1024 bytes."
+      ],
+      "provenance_report": "p7-external-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_externals.rs",
+        "symbol": "source_string_adapters_snapshot_borrowed_results_and_board_held_arguments"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:729d56d2f2d29fef4139",
+      "legacy_tests": [
+        "emit::sync_external::values::source_tuple_and_list_external_values_keep_all_managed_fields_alive"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/602421897359f3e255b2fbd9027a19ac6a2d135eccd44dad0a4b6207b2dc2d11.emel",
+          "source_id": "source:602421897359f3e255b2",
+          "sha256": "602421897359f3e255b2fbd9027a19ac6a2d135eccd44dad0a4b6207b2dc2d11"
+        }
+      ],
+      "route": "original-source",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_legacy_externals.rs",
+        "symbol": "source_tuple_and_list_external_values_keep_all_managed_fields_alive"
+      },
+      "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+      "observations": [
+        "Borrowed tuple(String,List[String]) fields survive caller input overwrite and tuple release; extracted String remains owned; 1000 rounds at old1024 bytes."
+      ],
+      "provenance_report": "p7-external-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_externals.rs",
+        "symbol": "source_tuple_and_list_external_values_keep_all_managed_fields_alive"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:efd3c3bdb37863da1c8f",
+      "legacy_tests": [
+        "emit::task_values::managed::source_tasks_own_packet_arguments_and_successes_through_scope_deferred_cancel_and_null_results"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/2fdb21c7c71a35d0a7ae7d0284dc245be6d377057157d5322b7812de0a8cc4ed.emel",
+          "source_id": "source:2fdb21c7c71a35d0a7ae",
+          "sha256": "2fdb21c7c71a35d0a7ae7d0284dc245be6d377057157d5322b7812de0a8cc4ed"
+        }
+      ],
+      "route": "original-source",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_legacy_externals.rs",
+        "symbol": "source_tasks_own_packet_arguments_and_successes_through_scope_deferred_cancel_and_null_results"
+      },
+      "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+      "observations": [
+        "Original exchange/Scope/Deferred paths preserve nested packet fields and typed completion owners, producer/release outside ISR/lock, queued cancellation/NULL output/wrong-kind/duplicate completion.",
+        "String task captures caller input before mutation, snapshots NUL bytes before context poison, runs release exactly once and skips producer when cancelled.",
+        "Old heap4096/String64/fiber8/frame24x1024/task2/event2/deferred2; 1000 outer iterations, all heap reclaimed."
+      ],
+      "provenance_report": "p7-external-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_externals.rs",
+        "symbol": "source_tasks_own_packet_arguments_and_successes_through_scope_deferred_cancel_and_null_results"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:efd3c3bdb37863da1c8f",
+      "legacy_tests": [
+        "emit::task_values::managed::string_successes_snapshot_nul_bytes_before_the_context_is_released"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/2fdb21c7c71a35d0a7ae7d0284dc245be6d377057157d5322b7812de0a8cc4ed.emel",
+          "source_id": "source:2fdb21c7c71a35d0a7ae",
+          "sha256": "2fdb21c7c71a35d0a7ae7d0284dc245be6d377057157d5322b7812de0a8cc4ed"
+        }
+      ],
+      "route": "original-source",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_legacy_externals.rs",
+        "symbol": "string_successes_snapshot_nul_bytes_before_the_context_is_released"
+      },
+      "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests.",
+      "observations": [
+        "Original exchange/Scope/Deferred paths preserve nested packet fields and typed completion owners, producer/release outside ISR/lock, queued cancellation/NULL output/wrong-kind/duplicate completion.",
+        "String task captures caller input before mutation, snapshots NUL bytes before context poison, runs release exactly once and skips producer when cancelled.",
+        "Old heap4096/String64/fiber8/frame24x1024/task2/event2/deferred2; 1000 outer iterations, all heap reclaimed."
+      ],
+      "provenance_report": "p7-external-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_externals.rs",
+        "symbol": "string_successes_snapshot_nul_bytes_before_the_context_is_released"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:5290f0b664af9543cbf5",
+      "legacy_tests": [
+        "emit::embedded_peripherals::standard_handlers_preserve_values_errors_and_owned_receive_lists"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/14869b54f4f331b95ba83c9f2d286d5647ab3ef6e17fa4dbf07386165b7ea937.emel",
+          "source_id": "source:14869b54f4f331b95ba8",
+          "sha256": "14869b54f4f331b95ba83c9f2d286d5647ab3ef6e17fa4dbf07386165b7ea937"
+        }
+      ],
+      "route": "original-source",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_services.rs",
+        "symbol": "embedded_handlers_preserve_all_services_errors_buffers_and_owned_receive_lists"
+      },
+      "observations": [
+        "Original complete source matches byte-for-byte after removing added C exports.",
+        "Old8192heap/String96/peripheral4/fiber4/frame12x2048/task2/event2/deferred1.",
+        "All7 service headers, all23 board operations, errors and bounded receive lists; exact oldC harness with C alias substitution."
+      ],
+      "provenance_report": "p7-services-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "embedded_handlers_preserve_services_buffers_errors_and_cancellation"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:7d9575dd005593b562d8",
+      "legacy_tests": [
+        "emit::embedded_peripherals::clock::clock_sleep_notifies_then_resumes_through_the_main_scheduler"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/002dce909f94071306814613e479e9da3fe67775340cf5ddb78d417460c0d450.emel",
+          "source_id": "source:002dce909f9407130681",
+          "sha256": "002dce909f94071306814613e479e9da3fe67775340cf5ddb78d417460c0d450"
+        }
+      ],
+      "route": "existing-source-observation-replacement",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_services.rs",
+        "symbol": "board_clock_sleep_clamps_boundaries_and_notifies_before_main_resumes"
+      },
+      "observations": [
+        "Same Clock.sleep body and every original C assertion; syntax whitespace/C alias differ only.",
+        "Full oldOptions8192heap/String96/peripheral4/fiber4/frame12x2048/task2/event2/deferred1 preserved.",
+        "Int32.MIN/-1/0/7/MAX clamps, task macro, main-thread resume after queued notification, duplicate/stale rejection and lock release across1000 iterations."
+      ],
+      "provenance_report": "p7-services-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_services.rs",
+        "symbol": "board_clock_sleep_clamps_boundaries_and_notifies_before_main_resumes"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:b0b720ffc97055a938e9",
+      "legacy_tests": [
+        "platform::native_clock_console_and_timer_use_common_standard_service_glue"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/5549983f8aba12d57b0d789684cba2e5255b99a5874cbfa1674dbb16533483e2.emel",
+          "source_id": "source:5549983f8aba12d57b0d",
+          "sha256": "5549983f8aba12d57b0d789684cba2e5255b99a5874cbfa1674dbb16533483e2"
+        }
+      ],
+      "route": "original-source-with-fixed-native-C-fixture",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_legacy_services.rs",
+        "symbol": "original_native_clock_console_and_timer_use_generated_common_services"
+      },
+      "observations": [
+        "Original main Clock.sleep2/Console.connected/42 uses generated common bridges and the exact old native C service provider.",
+        "Oldheap4096/frame2048; result42 and wholeheap reclamation asserted.",
+        "C fixture only; no platform Rust/package/build/dependency subsystem introduced."
+      ],
+      "provenance_report": "p7-services-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_services.rs",
+        "symbol": "original_native_clock_console_and_timer_use_generated_common_services"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    },
+    {
+      "program": "program:4ddb1b72860ac525d8f2",
+      "legacy_tests": [
+        "platform::native_timer_slots_survive_cancellation_and_repeated_reuse"
+      ],
+      "files": [
+        {
+          "name": "main.emel",
+          "fixture": "sources/d60b4137b5256577f8ab5618caf2ea81c9b88bdcd375988cc79f6ee071a7de12.emel",
+          "source_id": "source:d60b4137b5256577f8ab",
+          "sha256": "d60b4137b5256577f8ab5618caf2ea81c9b88bdcd375988cc79f6ee071a7de12"
+        }
+      ],
+      "route": "original-source-with-fixed-native-C-fixture",
+      "new_test": {
+        "kind": "source_test",
+        "path": "crates/emela-emb-compiler/tests/p7_legacy_services.rs",
+        "symbol": "original_native_timer_slots_survive_cancellation_and_repeated_reuse"
+      },
+      "observations": [
+        "Original source forks10000ms child, sleeps0, interrupts child and returns42.",
+        "Old native idle/timer polling and recycled task slot handling; scheduler not ready before idle and ready afterwards without synchronous Emela reentry.",
+        "Oldheap4096/frame2048 and original eight native timer slots; old100 rounds increased to1000 with heapempty after every release."
+      ],
+      "provenance_report": "p7-services-source-compat.json",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_services.rs",
+        "symbol": "original_native_timer_slots_survive_cancellation_and_repeated_reuse"
+      },
+      "validation": "new upstream→Flow→BackendInput→C, JSON replay equality, O0/O2 execution passed"
+    }
+  ],
+  "adaptation": "Old Rust C harnesses, resource Options and header type lookup retained. Fixture frontend replaced with official API plus adapter; test-added exports move to explicit alias configuration. Private C heap/cancel observation remains test-only."
+}

@@ -1,7 +1,7 @@
 //! C adapter names must remain distinct from the generated ABI and its helpers.
 mod support;
 
-use emelino_compiler::{BackendInput, Options};
+use emelino_compiler::{BackendInput, ExternalAdapter, ExternalResult, Options};
 
 const TASK_SOURCE: &str = r#"
 effect Wait { suspend fn wait() -> Int }
@@ -61,6 +61,30 @@ fn task_adapters_reject_reserved_names_and_generated_start_frame_helpers() {
             &Options::default()
                 .with_heap_bytes(8192)
                 .with_task_adapter("wait", symbol),
+            symbol,
+        );
+    }
+}
+
+#[test]
+fn synchronous_adapters_share_reserved_name_checks_and_reject_failure_wrapper_names() {
+    let input = input(
+        r#"
+error Missing
+@external(c, "value")
+fn value() -> Int use {}
+pub fn run(n: Int) -> Int fails Missing {
+    if n == 0 { fail Missing } else { value() }
+}
+"#,
+    );
+    for symbol in ["EmelaTask", "size_t", "UINT32_C", "run_impl"] {
+        rejects(
+            &input,
+            &Options::default().with_external_adapter(
+                "value",
+                ExternalAdapter::new(symbol, ExternalResult::Owned),
+            ),
             symbol,
         );
     }

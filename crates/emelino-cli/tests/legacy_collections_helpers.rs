@@ -69,3 +69,21 @@ int main(void) {{
         ),
     );
 }
+
+#[test]
+fn full_legacy_collection_source_preserves_updates_custom_keys_and_rotations() {
+    let output = output(include_str!(
+        "compat/legacy-corpus/sources/d8521d9bfb49b8efe8d3039e21e481493720654a2545736f224a9d01da23f0aa.emel"
+    ));
+    support::compile_and_run(
+        &output,
+        &format!(
+            r#"{HEADERS}
+int main(void){{for(int i=0;i<1000;i++){{
+  assert(collections(i)==3*i+41 && test_heap_empty());
+  assert(rotations(i)==12*i && test_heap_empty());
+}}return 0;}}
+"#
+        ),
+    );
+}

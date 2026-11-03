@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "original_report": {
+    "path": "docs/reports/p7-frontend-source-compat.json",
+    "sha256": "dd3800bbba525846f7a56f053d3b4974ef151cecbabbf1af20657c5f5e7da484"
+  },
+  "policy": "Frontend/artifact expectations remain distinct from runtime executions. Namespace omission is explicitly replaced, not reported as an unchanged rejection.",
+  "entries": [
+    {
+      "legacy_tests": [
+        "frontend::backend_board_handlers_resolve_typecheck_and_lower_with_the_default_frontend"
+      ],
+      "program": "program:7da4f2133cdd62429dab",
+      "observation_kind": "frontend_and_artifact_only",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations"
+      },
+      "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration.",
+      "options": {
+        "heap_bytes": 4096,
+        "frame_bytes": 2048,
+        "entry": "main"
+      },
+      "observations": [
+        "Original BoardClock/BoardConsole source accepts and generates emela_clock.h/emela_console.h at old heap4096/frame2048.",
+        "Old concrete main becomes Options::with_entry(\"main\"); source bytes unchanged. No runtime execution was required by the fixed-old test."
+      ],
+      "validation": {
+        "upstream_generation": "passed",
+        "saved_replay": "passed for Board source",
+        "C_runtime": "not required by the original frontend/artifact expectation"
+      }
+    },
+    {
+      "legacy_tests": [
+        "frontend::unrelated_project_modules_under_embedded_remain_available"
+      ],
+      "program": "program:1422093ab66b603822cf",
+      "observation_kind": "frontend_and_artifact_only",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations"
+      },
+      "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration.",
+      "options": {},
+      "observations": [
+        "Original Embedded.Local project module and main resolve/typecheck successfully, preserving both original filenames and bytes.",
+        "The new pipeline also generates C; the old observation is frontend success only."
+      ],
+      "validation": {
+        "upstream_generation": "passed",
+        "saved_replay": "passed for Board source",
+        "C_runtime": "not required by the original frontend/artifact expectation"
+      }
+    },
+    {
+      "legacy_tests": [
+        "frontend::embedded_backend_does_not_supply_the_old_std_namespace"
+      ],
+      "status": "verified",
+      "observation_kind": "input_rejection",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "embedded_namespace_is_owned_and_std_embedded_is_not_supplied"
+      },
+      "previous_observation": {
+        "legacy_tests": [
+          "frontend::embedded_backend_does_not_supply_the_old_std_namespace"
+        ],
+        "status": "replaced",
+        "observation_kind": "frontend_contract_replacement",
+        "current_test": {
+          "path": "crates/emelino-cli/tests/board_boundary.rs",
+          "symbol": "upstream_standard_namespace_and_reserved_compatibility_namespace_are_distinct"
+        },
+        "replacement_reason": "Official pinned core_sources() supplies Std.Embedded.Gpio and the other Std.Embedded modules. Original import and a concrete effect reference both resolve. The independent frontend policy of omitting this namespace is replaced by the adopted upstream standard-library ownership; emelino does not remove official modules. This is not an upstream-known issue or an unimplemented source feature."
+      },
+      "observations": [
+        "Std.Embedded imports are rejected because upstream embedded sources are intentionally excluded. The original fixed namespace-omission expectation is restored by the user-authorized ownership change.",
+        "Embedded.* sources are owned and supplied by emelino without core privileges; generic core/std remain upstream."
+      ],
+      "restoration_reason": "The user moved embedded-library ownership to emelino in preparation for upstream codegen-emb/codegen-c removal. This explicitly supersedes the earlier upstream Std.Embedded supply policy."
+    },
+    {
+      "legacy_tests": [
+        "frontend::embedded_backend_module_names_cannot_be_shadowed_by_project_files"
+      ],
+      "observation_kind": "input_rejection",
+      "current_test": {
+        "path": "crates/emelino-cli/tests/board_boundary.rs",
+        "symbol": "embedded_namespace_is_owned_and_std_embedded_is_not_supplied"
+      },
+      "observations": [
+        "An unimported user file named embedded/gpio.emel is rejected as conflicting with an emelino-owned module; normalized alternate paths are covered separately by frontend::tests::normalized_paths_cannot_replace_user_or_extension_sources."
+      ]
+    }
+  ],
+  "validation": {
+    "command": "cargo test -p emelino-cli --test board_boundary --locked --offline",
+    "passed": 7,
+    "failed": 0,
+    "ignored": 0
+  },
+  "embedded_ownership_migration": {
+    "decision": "User requests emelino ownership of embedded libraries; upstream codegen-emb/codegen-c are planned for removal.",
+    "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "baseline_report_revision": "0bb8ee5",
+    "validation_report": "docs/reports/embedded-library-ownership.md",
+    "validation_status": "passed_workspace_revalidation",
+    "ownership": "Emelino owns Embedded.* and the embedded C backend. Generic core/std including Std.Bytes remain delegated to upstream.",
+    "namespace": "Only Embedded.* is supplied for embedded libraries. Upstream Std.Embedded.* is excluded; no compatibility alias is registered.",
+    "implementation_and_test_revision": "7967eb96f13610dd30a29363ee1cfc5f7826564c",
+    "validation": {
+      "workspace_tests": 377,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "format": "passed",
+      "strict_all_target_clippy": "passed"
+    },
+    "classification_decision": "Fixed 428 records, 226 contexts, 115 representative tests, 10 requirements and 174 runtime source observations retain their classifications. All three additional nonruntime observations are now verified: the original Std.Embedded namespace-omission expectation is restored by the explicit ownership change."
+  }
+}

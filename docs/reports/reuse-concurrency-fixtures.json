@@ -1,0 +1,109 @@
+{
+  "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "fixtures": [
+    {
+      "name": "p5-suspend",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/p5_suspend.rs",
+      "test": "source_suspend_operations_and_effectful_closures_resume_through_a_host_task",
+      "source_sha256": "e4789def360c186430db82ec39147786a578cc5583a32b2411d0072bade0df40",
+      "source_change": "元試験のraw source文字列からC公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。",
+      "adapted_source_sha256": "387419c45dcd82a94a74b944e695ac58b1ce925e46d63f66de6ad48819a22740",
+      "harness_path": "crates/emela-emb-compiler/tests/p5_suspend.rs",
+      "harness_sha256": "c99b0d432bc935069b075ac01aaf4d88aeb406ef8411588e5665aa2e680e0695",
+      "harness_change": "元試験のraw C harness文字列とbyte一致。",
+      "options": {
+        "heap_bytes": 16384,
+        "task_adapters": [
+          {
+            "symbol": "wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_concurrency",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p6-concurrency",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/p6_concurrency.rs",
+      "test": "source_concurrency_preserves_handles_values_causes_and_unit_results",
+      "source_sha256": "585617e5daa12d9d3392cfd3f1e89853b5bf3e3dd47beb86f52583b33a42a3dd",
+      "source_change": "元試験のraw source文字列からC公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。",
+      "adapted_source_sha256": "21aa75efd106bdab23bcb0972faa77b3ddbd525bafe4dee7d3d5740953011f95",
+      "harness_path": "crates/emela-emb-compiler/tests/p6_concurrency.rs",
+      "harness_sha256": "17c5dbc8411330387845bb97dd10b2de91f57bd9865d23b5cf2c92f004350e98",
+      "harness_change": "元試験のraw C harness文字列とbyte一致。",
+      "options": {
+        "heap_bytes": 32768,
+        "frame_bytes": 1024
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_concurrency",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p6-nested-cancel",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p6/nested-cancel.emel",
+      "source_sha256": "1eb66f065e0d3a0f1d63c3d4c1cbade1d68435d715e94bd746d06d1efa7187f6",
+      "source_change": "なし（byte一致）。旧試験が後付けしていた公開C aliasをconfigで指定。",
+      "adapted_source_sha256": "1eb66f065e0d3a0f1d63c3d4c1cbade1d68435d715e94bd746d06d1efa7187f6",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p6/nested-cancel-harness.c",
+      "harness_sha256": "ad4bd485b13ade7e56cb29aab722260c98af2f80368bdf7a86fcbee285046fe6",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 16384,
+        "string_capacity": 32,
+        "frame_bytes": 1024,
+        "frame_capacity": 128,
+        "fiber_capacity": 16,
+        "deferred_capacity": 3,
+        "task_capacity": 2,
+        "event_capacity": 2,
+        "task_adapters": [
+          {
+            "symbol": "host_wait",
+            "adapter": "board_wait_start"
+          }
+        ]
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_concurrency",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "command": "cargo test -p emelino-cli --test reused_concurrency --locked --offline",
+    "tests_passed": 3,
+    "tests_failed": 0,
+    "tests_ignored": 0,
+    "scope": "source/C fixtures only; no global parity completion claim"
+  }
+}

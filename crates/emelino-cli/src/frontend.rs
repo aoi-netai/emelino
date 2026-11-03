@@ -51,8 +51,24 @@ pub fn generate_sources(
     // User files never receive ModuleMap::add_core privileges. Source names are
     // explicit module paths, not a locally reimplemented project/package loader.
     let root = Path::new("<emelino-input>");
+    let bundled = crate::bundled::sources();
+    if inputs.iter().any(|input| {
+        bundled
+            .iter()
+            .any(|(name, _)| Path::new(name) == Path::new(input.name))
+    }) {
+        return Err("source name conflicts with an emelino extension module".into());
+    }
+    let inputs: Vec<_> = inputs
+        .iter()
+        .map(|source| Source {
+            name: source.name,
+            text: source.text,
+        })
+        .chain(bundled.iter().map(|(name, text)| Source { name, text }))
+        .collect();
     let mut names = std::collections::HashSet::new();
-    for input in inputs {
+    for input in &inputs {
         let path = Path::new(input.name);
         if path.extension().is_none_or(|ext| ext != "emel")
             || path
@@ -80,7 +96,7 @@ pub fn generate_sources(
         .ok_or_else(|| "Emela module collection: entry module is missing".to_owned())?;
     let mut sources = ArenaMap::default();
     let mut user_modules = std::collections::HashSet::new();
-    for input in inputs {
+    for input in &inputs {
         let file = root.join(input.name);
         let id = modules
             .iter()
@@ -348,6 +364,17 @@ mod tests {
             .err()
             .unwrap();
         assert!(error.contains("duplicate source name"), "{error}");
+        let inputs = [Source {
+            name: "embedded//gpio.emel",
+            text: "pub fn fake()->Int {99}",
+        }];
+        let error = generate_sources(&inputs, "embedded//gpio.emel", Path::new("gpio.emel"))
+            .err()
+            .unwrap();
+        assert!(
+            error.contains("conflicts with an emelino extension"),
+            "{error}"
+        );
     }
 
     #[test]

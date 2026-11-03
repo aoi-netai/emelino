@@ -89,12 +89,34 @@ pub(in crate::backend::plan) fn resolve(
             continue;
         }
         let original = symbol(f)?;
-        let _adapter = options
+        let adapter = options
             .external_adapters()
             .iter()
             .find(|(name, _)| *name == original)
             .map(|(_, a)| a);
-        let binding = {
+        let binding = if let Some(adapter) = adapter {
+            let symbol = adapter.symbol();
+            let result = adapter.result();
+            validate_adapter_symbol(f, symbol)?;
+            if generated.contains(symbol) {
+                return Err(unsupported(
+                    &f.name,
+                    "external adapter symbol conflicts with a generated declaration or is invalid",
+                ));
+            }
+            if result == ExternalResult::StringBuffer && f.ret != TypeId::STRING {
+                return Err(unsupported(
+                    &f.name,
+                    "StringBuffer external adapter requires a String result",
+                ));
+            }
+            Binding {
+                symbol: symbol.to_owned(),
+                result,
+                adapted: true,
+                target_owned: false,
+            }
+        } else {
             if f.fails {
                 return Err(unsupported(
                     &f.name,
@@ -271,6 +293,37 @@ pub(in crate::backend::plan) fn needs_heap(
                         .chain(function.params.iter().map(|&p| function.vars[p].ty))
                         .any(|ty| layouts.is_managed_value(ty))))
     })
+}
+
+pub(in crate::backend::plan) fn isr_symbol<'a>(
+    flow: &crate::contract::ir::Program,
+    function: &Function,
+    native: &'a str,
+    options: &'a Options,
+    entry: &str,
+) -> Result<&'a str, Vec<Error>> {
+    if function.infallible_cause_fail {
+        return Ok(native);
+    }
+    let original = symbol(function)?;
+    if let Some((_, adapter)) = options
+        .external_adapters()
+        .iter()
+        .find(|(s, _)| *s == original)
+    {
+        if !std::iter::once(function.ret)
+            .chain(function.params.iter().map(|&p| function.vars[p].ty))
+            .all(|ty| suspend::scalar(&flow.core.types, ty))
+        {
+            return Err(unsupported(
+                &function.name,
+                &format!("non-scalar external adapter reachable from ISR entry `{entry}`"),
+            ));
+        }
+        Ok(adapter.symbol())
+    } else {
+        Ok(native)
+    }
 }
 
 pub(in crate::backend::plan) fn extend_string_output(

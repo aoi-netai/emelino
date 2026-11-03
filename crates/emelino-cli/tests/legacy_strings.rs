@@ -7,6 +7,18 @@ mod support;
 use legacy::{Options, Source, compile_sources};
 
 #[test]
+fn original_string_comparisons_remain_heapless_without_scratch_and_allow_isr() {
+    let source = include_str!(
+        "compat/legacy-corpus/sources/36887fdd50ace6a21aeb4b08f49cc935bf137db1baeca65beecbe73f157e09e4.emel"
+    );
+    let exports = ["eq", "ne", "lt", "le", "gt", "ge", "repeated"].map(|name| (name, name));
+    let output = support::compile(source, &exports, &Options::default().with_isr_entry("lt"));
+    assert!(output.c_source.contains("emela_emb_string_compare"));
+    assert!(!output.c_source.contains("emela_heap_storage"));
+    assert!(!output.c_source.contains("char emela_string_buffer"));
+}
+
+#[test]
 fn legacy_string_comparisons_preserve_captured_bytes_through_completion_and_cancel() {
     let original = include_str!(
         "compat/legacy-corpus/sources/e73ff5dc6bdbae6166012a370559dc06acda184140c57bffce000b364bb7beca.emel"

@@ -1,0 +1,5 @@
+const EMPTY = { dbg("INIT")
+  [] }
+fn ints(xs: List[Int]) -> Int { List.length(xs) }
+fn strings(xs: List[String]) -> Int { List.length(xs) }
+pub fn probe() -> Int { ints(EMPTY) + strings(EMPTY) }

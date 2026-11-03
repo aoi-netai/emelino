@@ -413,6 +413,14 @@ fn legacy_cleanup_list_error_payloads_survive_suspending_cleanup_and_are_dropped
 }
 
 #[test]
+fn legacy_cleanup_native_failure_channels_own_formatted_parse_errors_and_list_payloads() {
+    support::run_fixture(
+        "legacy-cleanup-native_failure_channels_own_formatted_parse_errors_and_list_payloads",
+        true,
+    );
+}
+
+#[test]
 fn legacy_cleanup_operation_failure_before_resume_transfers_and_releases_its_string_payload() {
     support::run_fixture(
         "legacy-cleanup-operation_failure_before_resume_transfers_and_releases_its_string_payload",
@@ -645,6 +653,15 @@ fn legacy_aggregate_both_propagates_managed_failure_from_aggregate_callbacks_and
 }
 
 #[test]
+fn legacy_aggregate_native_aggregate_callbacks_own_results_after_captures_and_arguments_are_released()
+ {
+    support::run_fixture(
+        "legacy-aggregate-native_aggregate_callbacks_own_results_after_captures_and_arguments_are_released",
+        true,
+    );
+}
+
+#[test]
 fn legacy_aggregate_heapless_callbacks_accept_and_return_aggregates_containing_function_values() {
     support::run_fixture(
         "legacy-aggregate-heapless_callbacks_accept_and_return_aggregates_containing_function_values",
@@ -657,6 +674,24 @@ fn legacy_aggregate_failing_indirect_aggregate_calls_release_discarded_successes
  {
     support::run_fixture(
         "legacy-aggregate-failing_indirect_aggregate_calls_release_discarded_successes_and_preserve_string_errors",
+        true,
+    );
+}
+
+#[test]
+fn legacy_aggregate_native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_borrowed()
+ {
+    support::run_fixture(
+        "legacy-aggregate-native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_borrowed",
+        false,
+    );
+}
+
+#[test]
+fn legacy_aggregate_native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_owned()
+ {
+    support::run_fixture(
+        "legacy-aggregate-native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_owned",
         true,
     );
 }
