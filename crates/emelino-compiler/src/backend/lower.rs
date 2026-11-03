@@ -8,7 +8,12 @@ use std::collections::{HashMap, HashSet};
 
 mod capabilities;
 mod closure;
+mod effects;
+mod error_types;
 mod exports;
+mod failures;
+
+mod function_abi;
 mod handler;
 mod types;
 mod values;
@@ -40,9 +45,11 @@ pub(crate) fn lower_program(
     types::validate_catalog(&program)?;
     capabilities::validate(&program, options)?;
     types::project_concurrency_rows(&mut program.core);
-
+    effects::normalize(&mut program)?;
     types::normalize_catalog(&mut program)?;
+    error_types::normalize(&mut program)?;
 
+    function_abi::normalize(&mut program);
     let mut symbols = HashSet::new();
     for (id, function) in program.functions.iter() {
         if function.exported {
@@ -73,7 +80,7 @@ pub(crate) fn lower_program(
     }
     exports::normalize(&mut program);
     let mut const_groups: Vec<crate::contract::lowered::ConstGroup> = Vec::new();
-    let closures = crate::contract::lowered::ClosureMetadata::default();
+    let (mut program, closures) = closure::lower(&program, options)?;
 
     let deferred_pool = false;
 
@@ -92,7 +99,7 @@ pub(crate) fn lower_program(
             .flat_map(|group| group.specializations.iter().copied()),
     );
     discard_unused_bindings(&mut program, &closures);
-
+    failures::normalize(&mut program);
     // Calls and checked values retain allocation and validation behavior when unused.
     // Temporary destinations release returned data, handlers and evidence immediately.
     let mut discarded_results: HashMap<FnId, HashSet<VarId>> = HashMap::new();

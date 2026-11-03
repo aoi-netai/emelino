@@ -1,3 +1,5 @@
+#[path = "function_tests.rs"]
+mod function;
 #[path = "memory_tests.rs"]
 mod memory;
 #[path = "p7_binding_tests.rs"]
@@ -1034,4 +1036,188 @@ fn audit_owned_heap(output: &mut Output) {
     }
     output.files.iter_mut().find(|file| file.path == "emela_embedded.c").unwrap().contents.push_str(
         "\nint test_heap_empty(void){for(unsigned char*p=emela_heap_storage;emela_heap_initialized&&p<emela_heap_end();){emela_heap_block*b=(emela_heap_block*)(void*)p;if(!b->is_free)return 0;p+=b->size;}return 1;}\n");
+}
+
+#[test]
+fn failure_payload_recovery_runs_cleanup_once() {
+    let mut p = program(vec![]);
+    let error_id = p.core.enums.alloc(EnumDef {
+        name: "Failure".into(),
+        params: 0,
+        variants: vec![VariantDef {
+            name: "Failure".into(),
+            fields: VariantFields::Positional(1),
+            tys: vec![TypeId::INT],
+        }],
+        error: true,
+        external: false,
+    });
+    let error_ty = p.core.types.intern(Type::Enum(error_id, vec![]));
+    let mut tick = Function::new("tick");
+    tick.external = Some(External {
+        bindings: vec![ExternalBinding {
+            target: "c".into(),
+            host: HostRef::Global("tick".into()),
+        }],
+    });
+    let tick_id = p.functions.alloc(tick);
+    let mut fail = Function::new("fail");
+    fail.fails = true;
+    fail.ret = TypeId::INT;
+    let error_value = aggregate_variable(&mut fail, error_ty);
+    let error_make = binding(
+        &mut fail,
+        Some(error_value),
+        Value::Make {
+            ctor: CtorRef {
+                enum_id: error_id,
+                variant: 0,
+            },
+            args: vec![Const::Int(42).into()],
+        },
+    );
+    let body = fail.seqs.alloc(Seq {
+        stmts: vec![error_make],
+        term: Term::Fail(error_value.into()),
+    });
+    let cleanup_call = binding(
+        &mut fail,
+        None,
+        Value::Call {
+            callee: Callee::Direct(tick_id),
+            args: vec![],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let cleanup = fail.seqs.alloc(Seq {
+        stmts: vec![cleanup_call],
+        term: Term::Yield(None),
+    });
+    let protect = fail.stmts.alloc(Stmt::Protect {
+        dst: None,
+        body,
+        cleanup,
+    });
+    fail.body = Some(fail.seqs.alloc(Seq {
+        stmts: vec![protect],
+        term: Term::Unreachable,
+    }));
+    let fail_id = p.functions.alloc(fail);
+    let mut answer = simple();
+    let caught = aggregate_variable(&mut answer, TypeId::ANY);
+    let unpacked = aggregate_variable(&mut answer, error_ty);
+    let code = variable(&mut answer, TypeId::INT);
+    let result = variable(&mut answer, TypeId::INT);
+    let unpack = binding(
+        &mut answer,
+        Some(unpacked),
+        Value::AsError {
+            error: caught,
+            enum_id: error_id,
+            error_type: error_ty,
+        },
+    );
+    let field = binding(
+        &mut answer,
+        Some(code),
+        Value::Field {
+            base: unpacked,
+            ctor: CtorRef {
+                enum_id: error_id,
+                variant: 0,
+            },
+            index: 0,
+        },
+    );
+    let handler = answer.seqs.alloc(Seq {
+        stmts: vec![unpack, field],
+        term: Term::Yield(Some(code.into())),
+    });
+    let call = binding(
+        &mut answer,
+        Some(result),
+        Value::Call {
+            callee: Callee::Direct(fail_id),
+            args: vec![],
+            suspends: false,
+            on_fail: Some(OnFail::Handle {
+                error: caught,
+                body: handler,
+            }),
+        },
+    );
+    answer.seqs[answer.body.unwrap()] = Seq {
+        stmts: vec![call],
+        term: Term::Return(Some(result.into())),
+    };
+    let answer_id = p.functions.alloc(answer);
+    let mut malformed = p.clone();
+    if let Stmt::Let {
+        value: Value::AsError { error_type, .. },
+        ..
+    } = &mut malformed.functions[answer_id].stmts[unpack]
+    {
+        *error_type = TypeId::INT;
+    }
+    assert!(
+        lower_program(malformed).unwrap_err()[0]
+            .message
+            .contains("error operation type")
+    );
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int ticks;\nvoid tick(void) { ++ticks; }\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { (void)k;(void)m;(void)n;exit(9); }\nint main(void) { int value=answer(); return value==42 && ticks==1 ? 0 : 1; }\n",
+        0,
+    );
+}
+
+#[test]
+fn rejects_malformed_generic_fields_and_unhandled_failure_channels() {
+    let mut p = program(vec![simple()]);
+    let param = p.core.types.intern(Type::Param(3));
+    let tuple = p.core.types.intern(Type::Tuple(vec![param]));
+    p.core.enums.alloc(EnumDef {
+        name: "Invalid".into(),
+        params: 1,
+        variants: vec![VariantDef {
+            name: "Invalid".into(),
+            fields: VariantFields::Positional(1),
+            tys: vec![tuple],
+        }],
+        error: false,
+        external: false,
+    });
+    assert!(
+        lower_program(p).unwrap_err()[0]
+            .message
+            .contains("undeclared type parameter")
+    );
+    let mut p = program(vec![]);
+    let mut fail = Function::new("fails");
+    fail.fails = true;
+    fail.body = Some(fail.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Return(None),
+    }));
+    let fail_id = p.functions.alloc(fail);
+    let mut f = simple();
+    let call = binding(
+        &mut f,
+        None,
+        Value::Call {
+            callee: Callee::Direct(fail_id),
+            args: vec![],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    f.seqs[f.body.unwrap()].stmts.push(call);
+    p.functions.alloc(f);
+    assert!(
+        lower_program(p).unwrap_err()[0]
+            .message
+            .contains("failure edge")
+    );
 }

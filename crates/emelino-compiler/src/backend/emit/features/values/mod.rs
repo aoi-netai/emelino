@@ -1,15 +1,21 @@
 // Keep analysis dispatch exhaustive: every new variant needs an explicit planning decision.
 use super::*;
+pub(in crate::backend::emit) mod as_error;
 pub(in crate::backend::emit) mod builtin;
 pub(in crate::backend::emit) mod call;
+pub(in crate::backend::emit) mod closure;
 pub(in crate::backend::emit) mod coerce;
 pub(in crate::backend::emit) mod const_;
+pub(in crate::backend::emit) mod env_get;
 pub(in crate::backend::emit) mod field;
+pub(in crate::backend::emit) mod fn_ref;
+pub(in crate::backend::emit) mod is_error;
 pub(in crate::backend::emit) mod list;
 pub(in crate::backend::emit) mod list_head;
 pub(in crate::backend::emit) mod list_is_empty;
 pub(in crate::backend::emit) mod list_tail;
 pub(in crate::backend::emit) mod make;
+pub(in crate::backend::emit) mod make_closure;
 pub(in crate::backend::emit) mod prim;
 pub(in crate::backend::emit) mod runtime;
 pub(in crate::backend::emit) mod tag;
@@ -34,16 +40,16 @@ pub(in crate::backend::emit) fn emit(
         Value::ListIsEmpty(_) => list_is_empty::emit(context, dst, value),
         Value::ListHead(_) => list_head::emit(context, dst, value),
         Value::ListTail(_) => list_tail::emit(context, dst, value),
-        Value::FnRef(_) => Err(unsupported(&context.function.name, "fn_ref")),
-        Value::Closure(_) => Err(unsupported(&context.function.name, "closure")),
-        Value::MakeClosure { .. } => Err(unsupported(&context.function.name, "make_closure")),
-        Value::EnvGet { .. } => Err(unsupported(&context.function.name, "env_get")),
+        Value::FnRef(_) => fn_ref::emit(context, dst, value),
+        Value::Closure(_) => closure::emit(context, dst, value),
+        Value::MakeClosure { .. } => make_closure::emit(context, dst, value),
+        Value::EnvGet { .. } => env_get::emit(context, dst, value),
         Value::EvLookup { .. } => Err(unsupported(&context.function.name, "ev_lookup")),
         Value::EvExtend { .. } => Err(unsupported(&context.function.name, "ev_extend")),
         Value::Handler { .. } => Err(unsupported(&context.function.name, "handler")),
         Value::Fiber { .. } => Err(unsupported(&context.function.name, "fiber")),
-        Value::IsError { .. } => Err(unsupported(&context.function.name, "is_error")),
-        Value::AsError { .. } => Err(unsupported(&context.function.name, "as_error")),
+        Value::IsError { .. } => is_error::emit(context, dst, value),
+        Value::AsError { .. } => as_error::emit(context, dst, value),
         Value::Runtime { .. } => runtime::emit(context, dst, value),
         Value::Coerce(_) => coerce::emit(context, dst, value),
     }

@@ -240,3 +240,122 @@ fn returning_a_borrowed_list_alias_requires_reference_management_capacity() {
         "{errors:?}"
     );
 }
+
+#[test]
+fn captured_closure_success_and_propagated_failure_use_the_original_indirect_call_abi() {
+    let mut p = program(vec![]);
+    let error = p.core.enums.alloc(EnumDef {
+        name: "ClosureError".into(),
+        params: 0,
+        error: true,
+        external: false,
+        variants: vec![VariantDef {
+            name: "ClosureError".into(),
+            fields: VariantFields::Positional(1),
+            tys: vec![TypeId::INT],
+        }],
+    });
+    let error_type = p.core.types.enum_type(error, vec![]);
+    let ft = p.core.types.intern(Type::Fn(FnType {
+        params: vec![TypeId::INT],
+        ret: TypeId::INT,
+        fails: true,
+        suspends: false,
+        ev: false,
+        sets: None,
+    }));
+    let mut f = export("apply", TypeId::INT);
+    f.fails = true;
+    let captured = variable(&mut f, TypeId::INT);
+    let input = variable(&mut f, TypeId::INT);
+    f.params = vec![captured, input];
+    let closure_input = variable(&mut f, TypeId::INT);
+    let mut body = vec![];
+    let zero = assign(
+        &mut f,
+        &mut body,
+        TypeId::BOOL,
+        Value::Prim {
+            op: PrimOp::Eq,
+            ty: PrimTy::I32,
+            args: vec![closure_input.into(), Const::Int(0).into()],
+        },
+    );
+    let mut failed = vec![];
+    let failure = assign(
+        &mut f,
+        &mut failed,
+        error_type,
+        Value::Make {
+            ctor: CtorRef {
+                enum_id: error,
+                variant: 0,
+            },
+            args: vec![Const::Int(73).into()],
+        },
+    );
+    let failed = f.seqs.alloc(Seq {
+        stmts: failed,
+        term: Term::Fail(failure.into()),
+    });
+    let mut success = vec![];
+    let sum = assign(
+        &mut f,
+        &mut success,
+        TypeId::INT,
+        Value::Prim {
+            op: PrimOp::Add,
+            ty: PrimTy::I32,
+            args: vec![captured.into(), closure_input.into()],
+        },
+    );
+    let success = f.seqs.alloc(Seq {
+        stmts: success,
+        term: Term::Yield(Some(sum.into())),
+    });
+    let chosen = variable(&mut f, TypeId::INT);
+    body.push(f.stmts.alloc(Stmt::If {
+        dst: Some(chosen),
+        cond: zero.into(),
+        then: failed,
+        else_: success,
+    }));
+    let closure_body = f.seqs.alloc(Seq {
+        stmts: body,
+        term: Term::Return(Some(chosen.into())),
+    });
+    let mut body = vec![];
+    let closure = assign(
+        &mut f,
+        &mut body,
+        ft,
+        Value::Closure(Box::new(Closure {
+            params: vec![closure_input],
+            captures: vec![captured],
+            body: closure_body,
+            suspends: false,
+        })),
+    );
+    let result = assign(
+        &mut f,
+        &mut body,
+        TypeId::INT,
+        Value::Call {
+            callee: Callee::Indirect(closure),
+            args: vec![input.into()],
+            suspends: false,
+            on_fail: Some(OnFail::Propagate),
+        },
+    );
+    finish(&mut f, body, result.into());
+    p.functions.alloc(f);
+    let mut output =
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(2048))
+            .unwrap();
+    audit_owned_heap(&mut output);
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint test_heap_empty(void);\nstatic int armed;\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)m;(void)n;exit(armed&&k==EMELA_DEFECT_UNHANDLED_ERROR?0:3);}\nint main(void){for(int i=0;i<1000;i++)if(apply(40,2)!=42||!test_heap_empty())return 1;armed=1;(void)apply(40,0);return 2;}\n",
+        0,
+    );
+}

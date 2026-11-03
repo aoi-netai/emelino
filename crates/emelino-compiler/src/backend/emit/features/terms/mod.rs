@@ -1,6 +1,7 @@
 use super::*;
 pub(in crate::backend::emit) mod r#break;
 pub(in crate::backend::emit) mod defect;
+pub(in crate::backend::emit) mod fail;
 pub(in crate::backend::emit) mod recur;
 pub(in crate::backend::emit) mod return_;
 pub(in crate::backend::emit) mod unreachable;
@@ -13,7 +14,7 @@ pub(in crate::backend::emit) fn emit(
     match term {
         Term::Yield(..) => r#yield::emit(context, term, dst),
         Term::Return(..) => return_::emit(context, term, dst),
-        Term::Fail(..) => Err(unsupported(&context.function.name, "fail")),
+        Term::Fail(..) => fail::emit(context, term, dst),
         Term::Break { .. } => r#break::emit(context, term, dst),
         Term::Recur(..) => recur::emit(context, term, dst),
         Term::Defect(..) => defect::emit(context, term, dst),
@@ -32,7 +33,7 @@ pub(in crate::backend::emit) fn emit_function(
     match term {
         Term::Yield(..) => r#yield::emit_function(layouts, function, term, string_buffers, writer),
         Term::Return(..) => return_::emit_function(layouts, function, term, string_buffers, writer),
-        Term::Fail(..) => Err(unsupported(&function.name, "fail")),
+        Term::Fail(..) => fail::emit_function(layouts, function, term, string_buffers, writer),
         Term::Break { .. } => {
             r#break::emit_function(layouts, function, term, string_buffers, writer)
         }
