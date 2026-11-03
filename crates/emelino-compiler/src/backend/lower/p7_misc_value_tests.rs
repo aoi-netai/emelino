@@ -216,6 +216,77 @@ fn debug_print_passes_the_original_string_view_to_the_board_hook() {
 }
 
 #[test]
+fn derived_bytes_equality_and_display_keep_unsigned_values_at_the_c_boundary() {
+    let mut p = program(vec![]);
+    let mut eq = Function::new("bytes_eq");
+    eq.ret = TypeId::BOOL;
+    eq.derivation = Some(crate::DerivedOperation::Eq);
+    eq.external = Some(External { bindings: vec![] });
+    let a = aggregate_variable(&mut eq, TypeId::BYTES);
+    let b = aggregate_variable(&mut eq, TypeId::BYTES);
+    eq.params = vec![a, b];
+    let eq = p.functions.alloc(eq);
+    let mut show = Function::new("bytes_show");
+    show.ret = TypeId::STRING;
+    show.derivation = Some(crate::DerivedOperation::Show);
+    show.external = Some(External { bindings: vec![] });
+    let value = aggregate_variable(&mut show, TypeId::BYTES);
+    show.params.push(value);
+    let show = p.functions.alloc(show);
+    for (symbol, target, ret, arity) in [
+        ("equal", eq, TypeId::BOOL, 2),
+        ("display", show, TypeId::STRING, 1),
+    ] {
+        let mut f = Function::new(symbol);
+        f.exported = true;
+        f.export_symbol = Some(symbol.into());
+        f.ret = ret;
+        let args = (0..arity)
+            .map(|_| {
+                let v = aggregate_variable(&mut f, TypeId::BYTES);
+                f.params.push(v);
+                v.into()
+            })
+            .collect();
+        let result = if ret == TypeId::BOOL {
+            variable(&mut f, ret)
+        } else {
+            aggregate_variable(&mut f, ret)
+        };
+        let call = binding(
+            &mut f,
+            Some(result),
+            Value::Call {
+                callee: Callee::Direct(target),
+                args,
+                suspends: false,
+                on_fail: None,
+            },
+        );
+        f.body = Some(f.seqs.alloc(Seq {
+            stmts: vec![call],
+            term: Term::Return(Some(result.into())),
+        }));
+        p.functions.alloc(f);
+    }
+    let output =
+        crate::backend::compile_saved_program(p, &Options::default().with_string_capacity(64))
+            .unwrap();
+    execute(
+        &output,
+        r#"
+#include <stdlib.h>
+#include <string.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}
+int main(void){for(int i=0;i<1000;i++){uint8_t a[]={0,128,255},b[]={0,128,254};EmelaBytes x={a,3,NULL},y={b,3,NULL};char buffer[64];if(!equal(x,x)||equal(x,y))return 1;EmelaString s=display(x,buffer,sizeof(buffer));const char expected[]="Bytes.hex(\"0080ff\")";if(s.length!=sizeof(expected)-1||memcmp(s.data,expected,s.length)||s.owner)return 2;}return 0;}
+"#,
+        0,
+    );
+}
+
+#[test]
 fn float_primitive_cases_keep_the_fixed_old_arithmetic_comparison_and_nan_results() {
     let cases = [
         (

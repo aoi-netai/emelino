@@ -21,7 +21,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let layouts = &plan.layouts;
     let external_bindings = &plan.external_bindings;
     let _const_bridges = &plan.const_bridges;
-    let _derived_plan = &plan.derived_plan;
+    let derived_plan = &plan.derived_plan;
     let emitted_functions = &plan.emitted_functions;
     let heap_functions = &plan.heap_functions;
     let string_output_functions = &plan.string_output_functions;
@@ -106,6 +106,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     }
 
     runtime.emit_helpers(&mut source);
+    derived_plan.emit(layouts, &mut source);
 
     for (id, function) in flow
         .functions
@@ -162,6 +163,10 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
                         function.name
                     ),
                 }]);
+            }
+            if function.derivation.is_some() {
+                derive_runtime::emit_adapter(layouts, function, &names[&id], &mut source);
+                continue;
             }
 
             continue;
@@ -324,6 +329,9 @@ use values::{
 pub(super) mod layouts;
 
 pub(super) mod string_buffers;
+
+pub(super) mod derive_runtime;
+use derive_runtime::Emission as DerivationPlanEmission;
 
 pub(super) mod runtime_helpers;
 use runtime_helpers::RuntimeEmission;

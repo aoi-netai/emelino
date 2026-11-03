@@ -8,6 +8,8 @@ mod p7_data;
 mod p7_list_alias;
 #[path = "p7_misc_value_tests.rs"]
 mod p7_misc_value;
+#[path = "source_builtin_tests.rs"]
+mod source_builtin;
 use super::*;
 use crate::{Options, Output};
 use std::path::PathBuf;
@@ -855,6 +857,94 @@ fn string_parameter_tail_recursion_tracks_loop_ownership() {
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { (void)k;(void)m;(void)n;exit(9); }\nint main(void) { EmelaString a={\"same\",UINT16_C(4),NULL}; EmelaString b={\"other\",UINT16_C(5),NULL}; if (!answer(a,a,100000)) return 1; return answer(a,b,100001) ? 2 : 0; }\n",
+        0,
+    );
+}
+
+#[test]
+fn structural_equality_and_show_use_materialized_tuple_layouts() {
+    let mut p = program(vec![]);
+    let tuple_ty = p
+        .core
+        .types
+        .intern(Type::Tuple(vec![TypeId::INT, TypeId::BOOL]));
+    let mut eq = Function::new("tuple_eq");
+    eq.ret = TypeId::BOOL;
+    eq.derivation = Some(crate::DerivedOperation::Eq);
+    eq.external = Some(External { bindings: vec![] });
+    let a = aggregate_variable(&mut eq, tuple_ty);
+    let b = aggregate_variable(&mut eq, tuple_ty);
+    eq.params = vec![a, b];
+    let eq_id = p.functions.alloc(eq);
+    let mut show = Function::new("tuple_show");
+    show.ret = TypeId::STRING;
+    show.derivation = Some(crate::DerivedOperation::Show);
+    show.external = Some(External { bindings: vec![] });
+    let value = aggregate_variable(&mut show, tuple_ty);
+    show.params.push(value);
+    let show_id = p.functions.alloc(show);
+    let mut answer = simple();
+    let tuple = aggregate_variable(&mut answer, tuple_ty);
+    let equals = variable(&mut answer, TypeId::BOOL);
+    let displayed = aggregate_variable(&mut answer, TypeId::STRING);
+    let length = variable(&mut answer, TypeId::INT);
+    let result = variable(&mut answer, TypeId::INT);
+    let make = binding(
+        &mut answer,
+        Some(tuple),
+        Value::Tuple(vec![Const::Int(42).into(), Const::Bool(true).into()]),
+    );
+    let compare = binding(
+        &mut answer,
+        Some(equals),
+        Value::Call {
+            callee: Callee::Direct(eq_id),
+            args: vec![tuple.into(), tuple.into()],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let display = binding(
+        &mut answer,
+        Some(displayed),
+        Value::Call {
+            callee: Callee::Direct(show_id),
+            args: vec![tuple.into()],
+            suspends: false,
+            on_fail: None,
+        },
+    );
+    let size = binding(
+        &mut answer,
+        Some(length),
+        Value::Builtin {
+            op: Builtin::StringByteSize,
+            args: vec![displayed.into()],
+        },
+    );
+    let yes = answer.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(Some(length.into())),
+    });
+    let no = answer.seqs.alloc(Seq {
+        stmts: vec![],
+        term: Term::Yield(Some(Const::Int(0).into())),
+    });
+    let branch = answer.stmts.alloc(Stmt::If {
+        dst: Some(result),
+        cond: equals.into(),
+        then: yes,
+        else_: no,
+    });
+    answer.seqs[answer.body.unwrap()] = Seq {
+        stmts: vec![make, compare, display, size, branch],
+        term: Term::Return(Some(result.into())),
+    };
+    p.functions.alloc(answer);
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
+    execute(
+        &output,
+        &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_C(10)"),
         0,
     );
 }
