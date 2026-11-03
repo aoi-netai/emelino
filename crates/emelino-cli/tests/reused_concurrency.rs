@@ -17,3 +17,9 @@ fixture_test!(
     "p5-suspend",
     true
 );
+
+fixture_test!(
+    nested_scope_cancellation_and_reclamation,
+    "p6-nested-cancel",
+    true
+);

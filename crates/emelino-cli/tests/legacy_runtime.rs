@@ -3,10 +3,94 @@
 mod support;
 
 #[test]
+fn legacy_concurrency_nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries()
+ {
+    support::run_fixture(
+        "legacy-concurrency-nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries",
+        true,
+    );
+}
+
+#[test]
 fn legacy_concurrency_a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame() {
     support::run_fixture(
         "legacy-concurrency-a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame",
         true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_await_keeps_owned_list_results_after_the_scope_ends() {
+    support::run_fixture(
+        "legacy-concurrency-await_keeps_owned_list_results_after_the_scope_ends",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_await()
+ {
+    support::run_fixture(
+        "legacy-concurrency-child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_await",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_join()
+ {
+    support::run_fixture(
+        "legacy-concurrency-child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_join",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_closing_a_scope_drops_ready_join_and_await_frames_before_result_delivery() {
+    support::run_fixture(
+        "legacy-concurrency-closing_a_scope_drops_ready_join_and_await_frames_before_result_delivery",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_leaked_await_callback_checks_the_ended_scope_before_using_the_child_result() {
+    support::run_fixture(
+        "legacy-concurrency-leaked_await_callback_checks_the_ended_scope_before_using_the_child_result",
+        false,
+    );
+}
+
+#[test]
+fn legacy_concurrency_returning_await_exit_through_scope_owns_the_exit_after_scope_end() {
+    support::run_fixture(
+        "legacy-concurrency-returning_await_exit_through_scope_owns_the_exit_after_scope_end",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_scope_end_breaks_cycles_when_a_child_result_closure_captures_its_own_handle()
+{
+    support::run_fixture(
+        "legacy-concurrency-scope_end_breaks_cycles_when_a_child_result_closure_captures_its_own_handle",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_closing_nested_scopes_unlinks_join_waiters_before_the_target_completes() {
+    support::run_fixture(
+        "legacy-concurrency-closing_nested_scopes_unlinks_join_waiters_before_the_target_completes",
+        true,
+    );
+}
+
+#[test]
+fn legacy_concurrency_leaked_join_callback_rejects_an_ended_scope_after_reusing_execution_slots() {
+    support::run_fixture(
+        "legacy-concurrency-leaked_join_callback_rejects_an_ended_scope_after_reusing_execution_slots",
+        false,
     );
 }
 
@@ -55,6 +139,62 @@ fn legacy_cause_cause_raise_preserves_the_error_and_runs_native_cleanup_before_e
     support::run_fixture(
         "legacy-cause-cause_raise_preserves_the_error_and_runs_native_cleanup_before_escape",
         true,
+    );
+}
+
+#[test]
+fn legacy_scope_scope_starts_children_at_real_suspension_and_reclaims_waiting_tasks() {
+    support::run_fixture(
+        "legacy-scope-scope_starts_children_at_real_suspension_and_reclaims_waiting_tasks",
+        false,
+    );
+}
+
+#[test]
+fn legacy_scope_scope_cancels_unstarted_children_before_running_their_function() {
+    support::run_fixture(
+        "legacy-scope-scope_cancels_unstarted_children_before_running_their_function",
+        false,
+    );
+}
+
+#[test]
+fn legacy_scope_completed_children_and_queued_events_do_not_leak_across_scope_reuse() {
+    support::run_fixture(
+        "legacy-scope-completed_children_and_queued_events_do_not_leak_across_scope_reuse",
+        false,
+    );
+}
+
+#[test]
+fn legacy_scope_closing_outer_scope_reclaims_nested_scopes_and_their_tasks() {
+    support::run_fixture(
+        "legacy-scope-closing_outer_scope_reclaims_nested_scopes_and_their_tasks",
+        false,
+    );
+}
+
+#[test]
+fn legacy_scope_children_can_fork_siblings_and_inherit_the_scope_call_evidence() {
+    support::run_fixture(
+        "legacy-scope-children_can_fork_siblings_and_inherit_the_scope_call_evidence",
+        false,
+    );
+}
+
+#[test]
+fn legacy_scope_fork_exhaustion_is_a_fixed_pool_defect_before_children_start() {
+    support::run_fixture(
+        "legacy-scope-fork_exhaustion_is_a_fixed_pool_defect_before_children_start",
+        false,
+    );
+}
+
+#[test]
+fn legacy_scope_scope_keeps_managed_captures_and_boxes_reference_results_without_leaks() {
+    support::run_fixture(
+        "legacy-scope-scope_keeps_managed_captures_and_boxes_reference_results_without_leaks",
+        false,
     );
 }
 

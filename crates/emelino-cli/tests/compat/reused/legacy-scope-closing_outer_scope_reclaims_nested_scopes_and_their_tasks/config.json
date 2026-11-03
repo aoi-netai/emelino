@@ -1,0 +1,20 @@
+{
+  "exports": [
+    {
+      "function": "nested",
+      "symbol": "legacy_nested"
+    }
+  ],
+  "heap_bytes": 16384,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 512,
+  "task_capacity": 3,
+  "event_capacity": 3,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}

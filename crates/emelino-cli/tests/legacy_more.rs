@@ -106,3 +106,23 @@ fn legacy_recursive_8f6003cb6b231900471a() {
 fn legacy_recursive_3e99d1b04faf8e90bba0() {
     support::run_fixture("legacy-recursive-3e99d1b04faf8e90bba0", true);
 }
+
+#[test]
+fn legacy_lifecycle_rounds() {
+    support::run_fixture("legacy-lifecycle-rounds", true);
+}
+
+#[test]
+fn legacy_lifecycle_discard() {
+    support::run_fixture("legacy-lifecycle-discard", true);
+}
+
+#[test]
+fn legacy_lifecycle_kept() {
+    support::run_fixture("legacy-lifecycle-kept", true);
+}
+
+#[test]
+fn legacy_child_handleless() {
+    support::run_fixture("legacy-child-handleless", true);
+}
