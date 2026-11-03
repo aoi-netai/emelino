@@ -424,3 +424,34 @@ pub(super) fn option_type(
         "builtin result requires an instantiated Option payload type",
     ))
 }
+
+/// Failure rows distinguish source effects but occupy no runtime payload slots.
+/// Adapted from the fixed previous compiler's function_abi::project_concurrency_rows.
+/// Apply the runtime ABI projection to owned input, then let effects::normalize
+/// merge the resulting equivalent types and remap every reference.
+pub(super) fn project_concurrency_rows(core: &mut Definitions) {
+    let cause = core
+        .enums
+        .iter()
+        .find_map(|(id, definition)| (definition.name == "Std.Cause.Cause").then_some(id));
+    let exit = core.enums.iter().find_map(|(id, definition)| {
+        (definition.name == "Std.Fiber.Exit" && definition.params == 2).then_some(id)
+    });
+    for node in &mut core.types.types {
+        if let Type::Enum(id, arguments) = node {
+            if Some(*id) == cause {
+                arguments.clear();
+            } else if Some(*id) == exit {
+                arguments.truncate(1);
+            }
+        }
+    }
+    if let Some(cause) = cause {
+        core.enums[cause].params = 0;
+        core.enums[cause].external = true;
+        core.enums[cause].variants.clear();
+    }
+    if let Some(exit) = exit {
+        core.enums[exit].params = 1;
+    }
+}

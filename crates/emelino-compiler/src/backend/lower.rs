@@ -46,6 +46,7 @@ pub(crate) fn lower_program(
     options: &crate::Options,
 ) -> Result<LoweredModule> {
     types::validate_catalog(&program)?;
+    types::project_concurrency_rows(&mut program.core);
     effects::normalize(&mut program)?;
     types::normalize_catalog(&mut program)?;
     error_types::normalize(&mut program)?;
@@ -687,7 +688,14 @@ fn validate_sequence(
                 .map(|value| operand(f, value, &available))
                 .transpose()?
                 .unwrap_or(TypeId::UNIT);
-            expect_type(f, actual, expected)?;
+            // Raw upstream Flow carries concrete errors into an erased failure
+            // block. Both native and frame emission already preserve their tag
+            // and owning payload through emit_error_assignment.
+            if !(expected == TypeId::ANY
+                && matches!(program.core.ty(actual), Type::Enum(id, _) if program.core.enums[*id].error))
+            {
+                expect_type(f, actual, expected)?;
+            }
         }
         Term::Fail(error) => {
             if !f.fails {
