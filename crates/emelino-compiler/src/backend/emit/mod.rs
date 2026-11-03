@@ -41,7 +41,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         flow,
         layouts,
         emitted_functions,
-
+        external_bindings,
         names,
         public_names,
         string_output_functions,
@@ -141,6 +141,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         crate::backend::emit::heap::emit_public_retain(&mut source);
         crate::backend::emit::heap::emit_public_release(&mut source);
         emit_public_string_ownership(&mut source);
+        external::emit_ownership_helpers(flow, external_bindings, layouts, &mut source);
     } else {
         source.line(
             "static inline EMELA_UNUSED void emela_heap_retain(void *value) { (void)value; }",
@@ -297,7 +298,13 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
                 derive_runtime::emit_adapter(layouts, function, &names[&id], &mut source);
                 continue;
             }
-
+            external::emit_adapter(
+                layouts,
+                function,
+                &external_bindings[&id],
+                &names[&id],
+                &mut source,
+            );
             continue;
         }
         let Some(body) = function.body else {
@@ -576,6 +583,8 @@ use derive_runtime::Emission as DerivationPlanEmission;
 
 pub(super) mod runtime_helpers;
 use runtime_helpers::RuntimeEmission;
+
+pub(super) mod external;
 
 mod features;
 use crate::writer::Writer;

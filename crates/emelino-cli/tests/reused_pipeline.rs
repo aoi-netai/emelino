@@ -13,7 +13,7 @@ macro_rules! fixture_test {
 }
 
 fixture_test!(numeric_boundaries_and_float_bits, "p1-numeric", false);
-
+fixture_test!(external_scalar_bits, "p1-external", false);
 fixture_test!(string_views_and_bounded_returns, "p2-strings", false);
 fixture_test!(recursive_types_and_deep_release, "p3-recursive", true);
 

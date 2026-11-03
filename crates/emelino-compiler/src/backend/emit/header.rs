@@ -1,6 +1,6 @@
 //! Public C types, runtime interfaces, and exported function declarations.
 use super::functions::signature;
-use super::{HEADER_FILE, TypeLayouts, suspend, task_values};
+use super::{HEADER_FILE, TypeLayouts, external, suspend, task_values};
 use crate::contract::ir::{FnId, Program as Module};
 use crate::contract::ir::{Type, TypeId};
 use crate::{GeneratedFile, writer::Writer};
@@ -11,7 +11,7 @@ pub(super) struct Context<'a, 'ir> {
     pub flow: &'ir Module,
     pub layouts: &'a TypeLayouts<'ir>,
     pub emitted_functions: &'a HashSet<FnId>,
-
+    pub external_bindings: &'a crate::contract::bindings::ExternalBindings,
     pub names: &'a HashMap<FnId, String>,
     pub public_names: &'a HashMap<FnId, String>,
     pub string_output_functions: &'a HashSet<FnId>,
@@ -28,7 +28,7 @@ pub(super) fn emit(context: Context<'_, '_>) -> GeneratedFile {
         flow,
         layouts,
         emitted_functions,
-
+        external_bindings,
         names,
         public_names,
         string_output_functions,
@@ -69,7 +69,7 @@ pub(super) fn emit(context: Context<'_, '_>) -> GeneratedFile {
         header.blank();
     }
     layouts.emit_declarations(&mut header);
-
+    external::emit_header(flow, external_bindings, layouts, heap_required, &mut header);
     if has_scheduler {
         header.line(include_str!("runtime/scheduler.h"));
     }

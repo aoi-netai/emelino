@@ -88,9 +88,35 @@ pub(in crate::backend::plan) fn resolve(
             );
             continue;
         }
-        symbol(f)?;
-
-        let binding = {
+        let original = symbol(f)?;
+        let adapter = options
+            .external_adapters()
+            .iter()
+            .find(|(name, _)| *name == original)
+            .map(|(_, a)| a);
+        let binding = if let Some(adapter) = adapter {
+            let symbol = adapter.symbol();
+            let result = adapter.result();
+            validate_adapter_symbol(f, symbol)?;
+            if generated.contains(symbol) {
+                return Err(unsupported(
+                    &f.name,
+                    "external adapter symbol conflicts with a generated declaration or is invalid",
+                ));
+            }
+            if result == ExternalResult::StringBuffer && f.ret != TypeId::STRING {
+                return Err(unsupported(
+                    &f.name,
+                    "StringBuffer external adapter requires a String result",
+                ));
+            }
+            Binding {
+                symbol: symbol.to_owned(),
+                result,
+                adapted: true,
+                target_owned: false,
+            }
+        } else {
             if f.fails {
                 return Err(unsupported(
                     &f.name,
