@@ -45,7 +45,7 @@ pub fn generate_sources(
     if inputs.iter().any(|input| {
         crate::bundled::SOURCES
             .iter()
-            .any(|(name, _)| *name == input.name)
+            .any(|(name, _)| Path::new(name) == Path::new(input.name))
     }) {
         return Err("source name conflicts with an emelino extension module".into());
     }
@@ -68,12 +68,12 @@ pub fn generate_sources(
             || path
                 .components()
                 .any(|c| !matches!(c, std::path::Component::Normal(_)))
-            || !names.insert(input.name)
+            || !names.insert(path.to_path_buf())
         {
             return Err(format!("invalid or duplicate source name: {}", input.name));
         }
     }
-    if !names.contains(entry_name) {
+    if !names.contains(Path::new(entry_name)) {
         return Err(format!("entry source is not supplied: {entry_name}"));
     }
     let input_path = root.join(entry_name);
@@ -135,7 +135,7 @@ pub fn generate_sources(
                 {
                     unsupported_annotations.push(format!(
                         "{}:{:?}: @{} requires the full upstream frontend",
-                        shown_path.display(),
+                        display_path(&modules, entry, id, shown_path),
                         annotation.syntax().text_range(),
                         name.text(),
                     ));
@@ -336,6 +336,39 @@ mod tests {
                 .expect("invalid source accepted");
             assert!(error.contains(expected), "{error}");
         }
+    }
+
+    #[test]
+    fn normalized_paths_cannot_replace_user_or_extension_sources() {
+        let inputs = [
+            Source {
+                name: "main.emel",
+                text: "import Lib.Helper\npub fn answer()->Int { Helper.value() }",
+            },
+            Source {
+                name: "lib/helper.emel",
+                text: "pub fn value()->Int { 42 }",
+            },
+            Source {
+                name: "lib//helper.emel",
+                text: "pub fn value()->Int { 99 }",
+            },
+        ];
+        let error = generate_sources(&inputs, "main.emel", Path::new("main.emel"))
+            .err()
+            .unwrap();
+        assert!(error.contains("duplicate source name"), "{error}");
+        let inputs = [Source {
+            name: "emelino//bytes.emel",
+            text: "pub fn fake()->Int {99}",
+        }];
+        let error = generate_sources(&inputs, "emelino//bytes.emel", Path::new("bytes.emel"))
+            .err()
+            .unwrap();
+        assert!(
+            error.contains("conflicts with an emelino extension"),
+            "{error}"
+        );
     }
 
     #[test]
