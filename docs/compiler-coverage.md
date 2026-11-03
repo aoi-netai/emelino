@@ -88,5 +88,35 @@ source_scope、実装・試験・実行報告のrevisionを確認し、必要な
 
 ## 現在の状態
 
-対応表は移入・初期化済み。全428 records・226 contexts・115 tests・10 requirementsはpending。
-実行・レビューが済んだ範囲を以後の機能コミットで更新する。
+S6では [backend/schemaレビュー](reports/backend-coverage-review.json)、
+[source操作レビュー](reports/reuse-source-record-review.json)、
+[旧sourceの観測対応](reports/reuse-source-coverage.json) を別々に照合する。
+最新の行別状態と終了判定は `compiler-coverage.json` を正とする。
+
+source対応表は174試験・169program・170source fileと、追加3件の拒否／bundle観測を保持する。
+各試験のC値観測、artifactのみの確認、source後の試験専用IR加工を区別する。
+対応表の115関連試験に含まれないsource観測も、この集合で追跡する。
+
+本体Flowの段階と表現については、次を個別にレビューした。
+
+- `MakeClosure` は後段の入力として拒否し、source closureの実行は今回のclosure変換で確認する。
+- `OnFail::Handle` はraw入力の互換形式であり、本体sourceが生成するという主張をしない。
+- `Type::Param` は宣言の具象代入として扱い、未解決のruntime slotを受理しない。
+- `Repr::Void` はUnitの格納省略であり、raw FlowにVoid変数が存在する証拠とは分ける。
+- `Hold`／`Retire`／`Unhold` は本体のcleanup生成と、元の試験用IR seamの両方を区別して確認する。
+
+[TestClockの追加観測](reports/reuse-source-clock.json) は元のsourceとC assertionを保つが、
+`frame_bytes` を旧1024から2048へ変更している。host Cで最大frameは1624 byteだった。
+本体Flowの変数保持量の違いによる容量条件であり、旧memory budgetがそのまま保たれるとは主張しない。
+[短絡評価・引数順序の追加観測](reports/reuse-source-semantics.json) では、
+副作用hookを正しいeffect/handlerに置き換えるためheapを旧0から4096へ変更している。
+これらの容量条件はUPSTREAM-001のconst共有差分とは別の事項である。
+
+`use {}` は本体仕様で純粋性を宣言する。通常の副作用を持つtest hookはeffect/handlerで扱い、
+同じ値を返すconstの初期化回数をC側で測るような観測用hookは、試験専用の計測として明示する。
+
+
+固定版本体は `Std.Embedded.*` の6moduleを実際に供給している。
+旧frontendの「このnamespaceを供給せずimportを拒否する」という追加観測は、
+今回の標準ライブラリー委譲により `replaced` とする。未使用importの処理順による差分ではない。
+`Std.Embedded.*` の名前解決を本体に従わせ、emelino側の `Embedded.*` の予約名上書き拒否とは分ける。

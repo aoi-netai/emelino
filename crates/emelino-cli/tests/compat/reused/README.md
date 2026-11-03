@@ -2,8 +2,10 @@
 
 取得元はemela-emb `b0a367bc0a29227fae62cee2def75ed925a5218f`。
 各fixtureは同じC観測と容量設定を使い、本体frontendからC実行までを確認する。
-現在Git管理しているfixtureの取得元・hash・変更点は
-[採用記録](../../../../../docs/reports/reuse-fixtures.json) に記録する。
+fixtureの取得元・hash・変更点は
+[初期採用記録](../../../../../docs/reports/reuse-fixtures.json)、各フェーズの採用記録、
+[旧並行処理85観測](../../../../../docs/reports/reuse-legacy-runtime.json)、
+[追加23観測](../../../../../docs/reports/reuse-legacy-more.json) に記録する。
 
 `cargo test --locked -p emelino-cli --test reused_pipeline` で確認する。
 C compilerは必須であり、不在・失敗はskipにしない。`CC`で実体を指定できる。
@@ -20,3 +22,11 @@ external呼出しは採用記録に列挙した変更を行う。製品frontend�
 
 `reference/legacy-flow`の対応表とのID一致を同じtest targetで検査する。
 fixtureの成功だけで台帳の全項目をverifiedへ変更することはない。
+
+旧corpusは `legacy_runtime` と `legacy_more` test targetで実行する。
+`observations.json` のheader型番号置換・release名取得・取消／heap／child観測は
+元のC harnessの方法を保つための試験用処理である。sourceと保存入力のC/headerが一致した後だけ適用する。
+元からartifactのみを確認する2例は報告で区別し、Cの値を実行したことにはしない。
+
+固定参照の末尾空行も保持するため、移入fixtureの `git diff --check` は
+`core.whitespace=-blank-at-eof` を指定する。source本文とC assertionのhashを報告へ保存する。

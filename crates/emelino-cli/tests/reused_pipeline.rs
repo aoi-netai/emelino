@@ -137,3 +137,105 @@ fn coverage_ledger_retains_every_fixed_definition_context_and_test() {
         }
     }
 }
+
+#[test]
+fn source_coverage_retains_every_fixed_program_and_original_observation() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let read = |path: &str| -> serde_json::Value {
+        serde_json::from_slice(&fs::read(root.join(path)).unwrap()).unwrap()
+    };
+    let ledger = read("docs/compiler-coverage.json");
+    let coverage = read("docs/reports/reuse-source-coverage.json");
+    let manifest = read("crates/emelino-cli/tests/compat/legacy-corpus/manifest.json");
+    let programs = manifest["programs"].as_array().unwrap();
+    let expected_tests: BTreeSet<_> = programs
+        .iter()
+        .flat_map(|program| program["legacy_tests"].as_array().unwrap())
+        .map(|name| name.as_str().unwrap())
+        .collect();
+    let cases = coverage["cases"].as_array().unwrap();
+    let actual_tests: BTreeSet<_> = cases
+        .iter()
+        .map(|case| case["legacy_test"].as_str().unwrap())
+        .collect();
+    assert_eq!(expected_tests.len(), 174);
+    assert_eq!(cases.len(), 174);
+    assert_eq!(actual_tests, expected_tests);
+    let expected_programs: BTreeSet<_> = programs
+        .iter()
+        .map(|program| program["id"].as_str().unwrap())
+        .collect();
+    let actual_programs: BTreeSet<_> = cases
+        .iter()
+        .flat_map(|case| case["programs"].as_array().unwrap())
+        .map(|program| program.as_str().unwrap())
+        .collect();
+    assert_eq!(expected_programs.len(), 169);
+    assert_eq!(actual_programs, expected_programs);
+    let additional = coverage["additional_nonruntime_cases"].as_array().unwrap();
+    let additional_ids: BTreeSet<_> = additional
+        .iter()
+        .map(|case| case["legacy_test"].as_str().unwrap())
+        .collect();
+    assert_eq!(additional.len(), 3);
+    assert_eq!(
+        additional_ids,
+        BTreeSet::from([
+            "frontend::embedded_backend_does_not_supply_the_old_std_namespace",
+            "frontend::embedded_backend_module_names_cannot_be_shadowed_by_project_files",
+            "sources::embedded_sources_are_supplied_by_the_backend_without_shadowing_core",
+        ])
+    );
+    for case in cases.iter().chain(additional) {
+        let evidence = case["evidence"].as_array().unwrap();
+        if case["status"] != "pending" {
+            assert!(!evidence.is_empty(), "{}", case["legacy_test"]);
+        }
+        for reference in evidence {
+            assert!(root.join(reference["report"].as_str().unwrap()).is_file());
+            assert!(
+                root.join(reference["test"]["path"].as_str().unwrap())
+                    .is_file()
+            );
+        }
+    }
+    if ledger["completion"]["finalized"] == true {
+        let source_review = read("docs/reports/reuse-source-record-review.json");
+        let reviewed_records: Vec<_> = source_review["groups"]
+            .as_object()
+            .unwrap()
+            .values()
+            .flat_map(|group| group["records"].as_array().unwrap())
+            .map(|id| id.as_str().unwrap())
+            .collect();
+        let unique_reviewed: BTreeSet<_> = reviewed_records.iter().copied().collect();
+        assert_eq!(reviewed_records.len(), unique_reviewed.len());
+        let source_records: BTreeSet<_> = ledger["records"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|row| {
+                matches!(
+                    row["source_scope"].as_str(),
+                    Some("source" | "source_declaration")
+                )
+            })
+            .map(|row| row["id"].as_str().unwrap())
+            .collect();
+        assert_eq!(source_records, unique_reviewed);
+        for collection in ["records", "contexts", "tests", "requirements"] {
+            for row in ledger[collection].as_array().unwrap() {
+                assert!(
+                    !matches!(row["status"].as_str().unwrap(), "pending" | "mapped"),
+                    "unfinished {collection}: {row}"
+                );
+            }
+        }
+        for case in cases.iter().chain(additional) {
+            assert!(
+                !matches!(case["status"].as_str().unwrap(), "pending" | "mapped"),
+                "unfinished source observation: {case}"
+            );
+        }
+    }
+}

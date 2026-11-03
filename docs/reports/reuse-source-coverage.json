@@ -1,0 +1,4550 @@
+{
+  "schema_version": 1,
+  "legacy_revision": "c34c0aeefdd966d854371b3110db00a47798751d",
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "original_crosswalk": {
+    "revision": "2258716bab2e9e4bbaa5a2fd135f6999636125e2",
+    "path": "docs/compiler-legacy-runtime-crosswalk.json",
+    "sha256": "30f0db107099bcaa0aeab50e2034d1afaafb081e309776730cd0e29df8a64f8b"
+  },
+  "policy": "Each fixed original test is tracked by exact ID; runtime, artifact-only, input rejection and test-only IR seams remain distinct. Compiler acceptance of 169 programs is not runtime evidence. Only current executions/reviews populate status; prior statuses are not inherited.",
+  "compile_acceptance": {
+    "report": "docs/reports/adapter-coverage-review.json",
+    "test": "crates/emelino-cli/tests/legacy_source_corpus.rs",
+    "programs": 169,
+    "source_files": 170,
+    "concrete_entry_wrapper_programs": 1,
+    "runtime_verified": false
+  },
+  "counts": {
+    "normal_cases": 174,
+    "normal_statuses": {
+      "verified": 147,
+      "pending": 19,
+      "upstream_known_issue": 8
+    },
+    "additional_nonruntime_cases": 3,
+    "additional_statuses": {
+      "replaced": 1,
+      "verified": 1,
+      "pending": 1
+    }
+  },
+  "cases": [
+    {
+      "legacy_test": "emit::bytes::bytes_captured_in_closures_and_state_keep_their_owners",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:545fcfac2473e3be10a5"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "verified",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-state.json",
+          "program": "program:545fcfac2473e3be10a5",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_state.rs",
+            "symbol": "state_shares_owned_values_with_escaped_closures_and_reclaims_every_run"
+          },
+          "observation_kind": "original-C-runtime-with-explicit-source-entry-wrappers",
+          "source_adjustments": [
+            "Old Unit return spelling changed to official ().",
+            "Side-effecting mark and mutate_input remain ordinary C externals without a pure use {} declaration. Each original call is routed through a test-owned HostProbe effect/handler and local with; host symbols, C bodies, evaluation trace and input mutation remain unchanged.",
+            "counter wraps its escaped reader invocations in State.run(0, ...); owned and bytes wrap the original short-circuit comparison/reader expression in State.run with a concrete empty String/Bytes initial value. This discharges the public effect boundary without changing captured original State cells. Original named-argument order test, failure case and nested State bodies are unchanged.",
+            "The shared test-only legacy helper parses old @export(c,...) annotations into configuration and removes the annotations before official compilation. It changes only import Std.Bytes to import Emelino.Bytes for the ordinary validated extension."
+          ]
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_dynamic_capacity_is_independent_of_string_capacity",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:e7a338aa5771b67698db"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_external_adapters_snapshot_borrowed_data_and_transfer_owned_data",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:738c3317d1a9dca5984d"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_external_tasks_snapshot_arguments_and_results_and_release_cancelled_contexts",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:b2f1d9d68d3fa5696d8c"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_list_round_trips_and_invalid_elements_reclaim_every_allocation",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:ee5ba136321c839df89e"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_require_a_fixed_heap_and_defect_when_its_capacity_is_exhausted",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:36dfa29b6881b628bddb"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_returns_lists_and_aliases_preserve_ownership_and_release_the_heap",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:831e8ca3bfd2e879fe38"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_size_and_get_are_heapless_and_keep_lengths_above_u16",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:bb4cfa4d0a45d9128d84"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_std_corpus_matches_other_targets_including_const_traits_and_invalid_utf8",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:0e4c492fa71240d47260"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::bytes_survive_suspension_and_release_on_completion_and_cancellation",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:896c718072ff9a14cba6"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::bytes::discarded_bytes_still_check_capacity_and_release_owned_results",
+      "legacy_path": "crates/emela-codegen-emb/tests/bytes/mod.rs",
+      "programs": [
+        "program:e002041e4a426285da18"
+      ],
+      "families": [
+        "bytes"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::captured_sync_string_producers_return_owned_bytes_with_inferred_scratch",
+      "legacy_path": "crates/emela-codegen-emb/tests/emit.rs",
+      "programs": [
+        "program:f9a6b6eea98c9abe5d11"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:f9a6b6eea98c9abe5d11",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_f9a6b6eea98c9abe5d11"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-f9a6b6eea98c9abe5d11"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::captures_runtime_values_in_a_fixed_heap_closure_environment",
+      "legacy_path": "crates/emela-codegen-emb/tests/emit.rs",
+      "programs": [
+        "program:e805431f1035638cad96"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:e805431f1035638cad96",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_e805431f1035638cad96"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-e805431f1035638cad96"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::cell::shared_cells_keep_string_updates_alive_across_capture_suspend_and_cancellation",
+      "legacy_path": "crates/emela-codegen-emb/tests/cell/mod.rs",
+      "programs": [
+        "program:45d10a963a24d47032c7"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:45d10a963a24d47032c7",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_45d10a963a24d47032c7"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [
+            "The returned callback carries State[Int] in upstream typing; escaped_result supplies State.run around the same reader calls to make its public boundary concrete. Original C assertions, including the captured state result 83, remain unchanged."
+          ],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-45d10a963a24d47032c7"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::completion_types::derived::nested_generic_error_payloads_have_finite_display_functions",
+      "legacy_path": "crates/emela-codegen-emb/tests/completion_types/derived.rs",
+      "programs": [
+        "program:3e99d1b04faf8e90bba0"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:3e99d1b04faf8e90bba0",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_recursive_3e99d1b04faf8e90bba0"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-3e99d1b04faf8e90bba0"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::completion_types::finite_changing_recursive_enum_arguments_run_with_owned_back_edges",
+      "legacy_path": "crates/emela-codegen-emb/tests/completion_types/mod.rs",
+      "programs": [
+        "program:4bd3bbef2dbb773478d2"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:4bd3bbef2dbb773478d2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_recursive_4bd3bbef2dbb773478d2"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-4bd3bbef2dbb773478d2"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::caches_runtime_const_external_results_and_discards_without_reinitializing",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:356d9928e442971ded00"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:356d9928e442971ded00",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_const_sources_keep_recursive_closures_aggregates_and_discarded_first_reads"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::canonical_const_roots_include_dependency_specializations_until_they_reach_a_fixed_point",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:0e55f902c5bac78b6187"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:0e55f902c5bac78b6187",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::nested_specializations_cache_each_received_const"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "2 initialization logs for BASE and PAIR across specializations",
+            "pinned": "3 initialization logs; both returned values42 over1000 calls"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::canonical_dependency_consts_initialize_once_across_nested_specializations",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:0e55f902c5bac78b6187"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:0e55f902c5bac78b6187",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::nested_specializations_cache_each_received_const"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "2 initialization logs for BASE and PAIR across specializations",
+            "pinned": "3 initialization logs; both returned values42 over1000 calls"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::evaluates_branch_loop_recursive_helper_and_closure_const_once",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:12c836689dcf8fbdefcc"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:12c836689dcf8fbdefcc",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_const_sources_keep_recursive_closures_aggregates_and_discarded_first_reads"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::external::adapter_contract_defects_are_memoized_with_the_source_const_name",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/external.rs",
+      "programs": [
+        "program:bd83fac6076474dfdacf"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:bd83fac6076474dfdacf",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_const_heap_and_adapter_defects_are_cached_with_the_source_name"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::external::pure_external_aggregate_const_owns_string_and_list_fields_after_board_release",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/external.rs",
+      "programs": [
+        "program:a7326c76e24e2c628792"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:a7326c76e24e2c628792",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_external_aggregate_const_owns_fields_after_the_board_releases_its_value"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": "固定旧と同じreachable Cell[Any]のtest専用IR functionを通常source lowering後へ追加し、強制cycle collectionを呼ぶ。",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::external::pure_external_opaque_const_memoizes_the_board_handle_without_heap",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/external.rs",
+      "programs": [
+        "program:fce8e7b6b3eba553963a"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:fce8e7b6b3eba553963a",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_opaque_const_caches_one_nullable_host_pointer_without_heap"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::external::pure_external_string_const_caches_borrowed_owned_and_caller_buffer_values_across_public_flow_and_gc",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/external.rs",
+      "programs": [
+        "program:d81aa6294c52e64c91a5"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:d81aa6294c52e64c91a5",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_external_string_const_keeps_one_snapshot_for_all_policies_and_gc_modes"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": "固定旧と同じreachable Cell[Any]のtest専用IR functionを通常source lowering後へ追加し、強制cycle collectionを呼ぶ。",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::generic_function_references_returned_by_consts_keep_their_source_family",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:1e18a161ce360199a21e"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:1e18a161ce360199a21e",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::generic_function_references_keep_type_specific_calls"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::heap_exhaustion_during_const_initialization_keeps_its_name_and_cached_defect",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:c52f04cf604c46c53d58"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:c52f04cf604c46c53d58",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_const_heap_and_adapter_defects_are_cached_with_the_source_name"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::keeps_list_tuple_enum_and_option_string_const_values_alive",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:fb872bf260d3593b4367"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:fb872bf260d3593b4367",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_const_sources_keep_recursive_closures_aggregates_and_discarded_first_reads"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::memoizes_nested_const_defects_and_retries_self_reference_without_prefix",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:fee491a366b1c1ad5051"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:fee491a366b1c1ad5051",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_nested_const_defects_cache_the_exact_context_and_self_reference_retries"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::oversized_static_string_growth_falls_back_before_unbounded_compiler_allocation",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:2f21eb2017b3f0b1d760"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:2f21eb2017b3f0b1d760",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_exponential_static_string_uses_bounded_runtime_evaluation"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::persistent_const_roots_survive_cycle_collection_and_caller_release",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:661bd10d1eb4fcbe825b"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:661bd10d1eb4fcbe825b",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_const_roots_survive_cycle_collection"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": "固定旧と同じreachable Cell[Any]のtest専用IR functionを通常source lowering後へ追加し、強制cycle collectionを呼ぶ。",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::polymorphic_const_bridge_capacity_defects_use_the_source_name_once_and_are_cached",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:82d224825b4fecc59779"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:82d224825b4fecc59779",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::nested_list_keeps_values_across_const_specializations"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "1 nested-list const initialization plus canonical bridge-capacity observation",
+            "pinned": "2 specializations initialize separately; values42 with sufficient heap; canonical bridge does not exist in received Flow"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::polymorphic_const_callable_families_preserve_failure_evidence_and_selected_origins",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:3341457f78b9863e37dd"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:3341457f78b9863e37dd",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::upstream_001_callable_families_keep_values_but_initialize_per_specialization"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": "固定旧と同じreachable Cell[Any]のtest専用IR functionを通常source lowering後へ追加し、強制cycle collectionを呼ぶ。",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "9 initializer calls for the shared callable families",
+            "pinned": "20 initializer calls; all nine exported observations remain42; stable retained heap in both GC modes"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::polymorphic_const_defects_have_one_source_context_and_self_reference_retries",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:4ec3db5b593e7e155054",
+        "program:6509a26b86dc042348d0"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:4ec3db5b593e7e155054",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::generic_defects_cache_each_received_const"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "1 trigger/log; shared BROKEN cached defect",
+            "pinned": "2 triggers/logs; cached BROKEN[Int] and BROKEN[String] defects,2000 deliveries and empty heap"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        },
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:6509a26b86dc042348d0",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::generic_self_reference_retries_without_cached_failure"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "BROKEN source name with2000 trigger/log retries",
+            "pinned": "BROKEN[Int]/BROKEN[String] diagnostic names; same2000 retries and empty heap"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::polymorphic_const_opaque_handles_forward_one_pointer_abi_and_one_initialization",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:c8599a8fbf13ac6c2ec8"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:c8599a8fbf13ac6c2ec8",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::upstream_001_opaque_const_caches_each_received_specialization_without_heap"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "1 generic opaque HANDLE initialization",
+            "pinned": "2 independent HANDLE specializations; value42 and no heap under Borrowed/Owned and NULL/nonNULL"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::polymorphic_empty_list_const_keeps_the_heapless_representation",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:090d8d1bc5a5b8ddd694"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:090d8d1bc5a5b8ddd694",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::empty_list_keeps_heapless_representation"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::rejects_runtime_const_reachable_from_isr_but_preserves_static_fold",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:5ce8d2ba40fb42a01466",
+        "program:7eaad73bc9a9b5a9bcaa"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-and-diagnostic-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:5ce8d2ba40fb42a01466",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_runtime_const_isr_rejection_keeps_the_static_alternative_heapless"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        },
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:7eaad73bc9a9b5a9bcaa",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/consts.rs",
+            "symbol": "consts::original_runtime_const_isr_rejection_keeps_the_static_alternative_heapless"
+          },
+          "observation_kind": "runtime",
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::source_polymorphic_const_origins_keep_a_canonical_value_and_typed_members_in_verified_flow",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:9d483cae98bfe8662280"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:9d483cae98bfe8662280",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::empty_lists_follow_received_const_identities"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "1 shared empty-list initialization log",
+            "pinned": "2 specialization logs; value0 and no live heap"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::const_runtime::source_polymorphic_consts_share_initialization_and_specialize_callable_families",
+      "legacy_path": "crates/emela-codegen-emb/tests/const_runtime/mod.rs",
+      "programs": [
+        "program:cd203f34d6ed62e80e19"
+      ],
+      "families": [
+        "const"
+      ],
+      "status": "upstream_known_issue",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:cd203f34d6ed62e80e19",
+          "status": "upstream_known_issue",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/generic_consts.rs",
+            "symbol": "generic_consts::generic_closure_families_keep_values_and_branches"
+          },
+          "observation_kind": "runtime",
+          "known_upstream_difference": {
+            "issue": "UPSTREAM-001",
+            "old": "2 ticks,6 logs,2 selected branch marks per iteration",
+            "pinned": "4 ticks,12 logs; values42 and2 selected branch marks per iteration unchanged"
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::await_preserves_string_and_list_results_past_frame_and_scope_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:d7d35bbc08500ea36416"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:d7d35bbc08500ea36416",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_await_preserves_string_and_list_results_past_frame_and_scope_reuse"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_preserves_string_and_list_results_past_frame_and_scope_reuse"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::await_resumes_all_waiters_in_fifo_order_after_completer_finishes",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:a18100d79c54375672ef"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:a18100d79c54375672ef",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_await_resumes_all_waiters_in_fifo_order_after_completer_finishes"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_resumes_all_waiters_in_fifo_order_after_completer_finishes"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::complete_copies_borrowed_string_and_poll_retains_it_past_scope_end",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:331a2c931ce2d58cc538"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:331a2c931ce2d58cc538",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_complete_copies_borrowed_string_and_poll_retains_it_past_scope_end"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-complete_copies_borrowed_string_and_poll_retains_it_past_scope_end"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::complete_stores_once_and_scope_end_breaks_cycles_through_captured_deferreds",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:d364a88840d93693e7a1"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:d364a88840d93693e7a1",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_complete_stores_once_and_scope_end_breaks_cycles_through_captured_deferreds"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-complete_stores_once_and_scope_end_breaks_cycles_through_captured_deferreds"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::deferred_constructor_reuses_slots_and_scope_only_programs_omit_the_pool",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:9c2f7bf8afd6c491518f",
+        "program:f7d2e02f4b35e1f1f64f"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-and-artifact-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:f7d2e02f4b35e1f1f64f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_deferred_constructor_reuses_slots_and_scope_only_programs_omit_the_pool"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_constructor_reuses_slots_and_scope_only_programs_omit_the_pool"
+        },
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:9c2f7bf8afd6c491518f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_scope_only_omits_deferred_pool"
+          },
+          "observation_kind": "artifact_only",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-scope_only_omits_deferred_pool"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::deferred_pool_exhaustion_uses_the_defined_defect",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:513af204033ab6c391db"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:513af204033ab6c391db",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_deferred_pool_exhaustion_uses_the_defined_defect"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_pool_exhaustion_uses_the_defined_defect"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::deferred_round_trips_int64_and_float_bits_through_await_and_poll",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:dd78f6f854fc5e190a80"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:dd78f6f854fc5e190a80",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_deferred_round_trips_int64_and_float_bits_through_await_and_poll"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_round_trips_int64_and_float_bits_through_await_and_poll"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::deferred_transfers_tuple_values_and_boolean_flags",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:6bf09cbf4f33df5e9332"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:6bf09cbf4f33df5e9332",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_deferred_transfers_tuple_values_and_boolean_flags"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_transfers_tuple_values_and_boolean_flags"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::deferred_wait_is_a_real_resume_boundary_and_root_end_reclaims_pending_operation",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:2ce8270cb6507630ec58"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:2ce8270cb6507630ec58",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_deferred_wait_is_a_real_resume_boundary_and_root_end_reclaims_pending_operation"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-deferred_wait_is_a_real_resume_boundary_and_root_end_reclaims_pending_operation"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:112331fc072b58fda27c",
+        "program:884cdff6b76ad186a1ab"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:112331fc072b58fda27c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_poll"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_poll"
+        },
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:884cdff6b76ad186a1ab",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_await"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-ended_deferred_poll_and_await_reject_leaked_callbacks_after_slot_reuse_await"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::leaked_complete_callback_checks_scope_before_recycled_slot",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:4feeee010d5462bd622d"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:4feeee010d5462bd622d",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_leaked_complete_callback_checks_scope_before_recycled_slot"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-leaked_complete_callback_checks_scope_before_recycled_slot"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:28a6cce6abfc4186e46c"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:28a6cce6abfc4186e46c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-nested_scope_cancellation_unlinks_middle_tail_and_head_waiters_and_ready_deliveries"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::deferred::poll_observes_empty_and_first_value_for_scalar_and_unit_without_yielding",
+      "legacy_path": "crates/emela-codegen-emb/tests/deferred/mod.rs",
+      "programs": [
+        "program:f590f55865c7dd94150f"
+      ],
+      "families": [
+        "deferred"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:f590f55865c7dd94150f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_poll_observes_empty_and_first_value_for_scalar_and_unit_without_yielding"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-poll_observes_empty_and_first_value_for_scalar_and_unit_without_yielding"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::dynamically_dispatches_through_a_fixed_heap_evidence_table",
+      "legacy_path": "crates/emela-codegen-emb/tests/emit.rs",
+      "programs": [
+        "program:31c21eecada04937f501"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:31c21eecada04937f501",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_31c21eecada04937f501"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [
+            "Same private main root made public as in old source helper; body unchanged."
+          ],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-31c21eecada04937f501"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::embedded_peripherals::clock::clock_sleep_notifies_then_resumes_through_the_main_scheduler",
+      "legacy_path": "crates/emela-codegen-emb/tests/embedded_peripherals/clock.rs",
+      "programs": [
+        "program:7d9575dd005593b562d8"
+      ],
+      "families": [
+        "embedded-and-frontend"
+      ],
+      "status": "verified",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:7d9575dd005593b562d8",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_services.rs",
+            "symbol": "board_clock_sleep_clamps_boundaries_and_notifies_before_main_resumes"
+          },
+          "observation_kind": "runtime"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::embedded_peripherals::standard_handlers_preserve_values_errors_and_owned_receive_lists",
+      "legacy_path": "crates/emela-codegen-emb/tests/embedded_peripherals/mod.rs",
+      "programs": [
+        "program:5290f0b664af9543cbf5"
+      ],
+      "families": [
+        "embedded-and-frontend"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:5290f0b664af9543cbf5",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/board_boundary.rs",
+            "symbol": "embedded_handlers_preserve_services_buffers_errors_and_cancellation"
+          },
+          "observation_kind": "runtime"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::external_scalar::source_handler_can_call_native_external_int64_and_float_with_mixed_arguments",
+      "legacy_path": "crates/emela-codegen-emb/tests/external_scalar/mod.rs",
+      "programs": [
+        "program:7e82f10b73354f97dfeb"
+      ],
+      "families": [
+        "native-external-and-task-values"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:7e82f10b73354f97dfeb",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_externals.rs",
+            "symbol": "source_handler_can_call_native_external_int64_and_float_with_mixed_arguments"
+          },
+          "observation_kind": "runtime",
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate::deferred_complete_poll_and_await_share_owned_string_aggregates_past_scope_end",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate.rs",
+      "programs": [
+        "program:c3c4cdd26e1efbbfdf88"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:c3c4cdd26e1efbbfdf88",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_deferred_complete_poll_and_await_share_owned_string_aggregates_past_scope_end"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-deferred_complete_poll_and_await_share_owned_string_aggregates_past_scope_end"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate::native_closure_captures_string_tuple_enum_and_list_after_factory_stack_returns",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate.rs",
+      "programs": [
+        "program:ac90e395370d309144f0"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:ac90e395370d309144f0",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_native_closure_captures_string_tuple_enum_and_list_after_factory_stack_returns"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_closure_captures_string_tuple_enum_and_list_after_factory_stack_returns"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate::native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate.rs",
+      "programs": [
+        "program:158234f97251d7d95674",
+        "program:660953efd0834142cd9a"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:158234f97251d7d95674",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_borrowed"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_borrowed"
+        },
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:660953efd0834142cd9a",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_owned"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_string_enum_producers_use_owned_backing_and_heapless_borrowed_tuples_stay_borrowed_owned"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate::string_aggregates_own_borrowed_inputs_and_native_results_across_suspend_and_cancellation",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate.rs",
+      "programs": [
+        "program:ac90e395370d309144f0"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:ac90e395370d309144f0",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_string_aggregates_own_borrowed_inputs_and_native_results_across_suspend_and_cancellation"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-string_aggregates_own_borrowed_inputs_and_native_results_across_suspend_and_cancellation"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate::suspended_child_captures_and_scope_results_keep_string_aggregates_until_last_release",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate.rs",
+      "programs": [
+        "program:ac90e395370d309144f0"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:ac90e395370d309144f0",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_suspended_child_captures_and_scope_results_keep_string_aggregates_until_last_release"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-suspended_child_captures_and_scope_results_keep_string_aggregates_until_last_release"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate_abi::both_propagates_managed_failure_from_aggregate_callbacks_and_reclaims_its_sibling",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate_abi.rs",
+      "programs": [
+        "program:314587c327ffac8b616b"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:314587c327ffac8b616b",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_both_propagates_managed_failure_from_aggregate_callbacks_and_reclaims_its_sibling"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-both_propagates_managed_failure_from_aggregate_callbacks_and_reclaims_its_sibling"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate_abi::both_returns_nested_string_aggregates_and_cancels_pending_children_without_leaks",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate_abi.rs",
+      "programs": [
+        "program:01353e00d829543bae73"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:01353e00d829543bae73",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_both_returns_nested_string_aggregates_and_cancels_pending_children_without_leaks"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-both_returns_nested_string_aggregates_and_cancels_pending_children_without_leaks"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate_abi::handler_resume_accepts_a_string_enum_and_reclaims_it_when_cancelled_in_either_wait",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate_abi.rs",
+      "programs": [
+        "program:01353e00d829543bae73"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:01353e00d829543bae73",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_handler_resume_accepts_a_string_enum_and_reclaims_it_when_cancelled_in_either_wait"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-handler_resume_accepts_a_string_enum_and_reclaims_it_when_cancelled_in_either_wait"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::aggregate_abi::scope_returns_string_enum_exits_after_success_or_interruption_and_frame_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/aggregate_abi.rs",
+      "programs": [
+        "program:01353e00d829543bae73"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:01353e00d829543bae73",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_scope_returns_string_enum_exits_after_success_or_interruption_and_frame_reuse"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-scope_returns_string_enum_exits_after_success_or_interruption_and_frame_reuse"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::attempt::attempt_captures_sync_failure_and_returns_owned_cause",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/attempt.rs",
+      "programs": [
+        "program:487a37e912618d251aaf"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:487a37e912618d251aaf",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_attempt_captures_sync_failure_and_returns_owned_cause"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_captures_sync_failure_and_returns_owned_cause"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::attempt::attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/attempt.rs",
+      "programs": [
+        "program:151d66237ba9b27b858e"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:151d66237ba9b27b858e",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::attempt::attempt_owns_managed_success_and_releases_discarded_results",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/attempt.rs",
+      "programs": [
+        "program:e2cf3f9e45106522dedf"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:e2cf3f9e45106522dedf",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_attempt_owns_managed_success_and_releases_discarded_results"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_owns_managed_success_and_releases_discarded_results"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::attempt::attempt_waits_for_async_cleanup_before_catching_failure",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/attempt.rs",
+      "programs": [
+        "program:fc4001cbeeb0256ac68c"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:fc4001cbeeb0256ac68c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_attempt_waits_for_async_cleanup_before_catching_failure"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-attempt_waits_for_async_cleanup_before_catching_failure"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:7b0faede711596ca092e"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:7b0faede711596ca092e",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::await_and_join_share_fifo_waiters_and_transfer_each_result",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:966e35a933bb50fec529"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:966e35a933bb50fec529",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_await_and_join_share_fifo_waiters_and_transfer_each_result"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_and_join_share_fifo_waiters_and_transfer_each_result"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::await_keeps_owned_list_results_after_the_scope_ends",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:238fdc7e166173ca81c5"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:238fdc7e166173ca81c5",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_await_keeps_owned_list_results_after_the_scope_ends"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_keeps_owned_list_results_after_the_scope_ends"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::await_preserves_int64_float_bits_and_bool_payloads",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:b283b90d26e8ee6179f2"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:b283b90d26e8ee6179f2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_await_preserves_int64_float_bits_and_bool_payloads"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_preserves_int64_float_bits_and_bool_payloads"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::await_returns_success_and_can_mix_with_repeated_join_without_yielding",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:872b73526ae1cdeecd30"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:872b73526ae1cdeecd30",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_await_returns_success_and_can_mix_with_repeated_join_without_yielding"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_returns_success_and_can_mix_with_repeated_join_without_yielding"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::await_with_a_string_exit_keeps_owned_backing_after_scope_and_frame_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:53fc4a519e38bfa7942e"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:53fc4a519e38bfa7942e",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_await_with_a_string_exit_keeps_owned_backing_after_scope_and_frame_reuse"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-await_with_a_string_exit_keeps_owned_backing_after_scope_and_frame_reuse"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:1526bca68557f74bf094",
+        "program:60f85310853803d70678"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:1526bca68557f74bf094",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_await"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_await"
+        },
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:60f85310853803d70678",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_join"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-child_wait_is_a_resume_boundary_and_scope_end_reclaims_the_operation_tail_join"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::closing_a_scope_drops_ready_join_and_await_frames_before_result_delivery",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:13362f28679b3bbabd69"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:13362f28679b3bbabd69",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_closing_a_scope_drops_ready_join_and_await_frames_before_result_delivery"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-closing_a_scope_drops_ready_join_and_await_frames_before_result_delivery"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::leaked_await_callback_checks_the_ended_scope_before_using_the_child_result",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:fa40589ab2ec14656e19"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:fa40589ab2ec14656e19",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_leaked_await_callback_checks_the_ended_scope_before_using_the_child_result"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-leaked_await_callback_checks_the_ended_scope_before_using_the_child_result"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::returning_await_exit_through_scope_owns_the_exit_after_scope_end",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:60bb51f1f49ec78360a2"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:60bb51f1f49ec78360a2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_returning_await_exit_through_scope_owns_the_exit_after_scope_end"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-returning_await_exit_through_scope_owns_the_exit_after_scope_end"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::await_::scope_end_breaks_cycles_when_a_child_result_closure_captures_its_own_handle",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/await_.rs",
+      "programs": [
+        "program:16849ead337634fd58fa"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:16849ead337634fd58fa",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_scope_end_breaks_cycles_when_a_child_result_closure_captures_its_own_handle"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-scope_end_breaks_cycles_when_a_child_result_closure_captures_its_own_handle"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::cause::cause_kind_reads_failure_without_consuming_the_cause",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/cause.rs",
+      "programs": [
+        "program:902e83bb72b886983dd2"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:902e83bb72b886983dd2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_cause_kind_reads_failure_without_consuming_the_cause"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-cause_kind_reads_failure_without_consuming_the_cause"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::cause::cause_raise_preserves_the_error_and_runs_native_cleanup_before_escape",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/cause.rs",
+      "programs": [
+        "program:fb2aa71c1044bb6ef15e"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:fb2aa71c1044bb6ef15e",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_cause_raise_preserves_the_error_and_runs_native_cleanup_before_escape"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-cause_raise_preserves_the_error_and_runs_native_cleanup_before_escape"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::cause::cause_to_string_uses_error_show_and_caller_output_buffer",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/cause.rs",
+      "programs": [
+        "program:22fce5f6553a191ca752"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:22fce5f6553a191ca752",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_cause_to_string_uses_error_show_and_caller_output_buffer"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-cause_to_string_uses_error_show_and_caller_output_buffer"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::cause::failed_empty_cause_raised_in_cleanup_returns_to_its_failing_scope",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/cause.rs",
+      "programs": [
+        "program:46dc34d9a56eaa8cb857"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:46dc34d9a56eaa8cb857",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cause.rs",
+            "symbol": "cause::failed_empty_cause_raised_in_cleanup_returns_to_its_failing_scope"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": {
+            "name": "protect_cleanup_call",
+            "path": "crates/emela-emb-compiler/src/backend/lower/p7_source_seams.rs",
+            "fixed_old_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+            "fixed_old_line": 251,
+            "algorithm": "Same exactcount1 transform: the finalcleanupCall moves into Protect cleanup. Required EvExtend/EvLookup dependency prefix is hoisted in original order, body Yield result is kept through a fresh typed destination.",
+            "adaptation": "Independent Program/arenas replace Module. Existing variable repr is copied; ConstInt result uses I32. Old letchain is nested if for MSRV1.85."
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::cause::interruption_raised_by_cleanup_replaces_a_body_failure",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/cause.rs",
+      "programs": [
+        "program:365026ebd97818c119c3",
+        "program:595e65424d0f6b93c750",
+        "program:7297d3dd83b075ef0fb0"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:365026ebd97818c119c3",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cause.rs",
+            "symbol": "cause::interruption_raised_by_cleanup_replaces_a_body_failure"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": {
+            "name": "protect_cleanup_call",
+            "path": "crates/emela-emb-compiler/src/backend/lower/p7_source_seams.rs",
+            "fixed_old_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+            "fixed_old_line": 251,
+            "algorithm": "Same exactcount1 transform: the finalcleanupCall moves into Protect cleanup. Required EvExtend/EvLookup dependency prefix is hoisted in original order, body Yield result is kept through a fresh typed destination.",
+            "adaptation": "Independent Program/arenas replace Module. Existing variable repr is copied; ConstInt result uses I32. Old letchain is nested if for MSRV1.85."
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        },
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:595e65424d0f6b93c750",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cause.rs",
+            "symbol": "cause::interruption_raised_by_cleanup_replaces_a_body_failure"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": {
+            "name": "protect_cleanup_call",
+            "path": "crates/emela-emb-compiler/src/backend/lower/p7_source_seams.rs",
+            "fixed_old_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+            "fixed_old_line": 251,
+            "algorithm": "Same exactcount1 transform: the finalcleanupCall moves into Protect cleanup. Required EvExtend/EvLookup dependency prefix is hoisted in original order, body Yield result is kept through a fresh typed destination.",
+            "adaptation": "Independent Program/arenas replace Module. Existing variable repr is copied; ConstInt result uses I32. Old letchain is nested if for MSRV1.85."
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        },
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:7297d3dd83b075ef0fb0",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cause.rs",
+            "symbol": "cause::interruption_raised_by_cleanup_replaces_a_body_failure"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": {
+            "name": "protect_cleanup_call",
+            "path": "crates/emela-emb-compiler/src/backend/lower/p7_source_seams.rs",
+            "fixed_old_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+            "fixed_old_line": 251,
+            "algorithm": "Same exactcount1 transform: the finalcleanupCall moves into Protect cleanup. Required EvExtend/EvLookup dependency prefix is hoisted in original order, body Yield result is kept through a fresh typed destination.",
+            "adaptation": "Independent Program/arenas replace Module. Existing variable repr is copied; ConstInt result uses I32. Old letchain is nested if for MSRV1.85."
+          },
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::cause::raised_interruption_crosses_sync_calls_and_attempt_without_becoming_a_value",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/cause.rs",
+      "programs": [
+        "program:895a9eae3b9139e79bf7"
+      ],
+      "families": [
+        "cause-attempt"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:895a9eae3b9139e79bf7",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cause_raised_interruption_crosses_sync_calls_and_attempt_without_becoming_a_value"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cause-raised_interruption_crosses_sync_calls_and_attempt_without_becoming_a_value"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::child_reclaim::discarded_completed_children_release_results_before_scope_end_and_survive_cancellation",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/child_reclaim.rs",
+      "programs": [
+        "program:48cb903c8f5703bd062c"
+      ],
+      "families": [
+        "child-reclamation"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:48cb903c8f5703bd062c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_lifecycle_discard"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-discard"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::child_reclaim::failed_handleless_children_release_records_while_scope_waits_for_sibling_cleanup",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/child_reclaim.rs",
+      "programs": [
+        "program:87aa60141422b5f9141c"
+      ],
+      "families": [
+        "child-reclamation"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:87aa60141422b5f9141c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_child_handleless"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-child-handleless"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::child_reclaim::live_handles_keep_completed_results_for_repeated_join_await_after_execution_slot_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/child_reclaim.rs",
+      "programs": [
+        "program:48cb903c8f5703bd062c"
+      ],
+      "families": [
+        "child-reclamation"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:48cb903c8f5703bd062c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_lifecycle_kept"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-kept"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::child_reclaim::long_lived_scope_reclaims_completed_children_with_copied_handles_and_repeated_join_await",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/child_reclaim.rs",
+      "programs": [
+        "program:48cb903c8f5703bd062c"
+      ],
+      "families": [
+        "child-reclamation"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:48cb903c8f5703bd062c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_lifecycle_rounds"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-lifecycle-rounds"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::children_can_fork_siblings_and_inherit_the_scope_call_evidence",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/mod.rs",
+      "programs": [
+        "program:cb86c54d554b7584458c"
+      ],
+      "families": [
+        "fiber-scope"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:cb86c54d554b7584458c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_scope_children_can_fork_siblings_and_inherit_the_scope_call_evidence"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-children_can_fork_siblings_and_inherit_the_scope_call_evidence"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::closing_outer_scope_reclaims_nested_scopes_and_their_tasks",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/mod.rs",
+      "programs": [
+        "program:f188261f99b265687e19"
+      ],
+      "families": [
+        "fiber-scope"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:f188261f99b265687e19",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_scope_closing_outer_scope_reclaims_nested_scopes_and_their_tasks"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-closing_outer_scope_reclaims_nested_scopes_and_their_tasks"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::completed_children_and_queued_events_do_not_leak_across_scope_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/mod.rs",
+      "programs": [
+        "program:b47677c76cf26174e501"
+      ],
+      "families": [
+        "fiber-scope"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:b47677c76cf26174e501",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_scope_completed_children_and_queued_events_do_not_leak_across_scope_reuse"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-completed_children_and_queued_events_do_not_leak_across_scope_reuse"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::child_failure_closes_scope_and_waits_for_sibling_release_before_escape",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:4faba0205310f4952601"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:4faba0205310f4952601",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_child_failure_closes_scope_and_waits_for_sibling_release_before_escape"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-child_failure_closes_scope_and_waits_for_sibling_release_before_escape"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::delayed_failure_after_resume_formats_owned_error_after_the_call_frame_returns",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:31335f307ea2977018da"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:31335f307ea2977018da",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_delayed_failure_after_resume_formats_owned_error_after_the_call_frame_returns"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-delayed_failure_after_resume_formats_owned_error_after_the_call_frame_returns"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::failing_and_infallible_scopes_share_the_fork_operation_abi",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:b0726b4f7df583de8542"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:b0726b4f7df583de8542",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_failing_and_infallible_scopes_share_the_fork_operation_abi"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-failing_and_infallible_scopes_share_the_fork_operation_abi"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::failing_suspend_closure_keeps_error_through_suspending_release",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:7968556d33a165f1715f"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:7968556d33a165f1715f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_failing_suspend_closure_keeps_error_through_suspending_release"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-failing_suspend_closure_keeps_error_through_suspending_release"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::masked_cleanup_can_await_the_failed_child_before_scope_error_propagates",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:334221286a172894b8cb"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:334221286a172894b8cb",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::masked_cleanup_can_await_the_failed_child_before_scope_error_propagates"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "protect_cleanup_call"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::operation_failure_after_resume_stops_without_writing_a_stale_error_pointer",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:80dc9eb2024106ce84f2"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:80dc9eb2024106ce84f2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_operation_failure_after_resume_stops_without_writing_a_stale_error_pointer"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-operation_failure_after_resume_stops_without_writing_a_stale_error_pointer"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::suspend_failures_cross_calls_and_preserve_cleanup_before_escape",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:9f122d9f14ec8861aefd"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:9f122d9f14ec8861aefd",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_suspend_failures_cross_calls_and_preserve_cleanup_before_escape"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-suspend_failures_cross_calls_and_preserve_cleanup_before_escape"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::suspend_operation_failure_before_resume_reaches_its_call_edge",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:71cbd6afa2f0a71169f2"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:71cbd6afa2f0a71169f2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_suspend_operation_failure_before_resume_reaches_its_call_edge"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-suspend_operation_failure_before_resume_reaches_its_call_edge"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::failure::uncaught_suspend_failure_stops_at_public_boundary_after_release",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/failure.rs",
+      "programs": [
+        "program:e5d1111b561ba323c6fa"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:e5d1111b561ba323c6fa",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_uncaught_suspend_failure_stops_at_public_boundary_after_release"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-uncaught_suspend_failure_stops_at_public_boundary_after_release"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::fork_exhaustion_is_a_fixed_pool_defect_before_children_start",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/mod.rs",
+      "programs": [
+        "program:dec5101b69674f921c75"
+      ],
+      "families": [
+        "fiber-scope"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:dec5101b69674f921c75",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_scope_fork_exhaustion_is_a_fixed_pool_defect_before_children_start"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-fork_exhaustion_is_a_fixed_pool_defect_before_children_start"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::function_aggregate::failing_indirect_aggregate_calls_release_discarded_successes_and_preserve_string_errors",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/function_aggregate.rs",
+      "programs": [
+        "program:fce8a13404a3ab9ab16c"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:fce8a13404a3ab9ab16c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_failing_indirect_aggregate_calls_release_discarded_successes_and_preserve_string_errors"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-failing_indirect_aggregate_calls_release_discarded_successes_and_preserve_string_errors"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::function_aggregate::heapless_callbacks_accept_and_return_aggregates_containing_function_values",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/function_aggregate.rs",
+      "programs": [
+        "program:927b8a0eea79b7bd9ced"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:927b8a0eea79b7bd9ced",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_heapless_callbacks_accept_and_return_aggregates_containing_function_values"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-heapless_callbacks_accept_and_return_aggregates_containing_function_values"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::function_aggregate::native_aggregate_callbacks_own_results_after_captures_and_arguments_are_released",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/function_aggregate.rs",
+      "programs": [
+        "program:4be591d3835e38a1021a"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:4be591d3835e38a1021a",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_aggregate_native_aggregate_callbacks_own_results_after_captures_and_arguments_are_released"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-aggregate-native_aggregate_callbacks_own_results_after_captures_and_arguments_are_released"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::integration::managed_task_success_values_share_state_child_and_deferred_ownership_with_and_without_gc",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/integration.rs",
+      "programs": [
+        "program:5aaa984fe4ad33045300"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:5aaa984fe4ad33045300",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/integration.rs",
+            "symbol": "integration::managed_task_success_values_share_state_child_and_deferred_ownership_with_and_without_gc"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "externalize request after normal source lowering",
+            "optional reachable Cell[Any] GC anchor",
+            "private C root cancellation and child-count observers"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::integration::shared_state_child_reclamation_deferreds_and_external_failure_share_owned_edges_with_and_without_gc",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/integration.rs",
+      "programs": [
+        "program:614925d9a7716e4eee7e"
+      ],
+      "families": [
+        "aggregate-and-integration"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:614925d9a7716e4eee7e",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/integration.rs",
+            "symbol": "integration::shared_state_child_reclamation_deferreds_and_external_failure_share_owned_edges_with_and_without_gc"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "externalize request after normal source lowering",
+            "optional reachable Cell[Any] GC anchor",
+            "private C root cancellation and child-count observers"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::await_of_interrupted_children_returns_owned_failures_repeatedly_and_for_unit",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:fd923799a8e34d0836f6"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:fd923799a8e34d0836f6",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_await_of_interrupted_children_returns_owned_failures_repeatedly_and_for_unit"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-await_of_interrupted_children_returns_owned_failures_repeatedly_and_for_unit"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::await_waiters_receive_failure_after_interrupt_cleanup_before_interrupt_waiters",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:6c1d77d2e9c95bce8363"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:6c1d77d2e9c95bce8363",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_await_waiters_receive_failure_after_interrupt_cleanup_before_interrupt_waiters"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-await_waiters_receive_failure_after_interrupt_cleanup_before_interrupt_waiters"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::interrupt_cancels_unstarted_children_and_does_not_yield_for_ended_children",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:e22c4125cfa6323799e0"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:e22c4125cfa6323799e0",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_interrupt_cancels_unstarted_children_and_does_not_yield_for_ended_children"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-interrupt_cancels_unstarted_children_and_does_not_yield_for_ended_children"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::interrupt_waits_for_suspending_cleanup_and_ignores_old_task_notifications",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:e80d4ff79a3c465f3729"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:e80d4ff79a3c465f3729",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_interrupt_waits_for_suspending_cleanup_and_ignores_old_task_notifications"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-interrupt_waits_for_suspending_cleanup_and_ignores_old_task_notifications"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::interrupted_cleanup_can_close_a_nested_scope_and_wait_for_its_child_release",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:8730c7e21e8995b3ae3d"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:8730c7e21e8995b3ae3d",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::interrupted_cleanup_can_close_a_nested_scope_and_wait_for_its_child_release"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "protect_cleanup_call"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::interrupted_cleanup_can_wait_on_a_deferred_completed_by_a_sibling",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:4c249f507854486bc050"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:4c249f507854486bc050",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::interrupted_cleanup_can_wait_on_a_deferred_completed_by_a_sibling"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "protect_cleanup_call"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::interruption_causes_survive_scope_and_heap_reuse_and_can_be_released_by_the_caller",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:e6cd435773264963126c"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:e6cd435773264963126c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_interruption_causes_survive_scope_and_heap_reuse_and_can_be_released_by_the_caller"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-interruption_causes_survive_scope_and_heap_reuse_and_can_be_released_by_the_caller"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::join_of_an_interrupted_child_is_the_defined_panic_defect",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:bf38918ca2275cd0c29c"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:bf38918ca2275cd0c29c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_join_of_an_interrupted_child_is_the_defined_panic_defect"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-join_of_an_interrupted_child_is_the_defined_panic_defect"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::leaked_interrupt_callback_reports_ended_scope_after_slot_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:fa693e57038e43257092"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:fa693e57038e43257092",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_leaked_interrupt_callback_reports_ended_scope_after_slot_reuse"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-leaked_interrupt_callback_reports_ended_scope_after_slot_reuse"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::multiple_interrupt_waiters_resume_fifo_after_release_finishes",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:47d46c7e6dae870c95f3"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:47d46c7e6dae870c95f3",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_multiple_interrupt_waiters_resume_fifo_after_release_finishes"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-multiple_interrupt_waiters_resume_fifo_after_release_finishes"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::operation_tails_do_not_keep_a_copy_of_an_expired_cleanup_mask",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:d82d62e7ec5e5df31711"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:d82d62e7ec5e5df31711",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_operation_tails_do_not_keep_a_copy_of_an_expired_cleanup_mask"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-operation_tails_do_not_keep_a_copy_of_an_expired_cleanup_mask"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::interrupt::self_interrupt_unwinds_the_body_and_is_deferred_inside_cleanup",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/interrupt.rs",
+      "programs": [
+        "program:831d3a7aac5dd763cddb"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:831d3a7aac5dd763cddb",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::self_interrupt_unwinds_the_body_and_is_deferred_inside_cleanup"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "protect_cleanup_call"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::join::closing_nested_scopes_unlinks_join_waiters_before_the_target_completes",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/join.rs",
+      "programs": [
+        "program:d37b1050f30cd1272e2a"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:d37b1050f30cd1272e2a",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_closing_nested_scopes_unlinks_join_waiters_before_the_target_completes"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-closing_nested_scopes_unlinks_join_waiters_before_the_target_completes"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::join::join_preserves_int64_float_bits_and_bool",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/join.rs",
+      "programs": [
+        "program:e94548e7f90fd4ea8a0d"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:e94548e7f90fd4ea8a0d",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_join_preserves_int64_float_bits_and_bool"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_preserves_int64_float_bits_and_bool"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::join::join_results_own_strings_and_lists_after_scope_and_frame_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/join.rs",
+      "programs": [
+        "program:ed616eb011fc05d6acbf"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:ed616eb011fc05d6acbf",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_join_results_own_strings_and_lists_after_scope_and_frame_reuse"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_results_own_strings_and_lists_after_scope_and_frame_reuse"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::join::join_reuses_completed_results_without_yielding_and_waits_for_discarded_unit",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/join.rs",
+      "programs": [
+        "program:5191e9bbbf54e34f3e94"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:5191e9bbbf54e34f3e94",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_join_reuses_completed_results_without_yielding_and_waits_for_discarded_unit"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_reuses_completed_results_without_yielding_and_waits_for_discarded_unit"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::join::join_wakes_multiple_waiters_in_fifo_after_the_childs_last_breath",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/join.rs",
+      "programs": [
+        "program:a90d0e707bff9fd0c0d9"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:a90d0e707bff9fd0c0d9",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_join_wakes_multiple_waiters_in_fifo_after_the_childs_last_breath"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-join_wakes_multiple_waiters_in_fifo_after_the_childs_last_breath"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::join::leaked_join_callback_rejects_an_ended_scope_after_reusing_execution_slots",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/join.rs",
+      "programs": [
+        "program:a5a2e1ef76d57c840f3c"
+      ],
+      "families": [
+        "join-await"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:a5a2e1ef76d57c840f3c",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_concurrency_leaked_join_callback_rejects_an_ended_scope_after_reusing_execution_slots"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-concurrency-leaked_join_callback_rejects_an_ended_scope_after_reusing_execution_slots"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::notes::later_failures_are_ordered_owned_notes_shared_by_rethrown_causes",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/notes.rs",
+      "programs": [
+        "program:1e5e03e21947542798b3"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:1e5e03e21947542798b3",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::later_failures_are_ordered_owned_notes_shared_by_rethrown_causes"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "hold_late"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::notes::note_display_checks_the_callers_remaining_capacity",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/notes.rs",
+      "programs": [
+        "program:1e5e03e21947542798b3"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:1e5e03e21947542798b3",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::note_display_checks_the_callers_remaining_capacity"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "hold_late"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::overlap::failures_from_cancelled_nested_scopes_become_notes_of_the_outer_first_failure",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/overlap.rs",
+      "programs": [
+        "program:b351d40891e80eb8b8ec"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:b351d40891e80eb8b8ec",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::failures_from_cancelled_nested_scopes_become_notes_of_the_outer_first_failure"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "hold_late"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::overlap::nested_scope_failure_survives_external_interruption_before_and_after_failure",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/overlap.rs",
+      "programs": [
+        "program:2cd74addf09373c7f082"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:2cd74addf09373c7f082",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::nested_scope_failure_survives_external_interruption_before_and_after_failure"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "hold_late"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::overlap::settled_nested_scope_failures_keep_their_notes_when_cleanup_raises_interrupt",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/overlap.rs",
+      "programs": [
+        "program:cb40e719f5376662f92f"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:cb40e719f5376662f92f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::settled_nested_scope_failures_keep_their_notes_when_cleanup_raises_interrupt"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "protect_cleanup_call",
+            "hold_late"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::payload::list_error_payloads_survive_suspending_cleanup_and_are_dropped_on_cancellation",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/payload.rs",
+      "programs": [
+        "program:cf50ee7030b8857d1729"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:cf50ee7030b8857d1729",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_list_error_payloads_survive_suspending_cleanup_and_are_dropped_on_cancellation"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-list_error_payloads_survive_suspending_cleanup_and_are_dropped_on_cancellation"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::payload::native_failure_channels_own_formatted_parse_errors_and_list_payloads",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/payload.rs",
+      "programs": [
+        "program:93d5729a9fbacc7c65d7"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:93d5729a9fbacc7c65d7",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_native_failure_channels_own_formatted_parse_errors_and_list_payloads"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-native_failure_channels_own_formatted_parse_errors_and_list_payloads"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::payload::operation_failure_before_resume_transfers_and_releases_its_string_payload",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/payload.rs",
+      "programs": [
+        "program:9d4cee877d9489d1ecde"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:9d4cee877d9489d1ecde",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_operation_failure_before_resume_transfers_and_releases_its_string_payload"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-operation_failure_before_resume_transfers_and_releases_its_string_payload"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::payload::scope_causes_and_notes_keep_string_payloads_after_frames_and_scopes_end",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/payload.rs",
+      "programs": [
+        "program:49e9df0f81ebe9dcca13"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:49e9df0f81ebe9dcca13",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::scope_causes_and_notes_keep_string_payloads_after_frames_and_scopes_end"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "hold_late"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::protect::a_root_waits_for_cleanup_of_its_resumed_operation_tail",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/protect.rs",
+      "programs": [
+        "program:b0540432a2cf66711fa5"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:b0540432a2cf66711fa5",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_a_root_waits_for_cleanup_of_its_resumed_operation_tail"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-a_root_waits_for_cleanup_of_its_resumed_operation_tail"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::protect::cancellation_preserves_a_suspending_release_and_its_pending_task",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/protect.rs",
+      "programs": [
+        "program:c11d71b8f845eac2eb96"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:c11d71b8f845eac2eb96",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_cancellation_preserves_a_suspending_release_and_its_pending_task"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-cancellation_preserves_a_suspending_release_and_its_pending_task"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::protect::defects_in_suspend_protect_keep_the_configured_immediate_stop_policy",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/protect.rs",
+      "programs": [
+        "program:8a66aaa374b5eea2f0eb"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:8a66aaa374b5eea2f0eb",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_defects_in_suspend_protect_keep_the_configured_immediate_stop_policy"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-defects_in_suspend_protect_keep_the_configured_immediate_stop_policy"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::protect::scope_cancellation_runs_nested_releases_before_the_parent_continues",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/protect.rs",
+      "programs": [
+        "program:ded22982c5425906b209"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:ded22982c5425906b209",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_cleanup_scope_cancellation_runs_nested_releases_before_the_parent_continues"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-cleanup-scope_cancellation_runs_nested_releases_before_the_parent_continues"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::scope_cancels_unstarted_children_before_running_their_function",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/mod.rs",
+      "programs": [
+        "program:e0f622ab5e646e64e7cb"
+      ],
+      "families": [
+        "fiber-scope"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:e0f622ab5e646e64e7cb",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_scope_scope_cancels_unstarted_children_before_running_their_function"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-scope_cancels_unstarted_children_before_running_their_function"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::scope_keeps_managed_captures_and_boxes_reference_results_without_leaks",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/mod.rs",
+      "programs": [
+        "program:eac7456a92396f46e7a2"
+      ],
+      "families": [
+        "fiber-scope"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:eac7456a92396f46e7a2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_scope_scope_keeps_managed_captures_and_boxes_reference_results_without_leaks"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-scope_keeps_managed_captures_and_boxes_reference_results_without_leaks"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::scope_starts_children_at_real_suspension_and_reclaims_waiting_tasks",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/mod.rs",
+      "programs": [
+        "program:b47677c76cf26174e501"
+      ],
+      "families": [
+        "fiber-scope"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-runtime.json",
+          "program": "program:b47677c76cf26174e501",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_runtime.rs",
+            "symbol": "legacy_scope_scope_starts_children_at_real_suspension_and_reclaims_waiting_tasks"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-scope-scope_starts_children_at_real_suspension_and_reclaims_waiting_tasks"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::task_failure::external_failure_payload_survives_suspending_cleanup_and_later_interruption",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/task_failure.rs",
+      "programs": [
+        "program:2ac6f38771693a3b32e2"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:2ac6f38771693a3b32e2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::external_failure_payload_survives_suspending_cleanup_and_later_interruption"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "external_request",
+            "private_C_cancel"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::fiber::task_failure::external_failures_own_borrowed_strings_and_lists_across_escape_attempt_scope_and_cancel",
+      "legacy_path": "crates/emela-codegen-emb/tests/fiber/task_failure.rs",
+      "programs": [
+        "program:2ac6f38771693a3b32e2"
+      ],
+      "families": [
+        "cleanup-interruption-notes"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-source-seams.json",
+          "program": "program:2ac6f38771693a3b32e2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/compat/seams/cleanup.rs",
+            "symbol": "cleanup::external_failures_own_borrowed_strings_and_lists_across_escape_attempt_scope_and_cancel"
+          },
+          "observation_kind": "runtime",
+          "test_only_seams": [
+            "external_request",
+            "private_C_cancel"
+          ],
+          "source_route": "official frontend -> raw Flow -> adapter -> owned Program -> reused backend -> strict C execution"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::lifts_nested_closures_that_capture_outer_closure_values",
+      "legacy_path": "crates/emela-codegen-emb/tests/emit.rs",
+      "programs": [
+        "program:2e02752865a6418a1e52"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:2e02752865a6418a1e52",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_2e02752865a6418a1e52"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-2e02752865a6418a1e52"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::owned::returned_list_owns_formatted_strings_after_the_producer_stack_returns",
+      "legacy_path": "crates/emela-codegen-emb/tests/owned/mod.rs",
+      "programs": [
+        "program:b1c877211529f5d06063"
+      ],
+      "families": [
+        "strings-owned"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::passes_dynamic_effect_evidence_to_a_captured_closure",
+      "legacy_path": "crates/emela-codegen-emb/tests/emit.rs",
+      "programs": [
+        "program:9fa3708f819ff8b76dc2"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:9fa3708f819ff8b76dc2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_9fa3708f819ff8b76dc2"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-9fa3708f819ff8b76dc2"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::release_0_24::debug_and_error_display_respect_written_derived_and_missing_show",
+      "legacy_path": "crates/emela-codegen-emb/tests/release_0_24/mod.rs",
+      "programs": [
+        "program:dc3d2de098f1b7e80a21"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::release_0_24::derived_and_written_traits_keep_static_dispatch_and_escaped_display",
+      "legacy_path": "crates/emela-codegen-emb/tests/release_0_24/mod.rs",
+      "programs": [
+        "program:dc3d2de098f1b7e80a21"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::release_0_24::lambda_patterns_and_new_core_helpers_keep_dynamic_semantics",
+      "legacy_path": "crates/emela-codegen-emb/tests/release_0_24/mod.rs",
+      "programs": [
+        "program:5fd9a0434fc95af6ecf6"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::release_0_24::ordered_maps_sets_and_rotations_reclaim_persistent_values",
+      "legacy_path": "crates/emela-codegen-emb/tests/release_0_24/mod.rs",
+      "programs": [
+        "program:ad481b3ab9e723eb715a"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::release_0_24::public_failure_entry_keeps_the_embedded_immediate_defect_contract",
+      "legacy_path": "crates/emela-codegen-emb/tests/release_0_24/mod.rs",
+      "programs": [
+        "program:dc3d2de098f1b7e80a21"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::state_run_shares_owned_cell_storage_with_its_handler",
+      "legacy_path": "crates/emela-codegen-emb/tests/emit.rs",
+      "programs": [
+        "program:903a9b99cfdf07a02684"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:903a9b99cfdf07a02684",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_903a9b99cfdf07a02684"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-903a9b99cfdf07a02684"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::string_append::literal_prefixes_are_copied_without_treating_readonly_bytes_as_writable_output",
+      "legacy_path": "crates/emela-codegen-emb/tests/string_append/mod.rs",
+      "programs": [
+        "program:0024997995323a7d6563"
+      ],
+      "families": [
+        "strings-owned"
+      ],
+      "status": "verified",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-static-alias-strings.json",
+          "program": null,
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_string_alias.rs",
+            "symbol": "append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits"
+          },
+          "observation_kind": "source-string-values-plus-explicit-C-only-observation-seam",
+          "fixture_changes": [
+            "stack_mark is retained as a test-only C stack observation seam with explicit source use {}. Its C implementation reads a local address and updates harness-private first_stack; it has no Emela arguments/result or access to Emela state. No C pure attribute is emitted. This tests the generated C stack behavior for this pinned route and is not evidence for ordinary source side-effect handling.",
+            "The original heap_bytes=0 requirement and source string operations are unchanged. The helper moves export annotations into configuration. Every C raw fragment, including the internal append probes, remains byte-identical."
+          ],
+          "legacy_id_note": "Supplies the explicit append overlap/literal-copy matrix used by the established replacement of the readonly-prefix canonical case; does not replace the separate original-source readonly-prefix fixture."
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::string_comparison::owned_string_views_compare_without_allocating_or_changing_ownership",
+      "legacy_path": "crates/emela-codegen-emb/tests/string_comparison/mod.rs",
+      "programs": [
+        "program:de1b4707ec70dd24789b"
+      ],
+      "families": [
+        "strings-owned"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::string_comparison::source_comparisons_are_heapless_and_allow_isr_and_constant_space_tail_loops",
+      "legacy_path": "crates/emela-codegen-emb/tests/string_comparison/mod.rs",
+      "programs": [
+        "program:e220b55ef04773e1daaa"
+      ],
+      "families": [
+        "strings-owned"
+      ],
+      "status": "pending",
+      "original_expectation": "existing-source-C-observations-match",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::string_comparison::suspend_source_comparisons_preserve_captured_bytes_and_release_on_completion_and_cancel",
+      "legacy_path": "crates/emela-codegen-emb/tests/string_comparison/mod.rs",
+      "programs": [
+        "program:b325a80621f2be6c4300"
+      ],
+      "families": [
+        "strings-owned"
+      ],
+      "status": "pending",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": []
+    },
+    {
+      "legacy_test": "emit::suspend::completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events",
+      "legacy_path": "crates/emela-codegen-emb/tests/suspend/mod.rs",
+      "programs": [
+        "program:c4e9d4ec96be3e5df8d9"
+      ],
+      "families": [
+        "suspend-handlers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:c4e9d4ec96be3e5df8d9",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_suspend_completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::suspend::delayed_resume_runs_the_caller_until_its_next_suspension",
+      "legacy_path": "crates/emela-codegen-emb/tests/suspend/mod.rs",
+      "programs": [
+        "program:1cffa4713ffb59946d7b"
+      ],
+      "families": [
+        "suspend-handlers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:1cffa4713ffb59946d7b",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_suspend_delayed_resume_runs_the_caller_until_its_next_suspension"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-delayed_resume_runs_the_caller_until_its_next_suspension"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::suspend::duplicate_resume_reports_the_operation_and_handler",
+      "legacy_path": "crates/emela-codegen-emb/tests/suspend/mod.rs",
+      "programs": [
+        "program:cf70ce9f702234122575"
+      ],
+      "families": [
+        "suspend-handlers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:cf70ce9f702234122575",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_suspend_duplicate_resume_reports_the_operation_and_handler"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-duplicate_resume_reports_the_operation_and_handler"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::suspend::immediate_resume_finishes_the_operation_body_before_the_caller_continues",
+      "legacy_path": "crates/emela-codegen-emb/tests/suspend/mod.rs",
+      "programs": [
+        "program:0a4fad3a4ccb4b06bffb"
+      ],
+      "families": [
+        "suspend-handlers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:0a4fad3a4ccb4b06bffb",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_suspend_immediate_resume_finishes_the_operation_body_before_the_caller_continues"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-immediate_resume_finishes_the_operation_body_before_the_caller_continues"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::suspend::suspend_handler_source_waits_and_resumes_into_the_callers_result",
+      "legacy_path": "crates/emela-codegen-emb/tests/suspend/mod.rs",
+      "programs": [
+        "program:ceb0def2afdc33b84e2f"
+      ],
+      "families": [
+        "suspend-handlers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:ceb0def2afdc33b84e2f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_suspend_suspend_handler_source_waits_and_resumes_into_the_callers_result"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-suspend-suspend_handler_source_waits_and_resumes_into_the_callers_result"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::sync_external::source_string_adapters_snapshot_borrowed_results_and_board_held_arguments",
+      "legacy_path": "crates/emela-codegen-emb/tests/sync_external/mod.rs",
+      "programs": [
+        "program:092ecc4b39a71f6fe329"
+      ],
+      "families": [
+        "native-external-and-task-values"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:092ecc4b39a71f6fe329",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_externals.rs",
+            "symbol": "source_string_adapters_snapshot_borrowed_results_and_board_held_arguments"
+          },
+          "observation_kind": "runtime",
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::sync_external::values::source_tuple_and_list_external_values_keep_all_managed_fields_alive",
+      "legacy_path": "crates/emela-codegen-emb/tests/sync_external/values.rs",
+      "programs": [
+        "program:729d56d2f2d29fef4139"
+      ],
+      "families": [
+        "native-external-and-task-values"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:729d56d2f2d29fef4139",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_externals.rs",
+            "symbol": "source_tuple_and_list_external_values_keep_all_managed_fields_alive"
+          },
+          "observation_kind": "runtime",
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::synchronous_exhaustive_matches_and_list_loops_accept_unreachable_terminators",
+      "legacy_path": "crates/emela-codegen-emb/tests/emit.rs",
+      "programs": [
+        "program:09dfd633dcd1f95f6a18"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:09dfd633dcd1f95f6a18",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_09dfd633dcd1f95f6a18"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-09dfd633dcd1f95f6a18"
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::task_values::managed::source_tasks_own_packet_arguments_and_successes_through_scope_deferred_cancel_and_null_results",
+      "legacy_path": "crates/emela-codegen-emb/tests/task_values/managed.rs",
+      "programs": [
+        "program:efd3c3bdb37863da1c8f"
+      ],
+      "families": [
+        "native-external-and-task-values"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:efd3c3bdb37863da1c8f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_externals.rs",
+            "symbol": "source_tasks_own_packet_arguments_and_successes_through_scope_deferred_cancel_and_null_results"
+          },
+          "observation_kind": "runtime",
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::task_values::managed::string_successes_snapshot_nul_bytes_before_the_context_is_released",
+      "legacy_path": "crates/emela-codegen-emb/tests/task_values/managed.rs",
+      "programs": [
+        "program:efd3c3bdb37863da1c8f"
+      ],
+      "families": [
+        "native-external-and-task-values"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:efd3c3bdb37863da1c8f",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_externals.rs",
+            "symbol": "string_successes_snapshot_nul_bytes_before_the_context_is_released"
+          },
+          "observation_kind": "runtime",
+          "adaptation": "Original body with explicit public C export annotations; C symbol/type IDs follow generated headers. No post-lowering IR edits. Private C cancel/heap probes match legacy tests."
+        }
+      ]
+    },
+    {
+      "legacy_test": "emit::value_audit::changing_recursive_type_arguments_with_a_finite_type_graph_are_supported",
+      "legacy_path": "crates/emela-codegen-emb/tests/value_audit/mod.rs",
+      "programs": [
+        "program:8f6003cb6b231900471a"
+      ],
+      "families": [
+        "standard-traits-and-data"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-artifact-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:8f6003cb6b231900471a",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_recursive_8f6003cb6b231900471a"
+          },
+          "observation_kind": "artifact_only",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-recursive-8f6003cb6b231900471a"
+        }
+      ]
+    },
+    {
+      "legacy_test": "frontend::backend_board_handlers_resolve_typecheck_and_lower_with_the_default_frontend",
+      "legacy_path": "crates/emela-codegen-emb/tests/frontend.rs",
+      "programs": [
+        "program:7da4f2133cdd62429dab"
+      ],
+      "families": [
+        "embedded-and-frontend"
+      ],
+      "status": "verified",
+      "original_expectation": "old-compile-and-artifact-observation",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-frontend-boundary.json",
+          "program": "program:7da4f2133cdd62429dab",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/board_boundary.rs",
+            "symbol": "fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations"
+          },
+          "observation_kind": "frontend_and_artifact_only",
+          "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration."
+        }
+      ]
+    },
+    {
+      "legacy_test": "frontend::unrelated_project_modules_under_embedded_remain_available",
+      "legacy_path": "crates/emela-codegen-emb/tests/frontend.rs",
+      "programs": [
+        "program:1422093ab66b603822cf"
+      ],
+      "families": [
+        "embedded-and-frontend"
+      ],
+      "status": "verified",
+      "original_expectation": "old-frontend-only-observation",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-frontend-boundary.json",
+          "program": "program:1422093ab66b603822cf",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/board_boundary.rs",
+            "symbol": "fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations"
+          },
+          "observation_kind": "frontend_and_artifact_only",
+          "source_route": "Original source bytes preserved; source root app/src is supplied as the explicit entry root. main is selected using export configuration."
+        }
+      ]
+    },
+    {
+      "legacy_test": "lib::compiler::separation_tests::common_closure_lowering_is_shared_and_native_managed_values_run",
+      "legacy_path": "crates/emela-codegen-emb/src/compiler/tests/separation.rs",
+      "programs": [
+        "program:c587ef1e19686afdfe06"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:c587ef1e19686afdfe06",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_c587ef1e19686afdfe06"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-c587ef1e19686afdfe06"
+        }
+      ]
+    },
+    {
+      "legacy_test": "lib::compiler::separation_tests::shared_string_helpers_support_multiple_consumers_in_one_translation_unit",
+      "legacy_path": "crates/emela-codegen-emb/src/compiler/tests/separation.rs",
+      "programs": [
+        "program:3bee0ac6dc33827ec422"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:3bee0ac6dc33827ec422",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_3bee0ac6dc33827ec422"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-3bee0ac6dc33827ec422"
+        }
+      ]
+    },
+    {
+      "legacy_test": "lib::compiler::separation_tests::string_plans_preserve_aliases_while_other_buffers_and_calls_are_live",
+      "legacy_path": "crates/emela-codegen-emb/src/compiler/tests/separation.rs",
+      "programs": [
+        "program:8e7fb878276e03451814"
+      ],
+      "families": [
+        "closures-state-shared-helpers"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-legacy-more.json",
+          "program": "program:8e7fb878276e03451814",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_more.rs",
+            "symbol": "legacy_closures_8e7fb878276e03451814"
+          },
+          "observation_kind": "runtime",
+          "source_changes": [],
+          "fixture_path": "crates/emelino-cli/tests/compat/reused/legacy-closures-8e7fb878276e03451814"
+        }
+      ]
+    },
+    {
+      "legacy_test": "platform::native_clock_console_and_timer_use_common_standard_service_glue",
+      "legacy_path": "crates/emela-codegen-emb/tests/platform.rs",
+      "programs": [
+        "program:b0b720ffc97055a938e9"
+      ],
+      "families": [
+        "embedded-and-frontend"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:b0b720ffc97055a938e9",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_services.rs",
+            "symbol": "original_native_clock_console_and_timer_use_generated_common_services"
+          },
+          "observation_kind": "runtime"
+        }
+      ]
+    },
+    {
+      "legacy_test": "platform::native_timer_slots_survive_cancellation_and_repeated_reuse",
+      "legacy_path": "crates/emela-codegen-emb/tests/platform.rs",
+      "programs": [
+        "program:4ddb1b72860ac525d8f2"
+      ],
+      "families": [
+        "embedded-and-frontend"
+      ],
+      "status": "verified",
+      "original_expectation": "original-body-runtime-evidence",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-external-services.json",
+          "program": "program:4ddb1b72860ac525d8f2",
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/legacy_services.rs",
+            "symbol": "original_native_timer_slots_survive_cancellation_and_repeated_reuse"
+          },
+          "observation_kind": "runtime"
+        }
+      ]
+    }
+  ],
+  "additional_nonruntime_cases": [
+    {
+      "legacy_test": "frontend::embedded_backend_does_not_supply_the_old_std_namespace",
+      "legacy_classes": [
+        "source-rejection-expectation"
+      ],
+      "status": "replaced",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-frontend-boundary.json",
+          "program": null,
+          "status": "replaced",
+          "test": {
+            "path": "crates/emelino-cli/tests/board_boundary.rs",
+            "symbol": "upstream_standard_namespace_and_reserved_compatibility_namespace_are_distinct"
+          },
+          "observation_kind": "frontend_contract_replacement",
+          "replacement_reason": "Official pinned core_sources() supplies Std.Embedded.Gpio and the other Std.Embedded modules. Original import and a concrete effect reference both resolve. The independent frontend policy of omitting this namespace is replaced by the adopted upstream standard-library ownership; emelino does not remove official modules. This is not an upstream-known issue or an unimplemented source feature."
+        }
+      ]
+    },
+    {
+      "legacy_test": "frontend::embedded_backend_module_names_cannot_be_shadowed_by_project_files",
+      "legacy_classes": [
+        "source-rejection-expectation"
+      ],
+      "status": "verified",
+      "evidence": [
+        {
+          "report": "docs/reports/reuse-frontend-boundary.json",
+          "program": null,
+          "status": "verified",
+          "test": {
+            "path": "crates/emelino-cli/tests/board_boundary.rs",
+            "symbol": "upstream_standard_namespace_and_reserved_compatibility_namespace_are_distinct"
+          },
+          "observation_kind": "input_rejection"
+        }
+      ]
+    },
+    {
+      "legacy_test": "sources::embedded_sources_are_supplied_by_the_backend_without_shadowing_core",
+      "legacy_classes": [
+        "source-parse-only-expectation"
+      ],
+      "status": "pending",
+      "evidence": []
+    }
+  ]
+}

@@ -26,7 +26,7 @@ IR単体試験とsource試験は分け、元frontendを呼ぶ試験を無効化�
 
 backend採用commitは `021cf01`。`src/{backend,contract,semantics}/`、
 `src/{writer,artifact}.rs`、Unicode公式vector、LICENSEを採用した。
-旧独自frontendを直接呼ぶ次の7試験moduleはコピーせず、source経路への移行を残している。
+旧独自frontendを直接呼ぶ次の7試験moduleは、そのままコピーせず本体source経路へ移した。
 
 - `backend/lower/fiber_source_tests.rs`
 - `backend/lower/p7_cause_source_seam_tests.rs`
@@ -36,10 +36,16 @@ backend採用commitは `021cf01`。`src/{backend,contract,semantics}/`、
 - `backend/lower/p7_recursive_source_tests.rs`
 - `backend/lower/source_builtin_tests.rs`
 
-これらだけが使う `backend/lower/p7_source_seams.rs` も未採用である。
-この未移行分は検証済み件数へ含めない。採用したfrontend非依存のbackend試験124件は
-新compilerで成功し、失敗・ignoreは0件。保存形式commit `68a6ab7` の7試験と
-既存最小profileの6試験も成功した。これはbackend側の証拠であり、本体source経路の全件成功ではない。
+旧専用helper `backend/lower/p7_source_seams.rs` の観測方法は
+`crates/emelino-cli/tests/compat/seams/` へ移し、source生成を本体frontendへ接続した。
+[const・cleanup・cause・統合試験の移行記録](reuse-source-seams.json) は
+通常sourceと試験専用IR加工を区別し、UPSTREAM-001の8観測を互換成功へ含めない。
+再帰型は [追加23観測](reuse-legacy-more.json)、source builtinは
+`crates/emelino-cli/tests/source_builtins.rs` で確認する。
+
+S1採用時のfrontend非依存backend試験124件、保存形式commit `68a6ab7` の7試験、
+既存最小profileの6試験はすべて成功した。S6の接続修正後はbackend試験127件が成功した。
+これらはbackend側の証拠であり、本体source経路の成功件数とは別に数える。
 
 ## source・C harness
 
@@ -57,3 +63,24 @@ source・harnessの取得元とhash、変更点、元の容量設定を個々の
 新たに実行した試験とレビュー結果だけを今回の証拠として追加する。
 S1以降の終了判定は [対応表の終了条件](../compiler-coverage.md) と実装計画に従う。
 本体由来のconst共有差分は [UPSTREAM-001](../upstream-known-issues.md) として個別に追う。
+
+## 旧source観測の移行
+
+固定source174試験・169programと、追加の拒否／bundle検査3試験を
+[今回のsource対応表](reuse-source-coverage.json) で照合する。
+同じprogramを使う複数の観測、同じ試験内の複数fixture、C実行を伴わない旧観測は別々に記録する。
+
+[並行処理・所有値85fixture](reuse-legacy-runtime.json) と
+[closure・中断再開・再帰型・子の寿命23fixture](reuse-legacy-more.json) は、
+元の容量設定とC assertionを保ち、本体source、保存入力の再生成、C実行の順に確認した。
+計108fixtureのうち106は値・副作用・defect・所有権の実行観測、2は元からartifactだけを確認する観測である。
+保存入力のC/header一致を確認した後だけ、旧試験と同じ内部heap・取消・child観測を追加する。
+
+SharedStateの返却callbackを公開する1例では、本体が残すeffect evidenceを
+普通の `State.run` wrapperで処理する。旧Cの83という結果を含むassertionは変えない。
+Emelino.Bytesへのimport変更とこのwrapperはfixtureの明示的な接続変更であり、製品parserを拡張しない。
+
+補足source試験の容量変更も隠さず記録する。TestClockは本体Flowのframe構造に合わせて
+frame_bytesを1024から2048へ変更し、短絡評価・引数順序のfixtureは副作用hookを
+正しいeffect/handlerで扱うためheapを0から4096へ変更した。
+[時計の記録](reuse-source-clock.json) と [数値・Unicodeの補足記録](reuse-source-semantics.json) を参照する。
