@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "program": "program:545fcfac2473e3be10a5",
+  "legacy_tests": [
+    "emit::bytes::bytes_captured_in_closures_and_state_keep_their_owners"
+  ],
+  "reference_test": {
+    "path": "crates/emela-emb-compiler/tests/p4_state.rs",
+    "symbol": "state_shares_owned_values_with_escaped_closures_and_reclaims_every_run",
+    "sha256": "1d47c7d71078e5a8a6fc9ef5a2b54ad93f84dbeaf8d41ba03ba4148c2d36b2a9"
+  },
+  "current_test": {
+    "path": "crates/emelino-cli/tests/legacy_state.rs",
+    "symbol": "state_shares_owned_values_with_escaped_closures_and_reclaims_every_run"
+  },
+  "source": {
+    "original_path": "crates/emela-emb-compiler/tests/compat/p4/state.emel",
+    "original_sha256": "db9acb712ff495e4c7e86ef03ce235fc584c075fce716ed5e178a5b0a95eafb8",
+    "current_path": "crates/emelino-cli/tests/compat/p4/state.emel",
+    "current_sha256": "25a36d99a9e0afac5b28c6f0e9154f44c81ece32b204712bd14fe62cd8babc46"
+  },
+  "source_adjustments": [
+    "Old Unit return spelling changed to official ().",
+    "mark and mutate_input are ordinary test-only C externals with explicit use {}; C bodies and observed side effects are unchanged.",
+    "counter wraps its escaped reader invocations in State.run(0, ...); owned and bytes wrap the original short-circuit comparison/reader expression in State.run with a concrete empty String/Bytes initial value. This discharges the public effect boundary without changing captured original State cells. Original named-argument order test, failure case and nested State bodies are unchanged.",
+    "The shared test-only legacy helper parses old @export(c,...) annotations into configuration and removes the annotations before official compilation. It changes only import Std.Bytes to import Emelino.Bytes for the ordinary validated extension."
+  ],
+  "harness": {
+    "byte_identical_to_original": true,
+    "sha256": "2e1813ec74af4fa0633924a241f26028fc32f050fb28b928af9252fa52310bdd",
+    "changes": []
+  },
+  "options": {
+    "heap_bytes": 8192,
+    "string_capacity": 256
+  },
+  "observations": [
+    "counter returns 83 through an escaped captured State reader.",
+    "String state snapshots preserve a\\0b while host mutate_input overwrites the borrowed source buffer with zzz.",
+    "Failure payloads and nested State runs retain the original results and release all allocations.",
+    "Named argument evaluation keeps state_order()==42 and host trace==132.",
+    "Bytes state saved/final/read values retain a\\0b / a\\0b! after host mutation.",
+    "A returned Bytes-capturing closure keeps its owner after the host input is overwritten; shared_bytes doubles captured bytes and remains valid after the caller releases the original.",
+    "The exact original C harness checks heap emptiness over 1000 iterations at each C optimization level."
+  ],
+  "observation_kind": "original-C-runtime-with-explicit-source-entry-wrappers",
+  "validation": {
+    "command": "cargo test -p emelino-cli --test legacy_state --locked --offline",
+    "passed": 1,
+    "failed": 0,
+    "ignored": 0,
+    "upstream_flow": true,
+    "saved_input_replay_equal": true,
+    "C_optimizations": [
+      "-O0",
+      "-O2"
+    ],
+    "clippy": "cargo clippy -p emelino-cli --test legacy_state --locked --offline -- -D warnings"
+  },
+  "status": "verified",
+  "excluded": "The second p4_state test asserted independent-frontend diagnostics and private Cell/intrinsic syntax restrictions; it is not imported or counted as runtime evidence."
+}
