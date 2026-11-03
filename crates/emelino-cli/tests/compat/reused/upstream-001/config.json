@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "probe",
+      "symbol": "probe"
+    }
+  ],
+  "heap_bytes": 4096
+}
