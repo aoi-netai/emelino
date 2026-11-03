@@ -8,6 +8,7 @@ pub(in crate::backend::emit) mod complete;
 pub(in crate::backend::emit) mod deferred;
 pub(in crate::backend::emit) mod deferred_await;
 pub(in crate::backend::emit) mod fork;
+pub(in crate::backend::emit) mod interrupt;
 pub(in crate::backend::emit) mod join;
 pub(in crate::backend::emit) mod poll;
 pub(in crate::backend::emit) mod scope;
@@ -25,9 +26,7 @@ pub(in crate::backend::emit) fn emit(
         crate::contract::ir::FiberOp::Deferred => deferred::emit(context, dst, value),
         crate::contract::ir::FiberOp::Join => join::emit(context, dst, value),
         crate::contract::ir::FiberOp::Await { .. } => r#await::emit(context, dst, value),
-        crate::contract::ir::FiberOp::Interrupt => {
-            Err(unsupported(&context.function.name, "interrupt"))
-        }
+        crate::contract::ir::FiberOp::Interrupt => interrupt::emit(context, dst, value),
         crate::contract::ir::FiberOp::Attempt { .. } => attempt::emit(context, dst, value),
         crate::contract::ir::FiberOp::Complete => complete::emit(context, dst, value),
         crate::contract::ir::FiberOp::DeferredAwait => deferred_await::emit(context, dst, value),
@@ -46,9 +45,7 @@ pub(in crate::backend::emit) fn emit_waiting(
     match op {
         crate::contract::ir::FiberOp::Join => join::emit_suspend(context, statement),
         crate::contract::ir::FiberOp::Await { .. } => r#await::emit_suspend(context, statement),
-        crate::contract::ir::FiberOp::Interrupt => {
-            Err(unsupported(&context.function.name, "interrupt"))
-        }
+        crate::contract::ir::FiberOp::Interrupt => interrupt::emit_suspend(context, statement),
         _ => unreachable!("waiting Fiber selector"),
     }
 }

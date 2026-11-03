@@ -28,6 +28,7 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                         | crate::contract::ir::FiberOp::Complete
                         | crate::contract::ir::FiberOp::Poll
                         | crate::contract::ir::FiberOp::DeferredAwait
+                        | crate::contract::ir::FiberOp::Interrupt
                         | crate::contract::ir::FiberOp::Attempt {
                             suspends: false,
                             ..
