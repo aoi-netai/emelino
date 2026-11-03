@@ -40,6 +40,8 @@ mod p7_string_frames;
 mod p7_switch_frames;
 #[path = "service_tests.rs"]
 mod services;
+#[path = "source_builtin_tests.rs"]
+mod source_builtins;
 #[path = "suspend_tests.rs"]
 mod suspend;
 #[path = "upstream_contract_tests.rs"]

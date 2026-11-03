@@ -1,0 +1,8 @@
+{
+  "exports": [
+    {
+      "function": "debug_value",
+      "symbol": "debug_value"
+    }
+  ]
+}

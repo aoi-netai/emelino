@@ -1,0 +1,16 @@
+{
+  "exports": [
+    {
+      "function": "placeholder",
+      "symbol": "placeholder"
+    },
+    {
+      "function": "dynamic_panic",
+      "symbol": "dynamic_panic"
+    },
+    {
+      "function": "checked",
+      "symbol": "checked"
+    }
+  ]
+}

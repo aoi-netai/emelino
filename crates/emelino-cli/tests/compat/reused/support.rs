@@ -80,6 +80,10 @@ pub fn run_fixture(name: &str, heap_observer: bool) {
     let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/compat/reused")
         .join(name);
+    run_fixture_at(name, &fixture, heap_observer);
+}
+
+pub fn run_fixture_at(name: &str, fixture: &Path, heap_observer: bool) {
     let scratch = Scratch::new(name);
     fs::copy(fixture.join("main.emel"), scratch.0.join("main.emel")).unwrap();
     fs::copy(fixture.join("config.json"), scratch.0.join("config.json")).unwrap();
