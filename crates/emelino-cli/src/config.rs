@@ -154,6 +154,26 @@ impl Config {
     }
 
     pub fn validate_entry(&self, program: &emelino_compiler::ir::Program) -> Result<(), String> {
+        for (_, function) in program
+            .functions
+            .iter()
+            .filter(|(_, function)| function.exported)
+        {
+            if matches!(
+                program.core.ty(function.ret),
+                emelino_compiler::ir::Type::Evidence
+            ) || function.params.iter().any(|parameter| {
+                matches!(
+                    program.core.ty(function.vars[*parameter].ty),
+                    emelino_compiler::ir::Type::Evidence
+                )
+            }) {
+                return Err(format!(
+                    "public C entry `{}` cannot expose effect evidence; supply a concrete public wrapper with its handlers",
+                    function.name
+                ));
+            }
+        }
         if let Some(entry) = &self.entry {
             let matches = program
                 .functions

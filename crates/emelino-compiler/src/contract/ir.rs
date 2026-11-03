@@ -1,6 +1,6 @@
 //! Canonical backend values and definitions, owned independently of Core and Flow IR.
 //! Frontend function bodies, name-resolution state, source files, and Heap-IR stages are absent.
-//! The independent frontend constructs these owned definitions; downstream stages use these IDs only.
+//! The upstream adapter constructs these owned definitions; downstream stages use these IDs only.
 use crate::contract::DerivedOperation;
 use crate::input::codec;
 use la_arena::{Arena, Idx};
@@ -51,7 +51,7 @@ pub struct Program {
 pub struct Function {
     pub name: String,
     pub exported: bool,
-    /// Explicit public C name supplied by the independent frontend.
+    /// Explicit public C name supplied by the adapter's export configuration.
     pub export_symbol: Option<String>,
     #[serde(with = "codec::indices")]
     pub params: Vec<VarId>,
