@@ -1,0 +1,16 @@
+{
+  "exports": [
+    {
+      "function": "read_first",
+      "symbol": "read_first"
+    },
+    {
+      "function": "read_second",
+      "symbol": "read_second"
+    },
+    {
+      "function": "read_broken",
+      "symbol": "read_broken"
+    }
+  ]
+}
