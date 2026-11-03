@@ -1,0 +1,20 @@
+[workspace]
+resolver = "3"
+members = ["crates/emelino-compiler"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace.dependencies]
+emelino-compiler = { path = "crates/emelino-compiler" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+la-arena = "0.3"
+# Emela v0.26.1: pin all frontend crates to the release's immutable commit.
+emela-syntax = { git = "https://github.com/emela-lang/emela.git", rev = "6021115103dd830e0efd9bb96a56a0ca97859329" }
+emela-resolve = { git = "https://github.com/emela-lang/emela.git", rev = "6021115103dd830e0efd9bb96a56a0ca97859329" }
+emela-types = { git = "https://github.com/emela-lang/emela.git", rev = "6021115103dd830e0efd9bb96a56a0ca97859329" }
+emela-core = { git = "https://github.com/emela-lang/emela.git", rev = "6021115103dd830e0efd9bb96a56a0ca97859329" }
+emela-lir = { git = "https://github.com/emela-lang/emela.git", rev = "6021115103dd830e0efd9bb96a56a0ca97859329" }
