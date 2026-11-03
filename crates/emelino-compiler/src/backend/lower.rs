@@ -83,7 +83,7 @@ pub(crate) fn lower_program(
     let (mut program, closures) = closure::lower(&program, options)?;
 
     let deferred_pool = false;
-
+    handler::lower(&mut program, options);
     let mut const_outcomes: HashMap<
         FnId,
         std::result::Result<crate::contract::lowered::ConstOutcome, &'static str>,

@@ -1,11 +1,17 @@
 #[path = "function_tests.rs"]
 mod function;
+#[path = "handler_tests.rs"]
+mod handler;
 #[path = "memory_tests.rs"]
 mod memory;
+#[path = "p7_aggregate_failure_tests.rs"]
+mod p7_aggregate_failure;
 #[path = "p7_binding_tests.rs"]
 mod p7_binding;
 #[path = "p7_data_tests.rs"]
 mod p7_data;
+#[path = "p7_evidence_tests.rs"]
+mod p7_evidence;
 #[path = "p7_list_alias_tests.rs"]
 mod p7_list_alias;
 #[path = "p7_misc_value_tests.rs"]

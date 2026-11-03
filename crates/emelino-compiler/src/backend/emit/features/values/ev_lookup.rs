@@ -1,0 +1,70 @@
+//! crate::contract::ir::Value::EvLookup
+use super::super::*;
+pub(in crate::backend::emit) fn emit(
+    context: &mut Context<'_, '_>,
+    dst: &Option<VarId>,
+    value: &Value,
+) -> Result<(), Vec<Error>> {
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    match value {
+        Value::EvLookup { ev, effect } => {
+            emit_evidence_lookup(layouts, function, *dst, *ev, *effect, writer)?;
+        }
+        other => return Err(unsupported(&function.name, value_name(other))),
+    };
+    Ok(())
+}
+
+pub(in crate::backend::emit) fn emit_evidence_lookup(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    dst: Option<VarId>,
+    evidence: VarId,
+    effect: EffectId,
+    writer: &mut Writer,
+) -> Result<(), Vec<Error>> {
+    let Some(dst) = dst else {
+        return Err(invalid_flow_ir(
+            &function.name,
+            "EvLookup has no destination",
+        ));
+    };
+    let base_effect =
+        crate::semantics::effect_base(layouts.shapes.core, effect).ok_or_else(|| {
+            invalid_flow_ir(&function.name, "EvLookup effect has an invalid label base")
+        })?;
+    if layouts.shapes.types[function.vars[dst].ty] != Type::Handler(base_effect)
+        || !matches!(
+            layouts.shapes.types[function.vars[evidence].ty],
+            Type::Evidence
+        )
+    {
+        return Err(invalid_flow_ir(
+            &function.name,
+            "EvLookup has inconsistent evidence and handler types",
+        ));
+    }
+    let cursor = format!("emela_evidence_cursor_{}", u32::from(dst.into_raw()));
+    writer.begin_block("");
+    writer.decl(
+        "emela_evidence_node *",
+        &cursor,
+        Some(&variable_name(evidence)),
+    );
+    writer.begin_block(&format!(
+        "while ({cursor} != NULL && {cursor}->effect != UINT32_C({}))",
+        u32::from(effect.into_raw())
+    ));
+    writer.assign(&cursor, &format!("({cursor}->parent)"));
+    writer.end_block();
+    writer.begin_block(&format!("if ({cursor} == NULL)"));
+    writer.line(
+        "emela_board_defect(EMELA_DEFECT_PANIC, \"effect handler not found\", UINT16_C(23));",
+    );
+    writer.end_block();
+    writer.assign(&variable_name(dst), &format!("{cursor}->handler"));
+    writer.end_block();
+    Ok(())
+}

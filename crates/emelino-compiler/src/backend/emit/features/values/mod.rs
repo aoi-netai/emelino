@@ -7,8 +7,11 @@ pub(in crate::backend::emit) mod closure;
 pub(in crate::backend::emit) mod coerce;
 pub(in crate::backend::emit) mod const_;
 pub(in crate::backend::emit) mod env_get;
+pub(in crate::backend::emit) mod ev_extend;
+pub(in crate::backend::emit) mod ev_lookup;
 pub(in crate::backend::emit) mod field;
 pub(in crate::backend::emit) mod fn_ref;
+pub(in crate::backend::emit) mod handler;
 pub(in crate::backend::emit) mod is_error;
 pub(in crate::backend::emit) mod list;
 pub(in crate::backend::emit) mod list_head;
@@ -44,9 +47,9 @@ pub(in crate::backend::emit) fn emit(
         Value::Closure(_) => closure::emit(context, dst, value),
         Value::MakeClosure { .. } => make_closure::emit(context, dst, value),
         Value::EnvGet { .. } => env_get::emit(context, dst, value),
-        Value::EvLookup { .. } => Err(unsupported(&context.function.name, "ev_lookup")),
-        Value::EvExtend { .. } => Err(unsupported(&context.function.name, "ev_extend")),
-        Value::Handler { .. } => Err(unsupported(&context.function.name, "handler")),
+        Value::EvLookup { .. } => ev_lookup::emit(context, dst, value),
+        Value::EvExtend { .. } => ev_extend::emit(context, dst, value),
+        Value::Handler { .. } => handler::emit(context, dst, value),
         Value::Fiber { .. } => Err(unsupported(&context.function.name, "fiber")),
         Value::IsError { .. } => is_error::emit(context, dst, value),
         Value::AsError { .. } => as_error::emit(context, dst, value),

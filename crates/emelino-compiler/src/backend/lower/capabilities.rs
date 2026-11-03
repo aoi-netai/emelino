@@ -57,23 +57,6 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
     for (_, f) in program.functions.iter() {
         if f.vars
             .iter()
-            .any(|(_, v)| matches!(program.core.ty(v.ty), Type::Handler(_) | Type::Evidence))
-        {
-            require(&f.name, "effect and evidence values")?;
-        }
-        if f.stmts.iter().any(|(_, s)| {
-            matches!(
-                s,
-                Stmt::Let {
-                    value: Value::Handler { .. } | Value::EvLookup { .. } | Value::EvExtend { .. },
-                    ..
-                }
-            )
-        }) {
-            require(&f.name, "handler and evidence values")?;
-        }
-        if f.vars
-            .iter()
             .any(|(_, v)| matches!(program.core.ty(v.ty), Type::Cell(_)))
             || f.stmts.iter().any(|(_, s)| {
                 matches!(
