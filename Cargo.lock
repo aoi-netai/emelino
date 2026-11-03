@@ -118,6 +118,7 @@ dependencies = [
 name = "emelino-compiler"
 version = "0.1.0"
 dependencies = [
+ "la-arena",
  "serde",
  "serde_json",
 ]
