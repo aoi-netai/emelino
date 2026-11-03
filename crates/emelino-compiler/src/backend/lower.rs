@@ -6,7 +6,6 @@ use crate::contract::lowered::LoweredModule;
 use crate::{Error, ErrorKind};
 use std::collections::{HashMap, HashSet};
 
-mod capabilities;
 mod closure;
 mod const_eval;
 mod const_groups;
@@ -48,7 +47,6 @@ pub(crate) fn lower_program(
     options: &crate::Options,
 ) -> Result<LoweredModule> {
     types::validate_catalog(&program)?;
-    capabilities::validate(&program, options)?;
     types::project_concurrency_rows(&mut program.core);
     effects::normalize(&mut program)?;
     types::normalize_catalog(&mut program)?;
@@ -92,11 +90,8 @@ pub(crate) fn lower_program(
     fibers::normalize_values(&mut program);
     let deferred_pool = fibers::needs_deferred_pool(&program, &closures, options);
     handler::lower(&mut program, options);
-    let mut const_outcomes: HashMap<
-        FnId,
-        std::result::Result<crate::contract::lowered::ConstOutcome, &'static str>,
-    > = HashMap::new();
-    let mut runtime_consts: HashSet<FnId> = HashSet::new();
+    let mut const_outcomes = HashMap::new();
+    let mut runtime_consts = HashSet::new();
     for (id, function) in program.functions.iter() {
         if !function.constant {
             continue;

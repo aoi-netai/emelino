@@ -1,0 +1,22 @@
+{
+  "exports": [
+    {
+      "function": "read_static",
+      "symbol": "read_static"
+    },
+    {
+      "function": "compare",
+      "symbol": "compare"
+    },
+    {
+      "function": "bytes_size",
+      "symbol": "bytes_size"
+    }
+  ],
+  "heap_bytes": 0,
+  "isr_entries": [
+    "read_static",
+    "compare",
+    "bytes_size"
+  ]
+}

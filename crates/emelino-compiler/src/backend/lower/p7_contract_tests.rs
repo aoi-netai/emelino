@@ -224,6 +224,76 @@ fn local_failure_handlers_are_validated_and_normalized_in_sync_and_suspend_calls
 }
 
 #[test]
+fn interrupt_masks_are_rejected_from_nested_isr_entries_with_or_without_unwind_runtime() {
+    for op in [RuntimeOp::Hold, RuntimeOp::Unhold] {
+        for via_callee in [false, true] {
+            for with_unwind in [false, true] {
+                let mut p = program(vec![]);
+                let mut action = simple();
+                if via_callee {
+                    action.exported = false;
+                    action.export_symbol = None;
+                    action.name = "action".into();
+                }
+                let mask = binding(&mut action, None, Value::Runtime { op, args: vec![] });
+                action.seqs[action.body.unwrap()].stmts = vec![mask];
+                let action = p.functions.alloc(action);
+                if via_callee {
+                    let mut entry = simple();
+                    let call = binding(
+                        &mut entry,
+                        None,
+                        Value::Call {
+                            callee: Callee::Direct(action),
+                            args: vec![],
+                            suspends: false,
+                            on_fail: None,
+                        },
+                    );
+                    entry.seqs[entry.body.unwrap()].stmts = vec![call];
+                    p.functions.alloc(entry);
+                }
+                if with_unwind {
+                    let mut f = Function::new("other");
+                    f.exported = true;
+                    f.export_symbol = Some("other".into());
+                    f.suspends = true;
+                    let body = f.seqs.alloc(Seq {
+                        stmts: vec![],
+                        term: Term::Yield(None),
+                    });
+                    let cleanup = f.seqs.alloc(Seq {
+                        stmts: vec![],
+                        term: Term::Yield(None),
+                    });
+                    let protect = f.stmts.alloc(Stmt::Protect {
+                        dst: None,
+                        body,
+                        cleanup,
+                    });
+                    f.body = Some(f.seqs.alloc(Seq {
+                        stmts: vec![protect],
+                        term: Term::Return(None),
+                    }));
+                    p.functions.alloc(f);
+                }
+                let errors = crate::backend::compile_saved_program(
+                    p,
+                    &Options::default().with_isr_entry("answer"),
+                )
+                .unwrap_err();
+                assert!(
+                    errors.iter().any(|error| error
+                        .message
+                        .contains("fiber interrupt control reachable from ISR entry")),
+                    "{op:?}/{via_callee}/{with_unwind}: {errors:?}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn structured_fiber_waits_accept_suspending_and_reject_native_callers() {
     for case in ["scope", "join", "await", "interrupt", "deferred_await"] {
         let mut p = program(vec![]);

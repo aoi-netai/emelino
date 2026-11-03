@@ -242,7 +242,14 @@ pub(super) fn prepare<'a>(
         };
         names.insert(id, implementation_name);
     }
-    let isr_safe_symbols = Vec::new();
+    let isr_safe_symbols = interrupts::validate_isr_entries(
+        flow,
+        &emitted_functions,
+        &heap_functions,
+        &layouts,
+        &names,
+        options,
+    )?;
     let main_entry = flow
         .functions
         .iter()
@@ -544,6 +551,8 @@ pub(super) fn prepare<'a>(
     external::validate_generated_symbols(&plan)?;
     Ok(plan)
 }
+
+mod interrupts;
 
 use crate::semantics::c::type_name;
 use crate::semantics::{child, deferred, operands::operand_type};

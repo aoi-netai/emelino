@@ -1,17 +1,25 @@
+use super::*;
+use crate::{Options, Output};
+use std::path::PathBuf;
+use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
+
 #[path = "cell_tests.rs"]
-mod cell;
+mod cells;
 #[path = "fiber_tests.rs"]
-mod fiber;
+mod fibers;
 #[path = "function_tests.rs"]
-mod function;
+mod functions;
 #[path = "handler_tests.rs"]
-mod handler;
+mod handlers;
+#[path = "isr_tests.rs"]
+mod isr;
 #[path = "memory_tests.rs"]
 mod memory;
 #[path = "p7_aggregate_failure_tests.rs"]
-mod p7_aggregate_failure;
+mod p7_aggregate_failures;
 #[path = "p7_binding_tests.rs"]
-mod p7_binding;
+mod p7_bindings;
 #[path = "p7_contract_tests.rs"]
 mod p7_contract;
 #[path = "p7_data_tests.rs"]
@@ -23,24 +31,19 @@ mod p7_evidence;
 #[path = "p7_input_tests.rs"]
 mod p7_input;
 #[path = "p7_list_alias_tests.rs"]
-mod p7_list_alias;
+mod p7_list_aliases;
 #[path = "p7_misc_value_tests.rs"]
-mod p7_misc_value;
+mod p7_misc_values;
 #[path = "p7_string_frame_tests.rs"]
-mod p7_string_frame;
+mod p7_string_frames;
 #[path = "p7_switch_frame_tests.rs"]
-mod p7_switch_frame;
+mod p7_switch_frames;
 #[path = "source_builtin_tests.rs"]
-mod source_builtin;
+mod source_builtins;
 #[path = "suspend_tests.rs"]
 mod suspend;
 #[path = "upstream_contract_tests.rs"]
 mod upstream_contract;
-use super::*;
-use crate::{Options, Output};
-use std::path::PathBuf;
-use std::process::Command;
-use std::sync::atomic::{AtomicU64, Ordering};
 
 fn lower_program(program: Program) -> Result<LoweredModule> {
     super::lower_program(program, &Options::default())

@@ -407,6 +407,40 @@ int main(void){size();return 1;}
 }
 
 #[test]
+fn original_runtime_const_isr_rejection_keeps_the_static_alternative_heapless() {
+    let options = Options::default()
+        .with_heap_bytes(8192)
+        .with_isr_entry("read")
+        .with_isr_safe_external("fixture_seed");
+    let dynamic = original("5ce8d2ba40fb42a01466", &["read"]);
+    let program = adapted(&dynamic, &[("read".into(), "read".into())]);
+    let errors = emelino_compiler::compile_program(program, &options).unwrap_err();
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.message.contains("runtime const initialization")),
+        "{errors:#?}"
+    );
+    let output = fixture(
+        "7eaad73bc9a9b5a9bcaa",
+        &["read"],
+        &Options::default().with_isr_entry("read"),
+        false,
+    );
+    assert!(
+        !output.c_source.contains("EmelaConstState")
+            && !output.c_source.contains("emela_heap_storage")
+    );
+    execute(
+        &output,
+        &format!(
+            "{BOARD}\nint main(void){{for(int i=0;i<1000;i++)assert(read()==42);return 0;}}\n"
+        ),
+        0,
+    );
+}
+
+#[test]
 fn original_opaque_const_caches_one_nullable_host_pointer_without_heap() {
     for policy in [ExternalResult::Borrowed, ExternalResult::Owned] {
         let output = fixture(

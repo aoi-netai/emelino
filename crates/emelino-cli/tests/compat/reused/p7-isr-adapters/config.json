@@ -1,0 +1,33 @@
+{
+  "exports": [
+    {
+      "function": "on_timer",
+      "symbol": "TIM2_IRQHandler"
+    },
+    {
+      "function": "on_float",
+      "symbol": "float_bits"
+    }
+  ],
+  "heap_bytes": 0,
+  "isr_entries": [
+    "on_timer",
+    "on_float"
+  ],
+  "external_adapters": [
+    {
+      "symbol": "host_tick",
+      "adapter": "board_tick",
+      "result": "owned"
+    },
+    {
+      "symbol": "host_float",
+      "adapter": "board_float",
+      "result": "owned"
+    }
+  ],
+  "isr_safe_externals": [
+    "board_tick",
+    "board_float"
+  ]
+}

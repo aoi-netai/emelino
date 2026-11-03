@@ -295,6 +295,37 @@ pub(in crate::backend::plan) fn needs_heap(
     })
 }
 
+pub(in crate::backend::plan) fn isr_symbol<'a>(
+    flow: &crate::contract::ir::Program,
+    function: &Function,
+    native: &'a str,
+    options: &'a Options,
+    entry: &str,
+) -> Result<&'a str, Vec<Error>> {
+    if function.infallible_cause_fail {
+        return Ok(native);
+    }
+    let original = symbol(function)?;
+    if let Some((_, adapter)) = options
+        .external_adapters()
+        .iter()
+        .find(|(s, _)| *s == original)
+    {
+        if !std::iter::once(function.ret)
+            .chain(function.params.iter().map(|&p| function.vars[p].ty))
+            .all(|ty| suspend::scalar(&flow.core.types, ty))
+        {
+            return Err(unsupported(
+                &function.name,
+                &format!("non-scalar external adapter reachable from ISR entry `{entry}`"),
+            ));
+        }
+        Ok(adapter.symbol())
+    } else {
+        Ok(native)
+    }
+}
+
 pub(in crate::backend::plan) fn extend_string_output(
     flow: &crate::contract::ir::Program,
     emitted: &HashSet<FnId>,
