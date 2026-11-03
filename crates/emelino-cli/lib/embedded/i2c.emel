@@ -1,51 +1,81 @@
 # The Emela interface for I2C. This version provides master operations only.
+# Device addresses are unshifted 7-bit values. The board adds the R/W bit.
 # Transfers are synchronous and must not be called from interrupt context.
-import Embedded.Peripheral.{PeripheralError}
+import Embedded.Interrupt.{InterruptPriority}
 
 pub enum I2cId { I2c1, I2c2, I2c3 }
-pub enum I2cAddressing { SevenBit, TenBit }
 pub enum I2cDutyCycle { Standard, Fast16To9 }
 pub enum MemoryAddressSize { Bits8, Bits16 }
-pub type I2cConfig(
-  clock_speed_hz: Int,
-  addressing: I2cAddressing,
-  duty_cycle: I2cDutyCycle
-)
+pub type I2cConfig(clock_speed_hz: Int, duty_cycle: I2cDutyCycle)
+
+pub enum I2cErrorKind {
+  InvalidArgument
+  CapacityExceeded
+  NotConfigured
+  Unsupported
+  Timeout
+  Busy
+  ResourceConflict
+  InvalidState
+  Nack
+  BusError
+  ArbitrationLost
+  Other
+}
+pub error I2cError(kind: I2cErrorKind)
+
+pub enum I2cOperationKind {
+  MasterTransmit
+  WriteRead
+  MemoryWrite
+  IsDeviceReady
+  Recover
+}
+pub enum I2cEvent {
+  TransferComplete(operation: I2cOperationKind)
+  TransferError(operation: I2cOperationKind, kind: I2cErrorKind)
+  DeviceReady(ready: Bool)
+}
 
 pub effect I2c {
-  fn configure(id: I2cId, config: I2cConfig) -> () fails PeripheralError
-  fn master_transmit(
+  fn configure(id: I2cId, config: I2cConfig) -> () fails I2cError
+  fn master_transmit(id: I2cId, address: Int, data: List[Int], timeout_ms: Int64) -> ()
+    fails I2cError
+  ## write_data contains the command or register-address bytes to send before reading.
+  ## Bytes are sent in list order; the caller chooses any register-address byte order.
+  ## Empty write_data skips the write phase and performs a read only.
+  ## Otherwise, the BSP sends write_data, then issues a repeated START without a STOP
+  ## before reading from the same device. The combined transfer ends with a STOP.
+  ## read_size must be positive; zero or negative sizes fail with InvalidArgument.
+  ## Success returns exactly read_size bytes; incomplete reads fail with I2cError.
+  ## timeout_ms covers the entire transfer, including both write and read phases.
+  fn write_read(
     id: I2cId,
     address: Int,
-    data: List[Int],
-    timeout_ms: Int64
-  ) -> () fails PeripheralError
-  fn master_receive(
-    id: I2cId,
-    address: Int,
-    size: Int,
-    timeout_ms: Int64
-  ) -> List[Int] fails PeripheralError
+    write_data: List[Int],
+    read_size: Int,
+    timeout_ms: Int64,
+  ) -> List[Int] fails I2cError
   fn memory_write(
     id: I2cId,
     address: Int,
     memory_address: Int,
     address_size: MemoryAddressSize,
     data: List[Int],
-    timeout_ms: Int64
-  ) -> () fails PeripheralError
-  fn memory_read(
-    id: I2cId,
-    address: Int,
-    memory_address: Int,
-    address_size: MemoryAddressSize,
-    size: Int,
-    timeout_ms: Int64
-  ) -> List[Int] fails PeripheralError
-  fn is_device_ready(
-    id: I2cId,
-    address: Int,
-    trials: Int,
-    timeout_ms: Int64
-  ) -> Bool fails PeripheralError
+    timeout_ms: Int64,
+  ) -> () fails I2cError
+  fn is_device_ready(id: I2cId, address: Int, trials: Int, timeout_ms: Int64) -> Bool fails I2cError
+  ## Attempts BSP-specific recovery of the configured controller and bus.
+  ## timeout_ms must be positive; otherwise InvalidArgument is raised.
+  ## The timeout covers the entire attempt; expiration fails with Timeout.
+  ## Fails with Busy if another operation still owns the controller.
+  ## Success restores the existing configuration and leaves the bus ready for new transfers.
+  ## Failed transfers are not retried. Failure does not guarantee a usable bus.
+  ## Missing recovery support fails with Unsupported; detected bus faults use BusError.
+  fn recover(id: I2cId, timeout_ms: Int64) -> () fails I2cError
+  ## Selects interrupt-driven progress where supported; transfers remain synchronous.
+  ## This does not register a user callback or change transfer completion semantics.
+  fn enable_interrupt(id: I2cId, priority: InterruptPriority) -> () fails I2cError
+  ## Returns to polling progress; synchronous transfers remain available.
+  fn disable_interrupt(id: I2cId) -> () fails I2cError
 }

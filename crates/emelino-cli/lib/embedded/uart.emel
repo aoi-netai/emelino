@@ -1,6 +1,6 @@
 # The Emela interface for UART.
 # Transfers are synchronous and must not be called from interrupt context.
-import Embedded.Peripheral.{PeripheralError}
+import Embedded.Interrupt.{InterruptPriority}
 
 pub enum UartId { Uart0, Uart1, Uart2, Uart3, Uart4, Uart5, Uart6, Uart7 }
 ## The data width excludes the parity bit.
@@ -9,7 +9,8 @@ pub enum UartStopBits { Half, One, OneAndHalf, Two }
 pub enum Parity { NoParity, Even, Odd }
 pub enum UartDirection { Receive, Transmit, Both }
 pub enum FlowControl { NoFlowControl, Rts, Cts, RtsCts }
-pub enum Oversampling { By8, By16 }
+## Native uses the board's sampling scheme without requesting a fixed ratio.
+pub enum Oversampling { By8, By16, Native }
 pub type UartConfig(
   baud_rate: Int,
   data_bits: UartDataBits,
@@ -17,11 +18,46 @@ pub type UartConfig(
   parity: Parity,
   direction: UartDirection,
   flow_control: FlowControl,
-  oversampling: Oversampling
+  oversampling: Oversampling,
 )
 
+pub enum UartErrorKind {
+  InvalidArgument
+  CapacityExceeded
+  NotConfigured
+  Unsupported
+  Timeout
+  Busy
+  ResourceConflict
+  InvalidState
+  Parity
+  Framing
+  Overrun
+  Other
+}
+pub error UartError(kind: UartErrorKind)
+
+pub enum UartReceiveMode { Polling, InterruptReceive }
+pub type UartReceiveErrors(parity: Bool, framing: Bool, overrun: Bool, other: Bool)
+pub enum UartEvent {
+  Received(value: Int)
+  TransmitComplete
+  ReceiveError(errors: UartReceiveErrors)
+}
+
 pub effect Uart {
-  fn configure(id: UartId, config: UartConfig) -> () fails PeripheralError
-  fn transmit(id: UartId, data: List[Int], timeout_ms: Int64) -> () fails PeripheralError
-  fn receive(id: UartId, size: Int, timeout_ms: Int64) -> List[Int] fails PeripheralError
+  fn configure(id: UartId, config: UartConfig) -> () fails UartError
+  ## Waits for the final word to leave the transmitter; timeout covers the whole call.
+  ## Values must fit the configured data width, excluding parity.
+  fn transmit(id: UartId, data: List[Int], timeout_ms: Int64) -> () fails UartError
+  ## Requires exactly size > 0 words. A failed transfer may have consumed partial input.
+  fn receive(id: UartId, size: Int, timeout_ms: Int64) -> List[Int] fails UartError
+  ## Waits for the first word, then returns currently available input up to max_size > 0.
+  fn receive_some(id: UartId, max_size: Int, timeout_ms: Int64) -> List[Int] fails UartError
+  ## Discards at most max_size > 0 already received words without waiting for new input.
+  fn discard_input(id: UartId, max_size: Int) -> Int fails UartError
+  fn set_receive_mode(id: UartId, mode: UartReceiveMode) -> () fails UartError
+  fn enable_interrupt(id: UartId, priority: InterruptPriority, notify_transmit: Bool) -> ()
+    fails UartError
+  fn disable_interrupt(id: UartId) -> () fails UartError
 }

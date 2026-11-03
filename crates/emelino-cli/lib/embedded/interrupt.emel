@@ -1,0 +1,5 @@
+# Shared logical priorities for BSP-managed peripheral interrupts.
+# Their hardware encoding is defined by the selected board.
+# These are hardware IRQ priorities, not deferred callback scheduling priorities.
+# Sources sharing an IRQ cannot request different priorities; the BSP reports ResourceConflict.
+pub enum InterruptPriority { Low, Normal, High }

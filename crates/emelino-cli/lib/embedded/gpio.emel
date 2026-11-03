@@ -1,30 +1,52 @@
 # The Emela interface for GPIO.
 # The selected board definition maps logical pin IDs to physical pins.
-# The board manages interrupt service routines and their connections.
+# The board manages interrupt service routines; the runtime dispatches per-pin callbacks.
+import Embedded.Interrupt.{InterruptPriority}
 
 ## A logical pin ID defined by the board and resolved by the embedded implementation.
 pub type GpioPin(id: Int)
 pub enum PinState { Low, High }
 pub enum Pull { NoPull, Up, Down }
-pub enum GpioMode {
-  Input
-  OutputPushPull
-  OutputOpenDrain
-  Analog
+pub enum GpioConfig {
+  Input(pull: Pull)
+  OutputPushPull(pull: Pull, initial: PinState)
+  OutputOpenDrain(pull: Pull, initial: PinState)
+  Analog(pull: Pull)
 }
 pub enum Edge { Rising, Falling, Both }
+## The source pin and its level sampled when the interrupt event is captured.
 pub type GpioEvent(pin: GpioPin, level: PinState)
+pub enum GpioErrorKind {
+  InvalidArgument
+  NotConfigured
+  Unsupported
+  Busy
+  ResourceConflict
+  InvalidState
+  Other
+}
+pub error GpioError(kind: GpioErrorKind)
 
 pub effect Gpio {
-  fn configure(
+  fn configure(pin: GpioPin, config: GpioConfig) -> () fails GpioError
+  fn read(pin: GpioPin) -> PinState fails GpioError
+  fn write(pin: GpioPin, state: PinState) -> () fails GpioError
+  fn toggle(pin: GpioPin) -> () fails GpioError
+  ## Registers one callback for this pin; the same callback may serve multiple pins.
+  ## The BSP acknowledges the hardware source and calls the library's ISR entry.
+  ## on_event runs directly in ISR context; the compiler checks every possible target.
+  ## The runtime retains the callback and its captures until replaced or disabled.
+  ## Registration changes are main-context operations, synchronized with dispatch.
+  ## Failed re-registration leaves the previous binding unchanged.
+  ## priority controls the hardware IRQ, including callback execution.
+  ## Pins sharing an IRQ must request the same priority, otherwise ResourceConflict is raised.
+  fn enable_interrupt(
     pin: GpioPin,
-    mode: GpioMode,
-    pull: Pull
-  ) -> ()
-  fn read(pin: GpioPin) -> PinState
-  fn write(pin: GpioPin, state: PinState) -> ()
-  fn toggle(pin: GpioPin) -> ()
-  ## Enables the interrupt source. Board code owns ISR handling; this does not register Emela callbacks.
-  fn enable_interrupt(pin: GpioPin, edge: Edge) -> ()
-  fn disable_interrupt(pin: GpioPin) -> ()
+    edge: Edge,
+    priority: InterruptPriority,
+    on_event: fn(GpioEvent) -> () fails {} use {},
+  ) -> () fails GpioError
+  ## Disables this pin's interrupt and unregisters its callback in main context.
+  ## The BSP synchronizes with ISR execution before the callback captures are released.
+  fn disable_interrupt(pin: GpioPin) -> () fails GpioError
 }
