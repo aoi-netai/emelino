@@ -1,0 +1,244 @@
+{
+  "exports": [
+    {
+      "function": "add32",
+      "symbol": "add32"
+    },
+    {
+      "function": "sub32",
+      "symbol": "sub32"
+    },
+    {
+      "function": "mul32",
+      "symbol": "mul32"
+    },
+    {
+      "function": "neg32",
+      "symbol": "neg32"
+    },
+    {
+      "function": "div32",
+      "symbol": "div32"
+    },
+    {
+      "function": "rem32",
+      "symbol": "rem32"
+    },
+    {
+      "function": "add64",
+      "symbol": "add64"
+    },
+    {
+      "function": "sub64",
+      "symbol": "sub64"
+    },
+    {
+      "function": "mul64",
+      "symbol": "mul64"
+    },
+    {
+      "function": "neg64",
+      "symbol": "neg64"
+    },
+    {
+      "function": "div64",
+      "symbol": "div64"
+    },
+    {
+      "function": "rem64",
+      "symbol": "rem64"
+    },
+    {
+      "function": "bits32",
+      "symbol": "bits32"
+    },
+    {
+      "function": "bits64",
+      "symbol": "bits64"
+    },
+    {
+      "function": "left32",
+      "symbol": "left32"
+    },
+    {
+      "function": "right32",
+      "symbol": "right32"
+    },
+    {
+      "function": "unsigned32",
+      "symbol": "unsigned32"
+    },
+    {
+      "function": "left64",
+      "symbol": "left64"
+    },
+    {
+      "function": "right64",
+      "symbol": "right64"
+    },
+    {
+      "function": "unsigned64",
+      "symbol": "unsigned64"
+    },
+    {
+      "function": "min32",
+      "symbol": "min32"
+    },
+    {
+      "function": "max32",
+      "symbol": "max32"
+    },
+    {
+      "function": "min64",
+      "symbol": "min64"
+    },
+    {
+      "function": "max64",
+      "symbol": "max64"
+    },
+    {
+      "function": "float_arithmetic",
+      "symbol": "float_arithmetic"
+    },
+    {
+      "function": "unit_value",
+      "symbol": "unit_value"
+    },
+    {
+      "function": "eq32",
+      "symbol": "eq32"
+    },
+    {
+      "function": "ne32",
+      "symbol": "ne32"
+    },
+    {
+      "function": "lt32",
+      "symbol": "lt32"
+    },
+    {
+      "function": "le32",
+      "symbol": "le32"
+    },
+    {
+      "function": "gt32",
+      "symbol": "gt32"
+    },
+    {
+      "function": "ge32",
+      "symbol": "ge32"
+    },
+    {
+      "function": "eq64",
+      "symbol": "eq64"
+    },
+    {
+      "function": "ne64",
+      "symbol": "ne64"
+    },
+    {
+      "function": "lt64",
+      "symbol": "lt64"
+    },
+    {
+      "function": "le64",
+      "symbol": "le64"
+    },
+    {
+      "function": "gt64",
+      "symbol": "gt64"
+    },
+    {
+      "function": "ge64",
+      "symbol": "ge64"
+    },
+    {
+      "function": "eqf",
+      "symbol": "eqf"
+    },
+    {
+      "function": "nef",
+      "symbol": "nef"
+    },
+    {
+      "function": "ltf",
+      "symbol": "ltf"
+    },
+    {
+      "function": "lef",
+      "symbol": "lef"
+    },
+    {
+      "function": "gtf",
+      "symbol": "gtf"
+    },
+    {
+      "function": "gef",
+      "symbol": "gef"
+    },
+    {
+      "function": "addf",
+      "symbol": "addf"
+    },
+    {
+      "function": "subf",
+      "symbol": "subf"
+    },
+    {
+      "function": "mulf",
+      "symbol": "mulf"
+    },
+    {
+      "function": "divf",
+      "symbol": "divf"
+    },
+    {
+      "function": "remf",
+      "symbol": "remf"
+    },
+    {
+      "function": "band32",
+      "symbol": "band32"
+    },
+    {
+      "function": "bor32",
+      "symbol": "bor32"
+    },
+    {
+      "function": "bxor32",
+      "symbol": "bxor32"
+    },
+    {
+      "function": "bnot32",
+      "symbol": "bnot32"
+    },
+    {
+      "function": "band64",
+      "symbol": "band64"
+    },
+    {
+      "function": "bor64",
+      "symbol": "bor64"
+    },
+    {
+      "function": "bxor64",
+      "symbol": "bxor64"
+    },
+    {
+      "function": "bnot64",
+      "symbol": "bnot64"
+    },
+    {
+      "function": "float_from_int",
+      "symbol": "float_from_int"
+    },
+    {
+      "function": "wide_from_int",
+      "symbol": "wide_from_int"
+    },
+    {
+      "function": "narrow_to_int",
+      "symbol": "narrow_to_int"
+    }
+  ]
+}

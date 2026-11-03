@@ -1,0 +1,12 @@
+{
+  "exports": [
+    {
+      "function": "integer_bits",
+      "symbol": "integer_bits"
+    },
+    {
+      "function": "float_bits",
+      "symbol": "float_bits"
+    }
+  ]
+}

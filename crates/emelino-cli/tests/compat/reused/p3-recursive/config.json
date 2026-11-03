@@ -1,0 +1,13 @@
+{
+  "exports": [
+    {
+      "function": "work",
+      "symbol": "finite_recursive"
+    },
+    {
+      "function": "deep_release",
+      "symbol": "deep_release"
+    }
+  ],
+  "heap_bytes": 4194304
+}

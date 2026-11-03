@@ -1,0 +1,212 @@
+{
+  "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "fixtures": [
+    {
+      "name": "p1-numeric",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p1/numeric.emel",
+      "source_sha256": "1247b7fdd886280601aba450ddbf4e9b07411717b0016e2c839ec1dba2f1a6cb",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 旧独自frontendのUnit表記を本体の()へ変更。 Int64.MINを同値の型付き文脈の整数literalへ変更（固定版本体に当該標準定数なし）。 Int64.MAXを同値の型付き文脈の整数literalへ変更（固定版本体に当該標準定数なし）。 Int.MINを同値の型付き文脈の整数literalへ変更（固定版本体に当該標準定数なし）。 Int.MAXを同値の型付き文脈の整数literalへ変更（固定版本体に当該標準定数なし）。 本体が負の最小literalを拒否するため、最小値を -MAX - 1 の同値式で構築。",
+      "adapted_source_sha256": "7e01b54fdbb1d345af9eb8d264bb52307da639f804d18cd9988a8286e7877695",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p1/numeric-harness.c",
+      "harness_sha256": "bb5c40a0f03d6a2c3b2414ff7d45745a853621ae9c5bc448bdf02125f293eada",
+      "harness_change": "なし（byte一致）",
+      "options": {},
+      "heap_observer": false,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p1-external",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p1/external.emel",
+      "source_sha256": "c36eeb63526fc23b7e66d30fe47905b55ef595534be2587a23cda8f5df1e66e3",
+      "source_change": "C公開属性をconfigへ移動。C側の値をそのまま返す純粋externalを本体のuse {}宣言で明示し、旧heap 0を維持。",
+      "adapted_source_sha256": "69a9e7cbd651f356faf54c34eac0660c06d307c0ff18b49061ca6be2c6f1ee3c",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p1/external-harness.c",
+      "harness_sha256": "cc69e4590f959061c0a5eb3f96cf05c5c72da94dcd4a6d0fea815f5ebf87f045",
+      "harness_change": "なし（byte一致）",
+      "options": {},
+      "heap_observer": false,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p2-strings",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p2/strings.emel",
+      "source_sha256": "8c701d96831f1a86d209fde86ffc33fe29dace691f80d0ae46723140a2e4e71e",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。",
+      "adapted_source_sha256": "4a45b9a674470b881eb8127d2a02b9d8533064fb25ea755ec79836c38e68efce",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p2/strings-harness.c",
+      "harness_sha256": "ce30ad84a1253fdd84058168e671a1b422513d32778ecd080ff71c12f7ba100d",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "string_capacity": 64
+      },
+      "heap_observer": false,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p3-recursive",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p3/recursive.emel",
+      "source_sha256": "b97f1a3abcc82848a0e64dfafc7c5de90baa286c2b357d017045ee1c85be19d5",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。",
+      "adapted_source_sha256": "aa2d9df0006e3e6c6dcbe9707edde42458a4681bc19131cd2f1f90bf7d471357",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p3/recursive-harness.c",
+      "harness_sha256": "107c999718d4acc9ea62c57107bf49a06a636b516d12f3fa2e023aba7f6f0166",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 4194304
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p2-standard-values",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p2/standard-values.emel",
+      "source_sha256": "017b7b174db47477f89aba5821c5476ce0a99a919f341e6fc43fe24ab24189e8",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 副作用を持つ同期external呼出しをテスト所有effect/handlerで包む。本体のExternalOutsideHandler規則に従い、C symbolと呼出し順の期待値は維持。",
+      "adapted_source_sha256": "8db22643d2a0ba2cad75819534bcfd82bb3263ad088f9104d678cf5d95c8e521",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p2/standard-values-harness.c",
+      "harness_sha256": "5ba95a42d0ee38e133179ad9b659a8b46384120df2794c6b44760aec40127f5b",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 4096,
+        "string_capacity": 128
+      },
+      "heap_observer": false,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p3-bytes-owned",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-owned.emel",
+      "source_sha256": "8d09252d8d749656b47a83390cf0d745c51d4318cb4d72da18f16bcae0b22f64",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 旧独自frontendのUnit表記を本体の()へ変更。 固定版本体にBytesがないため、importをemelino所有のEmelino.Bytesへ変更。本体stdの差し替えではない。",
+      "adapted_source_sha256": "edd0dd3bc88c437a658ac23368cbde97155b9c707142b5c0ab56a78435d563a3",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-owned-harness.c",
+      "harness_sha256": "b8eed463296fcd4e296e041d84fe68eb5d3fe9edbc958184304f98ab8bc7967c",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 262144,
+        "string_capacity": 1
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p3-bytes-transform",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-transform.emel",
+      "source_sha256": "0d0b079ddf28e2f954dea24a0c917f4d4b46eb10ce0b0ba35d40a9096b95b598",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 固定版本体にBytesがないため、importをemelino所有のEmelino.Bytesへ変更。本体stdの差し替えではない。",
+      "adapted_source_sha256": "4d433e7990cbc2c076c2f0e62a2cedc1f2b3df5ce9c2cdf70370511abd872989",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p3/bytes-transform-harness.c",
+      "harness_sha256": "4c8eae45b5c3fd0c713e95ec37292e0988270f985f6f33e7cb2b0d421dff264b",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 16384,
+        "string_capacity": 512
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    },
+    {
+      "name": "p7-record-updates",
+      "source_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+      "source_path": "crates/emela-emb-compiler/tests/compat/p7/record-updates.emel",
+      "source_sha256": "6fec6c10175a3b98cb7862c8df1be76f57f85774c963ac7cd3031763cd500d4d",
+      "source_change": "C公開属性だけを削除し、同じ関数名・aliasをconfigへ移動。 末尾を捨てるList patternを本体の..表記へ変更。 副作用を持つ同期external呼出しをテスト所有effect/handlerで包む。本体のExternalOutsideHandler規則に従い、C symbolと呼出し順の期待値は維持。 match armの区切りをcommaから本体のnewlineへ変更。 enum fieldと同名の関数へのmethod記法は固定版本体がfieldと解釈するため、同じ関数の明示呼出しへ変更。",
+      "adapted_source_sha256": "7dd411d8a1c4270192877cd18040ceb4314252fb0d280e8be1a67b938aa44b75",
+      "harness_path": "crates/emela-emb-compiler/tests/compat/p7/record-updates-harness.c",
+      "harness_sha256": "59534acd84bebf8ed6018228f56b77c916757b7c3f202b1f2c9003094f24595a",
+      "harness_change": "なし（byte一致）",
+      "options": {
+        "heap_bytes": 16384,
+        "string_capacity": 256
+      },
+      "heap_observer": true,
+      "status": "passed",
+      "validation": {
+        "test_target": "reused_pipeline",
+        "saved_input_replay": true,
+        "source_removed_before_replay": true,
+        "c_optimization_levels": [
+          "-O0",
+          "-O2"
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "command": "cargo test -p emelino-cli --test reused_pipeline --locked --offline",
+    "tests_passed": 9,
+    "tests_failed": 0,
+    "tests_ignored": 0,
+    "scope": "8 source/C fixtures + fixed ledger ID integrity; no global parity completion claim"
+  }
+}
