@@ -79,3 +79,31 @@ flagsは未解決集合の保守的近似なので集合との単純一致は要
 `crates/emelino-compiler/tests/backend_input.rs`は保存前後に共通する検証と型集合を扱う。
 `pipeline::invalid_saved_function_sets_are_diagnosed_without_outputs`は不正集合を通常診断し、
 panicや不完全な生成物を残さないことを確認する。
+
+<a id="data-memory"></a>
+## データ表現・固定heap・所有権（PR2）
+
+tuple、record、enum、List、Any、再帰型を型表からC表現へ割り当てる。
+record更新はfieldの評価順を保ち、旧値を必要な間保持してから不要な所有値を解放する。
+matchはtagとpayloadの型に従い、再帰型は有限の宣言代入として解決する。
+型の`Param`が宣言の具象代入に現れることは許すが、未解決のruntime slotは受理しない。
+Unitの格納省略は`Repr::Void`で表し、任意のVoid変数をraw Flowへ認める意味ではない。
+
+所有値は生成module専用の固定heapで管理し、`heap_bytes=0`ではheap-backed値を無効にする。
+必要なheapや固定poolが不足した場合は定義されたresource defectとしてboard停止hookへ渡す。
+ホストの`malloc`へ暗黙に退避したり、容量超過を値の切り詰めで隠したりしない。
+静的な値・borrowed viewと所有値を区別し、コピー・返却・capture・payloadへの格納では
+生存期間に必要な所有を取得する。最後の参照をdropすると入れ子の管理fieldも解放する。
+deepな再帰値の解放と、Stringを含むList・error payloadが元ownerより長く生存する場合も対象とする。
+
+所有権の正しさは値だけでは判定できないため、同じ操作を反復し、元ownerの寿命終了後の値と
+heapの回収量をC harnessで確認する。試験が生成Cに追加するheap観測関数は内部計測用であり、
+製品の公開headerへ追加しない。cleanup、取消、非同期境界における所有権は該当機能の節でも確認する。
+
+実装は`contract/ir.rs`、`semantics/{types.rs,representations.rs,derived.rs}`、
+`backend/plan/heap.rs`、`backend/emit/heap.rs`と値・dropのlower/emitが担当する。
+pathは`crates/emelino-compiler/src/`からの相対指定である。
+`crates/emelino-cli/tests/legacy_more.rs`の`legacy_recursive_4bd3bbef2dbb773478d2`と
+`legacy_recursive_8f6003cb6b231900471a`が型引数を変える再帰型と公開値を観測する。
+CLIの`upstream_adapter::tests::upstream_calls_branches_and_composite_type_ids_execute`はscalar・tuple・Listを確認する。
+record更新にeffectを組み合わせた観測と、error payloadを含む所有値の観測はPR4で追加する。
