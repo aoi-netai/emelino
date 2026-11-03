@@ -1,8 +1,8 @@
 # emelino
 
 Emela本体の公開APIで生成したFlow IRを、再利用した組み込み向けbackendへ接続します。
-本体のfrontend・単相化・core/stdは複製せず、公式revision
-`ec1031cb0b98386baf0e9b0ced67e8829bb2c529` に固定して利用します。本体への変更はありません。
+本体のfrontend・単相化・core/stdは複製せず、公式 **v0.26.1** のcommit
+`6021115103dd830e0efd9bb96a56a0ca97859329` に固定して利用します。本体への変更はありません。
 
 ## 試す
 
@@ -46,8 +46,9 @@ cargo run --locked -p emelino-cli -- build --input out/flow/program.backend.json
 
 `build --input` はソースや本体checkoutを読まずに再生成します。
 このJSONはemelino専用であり、本体の標準Flow交換形式ではありません。
-S0の `emelino.flow.minimal` は `build --flow` による旧成果物の読込みだけを残しています。
-新しいソース生成に旧形式は使いません。
+S0の `emelino.flow.minimal` は `build --flow` による最小profileの読込みだけを残しています。
+新しいソース生成に旧形式は使いません。両形式ともproducer revisionを照合するため、
+旧依存版で保存した入力は元ソースから生成し直してください。
 
 ## 構成と対応状況
 
@@ -57,7 +58,7 @@ S0の `emelino.flow.minimal` は `build --flow` による旧成果物の読込�
 `heap_bytes`、`string_capacity`、`entry`、`isr_entries`、各adapterも設定から渡します。
 設定のunknown fieldや重複公開名は拒否します。
 
-旧forkのBytes拡張は `Emelino.Bytes` からimportします。
+Bytesは本体の `Std.Bytes` からimportします。旧 `Emelino.Bytes` も `Std.Bytes` へ変更してください。
 旧 `Embedded.*` は、固定版本体の `Std.Embedded.*` から供給する互換モジュールです。
 標準ライブラリーのソースは本体へ集約し、emelino側に同じ宣言のコピーを置きません。
 公開入口には具体型のwrapperを用意し、残るeffectをhandlerで処理してください。
@@ -68,6 +69,7 @@ Pome/project loader、`@test` / `@internal` のdriver処理はまだ提供して
 [実装計画](docs/implementation-plan.md)のS1〜S6は、合意した固定旧fork相当の範囲で完了しました。
 [対応表](docs/compiler-coverage.md)の各項目に新経路の証拠を記録し、377試験と別ディレクトリでの再実行を確認しました。
 公開入口・容量の条件と結果の内訳は[S6報告](docs/reports/compiler-s6.md)を参照してください。
+v0.26.1への更新・標準Bytesへの移行と再検証は[依存更新報告](docs/reports/compiler-v0.26.1.md)に記録します。
 本体由来の汎化constの共有問題は[既知問題](docs/upstream-known-issues.md)として追跡します。
 現在の境界は[構成](docs/architecture.md)、移入元は[再利用記録](docs/reports/reuse-provenance.md)を参照してください。
 

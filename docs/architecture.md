@@ -23,7 +23,8 @@ S0の最小実験から、前回のbackendを再利用する構成へ移行し�
 再解析・書換え・独自の単相化・const由来追跡は行わない。
 closure・handler・suspendの変換は再利用backendで一度だけ行う。
 
-本体の5 crate（syntax/resolve/types/core/lir）は同一の公式revisionへ固定し、
+本体の5 crate（syntax/resolve/types/core/lir）は公式v0.26.1のcommit
+`6021115103dd830e0efd9bb96a56a0ca97859329` へ固定し、
 core/stdは `emela_core::core_sources()` から供給する。兄弟repoへのpath依存はない。
 前回の独自frontendや同梱core/stdは移入しない。
 
@@ -33,7 +34,15 @@ core/stdは `emela_core::core_sources()` から供給する。兄弟repoへのpa
 本文は変更せず、互換コピーへcore権限を付けない。派生した6moduleのbyte列は旧moduleの
 固定SHA256と一致することを試験し、独立した `lib/embedded` の実装は保持しない。
 互換モジュールは別の通常moduleなので、型・effect・Board handlerのimportは同じnamespaceで揃える。
-固定本体に存在しない `Emelino.Bytes` は専用の通常external拡張として保持する。
+Bytesも本体の `Std.Bytes` をそのまま使う。`Type::Bytes` と8個のBytes builtinを
+所有IRへ直接投影し、旧 `Emelino.Bytes` のソース・external識別処理・型ID再割当ては持たない。
+`crates/emelino-cli/lib` は不要になった。
+
+`upstream_adapter.rs` は本体Flowと所有IRの境界として残る。v0.26.1の標準Flowには
+Causeの失敗伝播とUnit→Any callbackのbackend向け補完が含まれないため、
+`upstream_adapter/cause.rs` と `unit_any.rs` は継続する。
+本体の別backend `emela-codegen-emb` にある内部処理を、標準Flowの契約とはみなさない。
+確認した差分と回帰試験は[依存更新報告](reports/compiler-v0.26.1.md)に記録する。
 
 ## 公開入口と設定
 
@@ -57,6 +66,7 @@ user sourceにcore内部権限を付けない。Pome/project discoveryを独自�
 BackendInput。format、schema、producer revision、stage、必要featureを照合する。
 ID参照・型表・body構造を検査してからbackendへ渡し、Floatはbit patternとして保存する。
 到達性・位置・layout等の計算済みmetadataは保存入力として信用しない。
+producerは上記release commitに固定する。旧依存版の保存入力は元ソースから再生成する。
 
 高レベルCLIの `build --input` でも `Config::validate_entry` を通し、公開引数・戻り値の
 未処理Evidenceを拒否する。ソース入力と同じ具体的wrapperの契約を再生成にも適用する。

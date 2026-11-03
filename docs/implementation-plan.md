@@ -13,7 +13,7 @@
 
 | 基準 | 固定する内容 |
 | --- | --- |
-| 現在の本体依存 | 公式 `ec1031cb0b98386baf0e9b0ced67e8829bb2c529` |
+| 現在の本体依存 | 公式v0.26.1 `6021115103dd830e0efd9bb96a56a0ca97859329` |
 | 再利用する前回の実装 | emela-embのP1〜P7最終source `b0a367bc0a29227fae62cee2def75ed925a5218f` |
 | 前回の最終報告・対応表 | emela-embの公開済み `2258716bab2e9e4bbaa5a2fd135f6999636125e2`。compilerのtreeは上記sourceと同一 |
 | 機能比較の旧fork | `c34c0aeefdd966d854371b3110db00a47798751d` |
@@ -21,7 +21,11 @@
 S0で完了した最小実験は、`answer() -> Int { 42 }` の本体Flow生成、実験用JSONの保存、
 ソース削除後のC再生成、ホストCからの呼出しである。全14テスト、fmt、strict clippy、
 生成Cの `-O0` / `-O2` 実行を確認済み。S1の接続基盤も完了し、[S1報告](reports/compiler-s1.md)に記録した。
-S2の同期データ接続も[確認済み](reports/compiler-s2.md)。S3の関数値・effect・失敗も[確認済み](reports/compiler-s3.md)。S4の中断・並行処理も[確認済み](reports/compiler-s4.md)。S5のconst・ABI・ISRも[接続済み](reports/compiler-s5.md)。S6の全体照合と差分修正も[完了](reports/compiler-s6.md)。今回の377試験と別ディレクトリでの再実行が成功した。前回の607テストの成功を今回の接続の成功として数えない。
+S2の同期データ接続も[確認済み](reports/compiler-s2.md)。S3の関数値・effect・失敗も[確認済み](reports/compiler-s3.md)。S4の中断・並行処理も[確認済み](reports/compiler-s4.md)。S5のconst・ABI・ISRも[接続済み](reports/compiler-s5.md)。S6の全体照合と差分修正も[完了](reports/compiler-s6.md)。旧pin `ec1031c` で377試験と別ディレクトリでの再実行が成功した。前回の607テストの成功を今回の接続の成功として数えない。
+
+その後、本体依存をユーザー指定のv0.26.1へ更新し、Bytesを本体標準へ移管する。
+release tagが指すcommitへ5 crateと保存入力のproducerを固定し、標準Flow→所有IRの
+接続に必要な処理だけを残す。更新内容と検証は[依存更新報告](reports/compiler-v0.26.1.md)に記録する。
 
 ## 2. 保持する方針
 
@@ -147,7 +151,8 @@ backendの共通コードはS1でまとまって採用できるが、コード�
 
 S5の互換 `Embedded.*` は、固定本体の標準ソースからimport名だけを変えて供給する。
 6moduleの派生結果は旧moduleの固定hashとの一致を確認し、同じ宣言のコピーをrepoへ置かない。
-本体未提供のBytes拡張は `Emelino.Bytes` として所有する。
+Bytesはv0.26.1の `Std.Bytes` に委譲し、独自のEmelaソースとexternal変換を削除する。
+標準Flowの構造変換と未移管のCause・Unit/Any補完は接続部に保持する。
 本体のcore/stdを差し替えず、互換ソースへcore内部権限を与えない。
 利用可能な公開APIの範囲で接続し、供給できない場合はその項目を未完として記録する。
 Pome・project loadingの独自実装は作らず、必要な入口は本体へ委譲する。

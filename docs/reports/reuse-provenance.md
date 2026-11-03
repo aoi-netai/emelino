@@ -7,7 +7,7 @@
 | 前回のコンパイラーsource | emela-emb `b0a367bc0a29227fae62cee2def75ed925a5218f` | backend、contract、semantics、writer、artifactと必要な試験資産 |
 | 前回の最終対応表 | emela-emb `2258716bab2e9e4bbaa5a2fd135f6999636125e2` | `docs/reference/legacy-flow/`、台帳のID・関連情報 |
 | 比較する旧fork | `c34c0aeefdd966d854371b3110db00a47798751d` | 旧Flow定義・実装・関連試験の固定基準 |
-| 現在の本体frontend | 公式Emela `ec1031cb0b98386baf0e9b0ced67e8829bb2c529` | 公開frontend API、標準単相化、Flow生成、core/std |
+| 現在の本体frontend | 公式Emela v0.26.1 `6021115103dd830e0efd9bb96a56a0ca97859329` | 公開frontend API、標準単相化、Flow生成、core/std |
 
 コードと資料は固定したGit objectから取得し、元checkoutの未コミット変更を含めない。
 Apache-2.0のLICENSEと既存の出自・著作権表示を保持する。
@@ -78,7 +78,8 @@ S1以降の終了判定は [対応表の終了条件](../compiler-coverage.md) �
 
 SharedStateの返却callbackを公開する1例では、本体が残すeffect evidenceを
 普通の `State.run` wrapperで処理する。旧Cの83という結果を含むassertionは変えない。
-Emelino.Bytesへのimport変更とこのwrapperはfixtureの明示的な接続変更であり、製品parserを拡張しない。
+このwrapperはfixtureの明示的な接続変更であり、製品parserを拡張しない。
+旧pinで必要だった `Std.Bytes` → `Emelino.Bytes` のimport変更は、v0.26.1で撤去した。
 
 補足source試験の容量変更も隠さず記録する。TestClockは本体Flowのframe構造に合わせて
 frame_bytesを1024から2048へ変更し、短絡評価・引数順序のfixtureは副作用hookを
@@ -88,7 +89,7 @@ frame_bytesを1024から2048へ変更し、短絡評価・引数順序のfixture
 ## 組み込み互換moduleの供給元
 
 `Embedded.Peripheral/Gpio/Uart/I2c/Spi/Board` は公式本体
-`ec1031cb0b98386baf0e9b0ced67e8829bb2c529` の `core_sources()` が返す
+v0.26.1 `6021115103dd830e0efd9bb96a56a0ca97859329` の `core_sources()` が返す
 `Std.Embedded.*` 6moduleから実行時に派生する。`bundled.rs` は互換コピーの
 `import Std.Embedded.` 行だけを `import Embedded.` へ置き換え、通常のsourceとして
 公開frontend APIに渡す。本体側moduleとuser sourceの本文は変更しない。
@@ -99,5 +100,8 @@ frame_bytesを1024から2048へ変更し、短絡評価・引数順序のfixture
 不一致やmodule欠落は失敗とする。hostの `sha256sum` を使い、Rust依存は追加していない。
 名前空間と置換不可の検査、および旧ボードC harnessのO0/O2実行も通過した。
 
-`Emelino.Bytes` は固定公式本体に存在しないため、専用の通常external拡張を維持する。
-この例外と、公式core/stdの二重管理は区別する。
+Bytesはv0.26.1の `Std.Bytes` から供給する。旧pin `ec1031c` 用に保持していた
+`Emelino.Bytes` ソースとexternal識別adapterは削除した。旧fixtureの `Std.Bytes` importを
+書き換えずに、本体の型・intrinsicと既存のC runtimeを接続する。
+S1〜S6の実行記録は旧pinでの履歴として保持し、現在の検証は
+[依存更新報告](compiler-v0.26.1.md)に記録する。
