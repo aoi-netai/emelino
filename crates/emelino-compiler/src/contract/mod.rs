@@ -1,14 +1,31 @@
-//! Owned data contracts without a dependency on the upstream compiler.
-// Shared variants are introduced before the stages that consume them.
+//! Data contracts. These modules must not depend on compiler or platform implementations.
+// Later parity phases construct the remaining shared contract variants.
 #![allow(dead_code)]
-mod derived;
+
 mod error;
-pub mod ir;
 mod options;
 mod output;
-pub use derived::DerivedOperation;
+
 pub use error::{Error, ErrorKind};
 pub use options::{ExternalAdapter, ExternalResult, Options};
 pub use output::{ExportedFunction, GeneratedFile, Output};
+
+mod derived;
+pub mod ir;
+pub use derived::DerivedOperation;
+pub(crate) mod abi;
+pub(crate) mod auxiliary;
+pub(crate) mod bindings;
+pub(crate) mod control;
+pub(crate) mod lowered;
+pub(crate) mod operations;
+pub(crate) mod planned;
+pub(crate) mod runtime;
+pub(crate) mod strings;
+
+pub(crate) mod services;
+
+#[cfg(test)]
+pub(crate) mod fixtures;
 
 pub(crate) mod artifact;
