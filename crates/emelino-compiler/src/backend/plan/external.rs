@@ -88,12 +88,8 @@ pub(in crate::backend::plan) fn resolve(
             );
             continue;
         }
-        let original = symbol(f)?;
-        let _adapter = options
-            .external_adapters()
-            .iter()
-            .find(|(name, _)| *name == original)
-            .map(|(_, a)| a);
+        symbol(f)?;
+
         let binding = {
             if f.fails {
                 return Err(unsupported(
