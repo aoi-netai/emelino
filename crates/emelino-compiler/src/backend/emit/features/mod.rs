@@ -21,6 +21,7 @@ pub(in crate::backend::emit) struct BuiltinContext<'a, 'ir> {
     pub(in crate::backend::emit) string_buffers: &'a StringBufferPlan,
     pub(in crate::backend::emit) writer: &'a mut Writer,
 }
+use builtin_utilities::ResultType;
 
 pub(in crate::backend::emit) mod constants;
 

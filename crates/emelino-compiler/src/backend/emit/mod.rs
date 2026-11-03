@@ -2,7 +2,7 @@
 use crate::contract::abi::{AggregateKind, CLayoutPlan as TypeLayouts};
 use crate::contract::ir::*;
 use crate::contract::strings::StringBuffers as StringBufferPlan;
-use crate::semantics::abi::LayoutRead;
+use crate::semantics::abi::{LayoutRead, option_payload_type};
 use crate::semantics::c::variable_name;
 use crate::semantics::diagnostics::{
     self, invalid_flow_ir, statement_name, term_name, unsupported, value_name,
@@ -317,7 +317,8 @@ use functions::{
 };
 use values::{
     constant_expression, emit_aggregate_field_store, emit_builtin, emit_runtime,
-    operand_expression, operand_is_string, primitive_expression,
+    operand_expression, operand_is_float, operand_is_int, operand_is_int64, operand_is_string,
+    option_variant_expression, primitive_expression,
 };
 
 pub(super) mod layouts;
@@ -334,6 +335,7 @@ mod c;
 mod numeric_runtime;
 mod owned;
 mod platform;
+mod string_runtime;
 use crate::contract::operations as analysis;
 use c::*;
 use layouts::LayoutEmission;
@@ -345,6 +347,10 @@ mod entry;
 
 mod bytes_runtime;
 mod heap;
+
+mod float_parse;
+
+mod float_to_string;
 
 use crate::semantics::operands::operand_type;
 

@@ -6,6 +6,8 @@ mod p7_binding;
 mod p7_data;
 #[path = "p7_list_alias_tests.rs"]
 mod p7_list_alias;
+#[path = "p7_misc_value_tests.rs"]
+mod p7_misc_value;
 use super::*;
 use crate::{Options, Output};
 use std::path::PathBuf;
@@ -299,6 +301,27 @@ fn tail_recursion_uses_parallel_parameter_assignment_and_scalar_external_calls()
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint32_t increment(int32_t n) { return n + 1; }\n_Noreturn void emela_board_defect(EmelaDefectKind k, const char *m, uint16_t n) { (void)k; (void)m; (void)n; exit(9); }\nint main(void) { return answer() == INT32_C(705082705) ? 0 : 1; }\n",
         0,
+    );
+}
+
+#[test]
+fn unused_checked_builtin_still_reports_a_defect() {
+    let mut f = simple();
+    let shift = binding(
+        &mut f,
+        None,
+        Value::Builtin {
+            op: Builtin::IntShiftLeft,
+            args: vec![Const::Int(1).into(), Const::Int(-1).into()],
+        },
+    );
+    f.seqs[f.body.unwrap()].stmts.push(shift);
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k, const char *m, uint16_t n) { (void)m; (void)n; exit(k == EMELA_DEFECT_NEGATIVE_SHIFT ? 7 : 8); }\nint main(void) { return answer(); }\n",
+        7,
     );
 }
 

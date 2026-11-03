@@ -69,6 +69,7 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
         if f.external.is_some() && f.suspends {
             require(&f.name, "external C bindings")?;
         }
+
         if f.derivation.is_some() {
             require(&f.name, "derived operations")?;
         }
@@ -112,7 +113,40 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                         | Value::IsError { .. }
                         | Value::AsError { .. } => require(&f.name, "closure and effect values")?,
                         Value::Fiber { .. } => require(&f.name, "fiber operations")?,
-                        Value::Builtin { .. } => require(&f.name, "builtin operations")?,
+                        Value::Builtin { op, .. }
+                            if !matches!(
+                                op,
+                                Builtin::FloatCeil
+                                    | Builtin::FloatFloor
+                                    | Builtin::FloatFromInt
+                                    | Builtin::FloatParse
+                                    | Builtin::FloatRound
+                                    | Builtin::FloatToString
+                                    | Builtin::FloatTruncate
+                                    | Builtin::Int64BitAnd
+                                    | Builtin::Int64BitNot
+                                    | Builtin::Int64BitOr
+                                    | Builtin::Int64BitXor
+                                    | Builtin::Int64FromInt
+                                    | Builtin::Int64ShiftLeft
+                                    | Builtin::Int64ShiftRight
+                                    | Builtin::Int64ShiftRightUnsigned
+                                    | Builtin::Int64ToInt
+                                    | Builtin::Int64ToString
+                                    | Builtin::IntBitAnd
+                                    | Builtin::IntBitNot
+                                    | Builtin::IntBitOr
+                                    | Builtin::IntBitXor
+                                    | Builtin::IntCheckedAdd
+                                    | Builtin::IntParse
+                                    | Builtin::IntShiftLeft
+                                    | Builtin::IntShiftRight
+                                    | Builtin::IntShiftRightUnsigned
+                                    | Builtin::IntToString
+                            ) =>
+                        {
+                            require(&f.name, "builtin operations")?
+                        }
                         Value::Runtime { .. } => require(&f.name, "runtime operations")?,
                         Value::Coerce(source)
                             if dst.is_some_and(|dst| {
