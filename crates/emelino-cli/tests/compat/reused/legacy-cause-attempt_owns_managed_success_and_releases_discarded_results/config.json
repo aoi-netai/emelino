@@ -10,5 +10,11 @@
   "frame_capacity": 24,
   "frame_bytes": 512,
   "task_capacity": 2,
-  "event_capacity": 2
+  "event_capacity": 2,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
 }

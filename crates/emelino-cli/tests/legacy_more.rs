@@ -3,6 +3,46 @@
 mod support;
 
 #[test]
+fn legacy_suspend_completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events() {
+    support::run_fixture(
+        "legacy-suspend-completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events",
+        true,
+    );
+}
+
+#[test]
+fn legacy_suspend_immediate_resume_finishes_the_operation_body_before_the_caller_continues() {
+    support::run_fixture(
+        "legacy-suspend-immediate_resume_finishes_the_operation_body_before_the_caller_continues",
+        true,
+    );
+}
+
+#[test]
+fn legacy_suspend_delayed_resume_runs_the_caller_until_its_next_suspension() {
+    support::run_fixture(
+        "legacy-suspend-delayed_resume_runs_the_caller_until_its_next_suspension",
+        true,
+    );
+}
+
+#[test]
+fn legacy_suspend_duplicate_resume_reports_the_operation_and_handler() {
+    support::run_fixture(
+        "legacy-suspend-duplicate_resume_reports_the_operation_and_handler",
+        false,
+    );
+}
+
+#[test]
+fn legacy_suspend_suspend_handler_source_waits_and_resumes_into_the_callers_result() {
+    support::run_fixture(
+        "legacy-suspend-suspend_handler_source_waits_and_resumes_into_the_callers_result",
+        true,
+    );
+}
+
+#[test]
 fn legacy_closures_e805431f1035638cad96() {
     support::run_fixture("legacy-closures-e805431f1035638cad96", true);
 }

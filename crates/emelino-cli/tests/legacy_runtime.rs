@@ -3,6 +3,14 @@
 mod support;
 
 #[test]
+fn legacy_concurrency_a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame() {
+    support::run_fixture(
+        "legacy-concurrency-a_direct_suspend_call_can_return_an_inline_exit_into_its_caller_frame",
+        true,
+    );
+}
+
+#[test]
 fn legacy_cause_attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect() {
     support::run_fixture(
         "legacy-cause-attempt_keeps_the_embedded_policy_of_stopping_immediately_on_defect",
