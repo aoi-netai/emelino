@@ -7,7 +7,7 @@ use crate::semantics::c::variable_name;
 use crate::semantics::diagnostics::{
     self, invalid_flow_ir, statement_name, term_name, unsupported, value_name,
 };
-use crate::{Error, ErrorKind};
+use crate::{Error, ErrorKind, Options};
 use std::collections::{HashMap, HashSet};
 
 use crate::contract::planned::PlannedModule;
@@ -318,7 +318,7 @@ use functions::{
 use values::{
     constant_expression, emit_aggregate_field_store, emit_builtin, emit_runtime,
     operand_expression, operand_is_float, operand_is_int, operand_is_int64, operand_is_string,
-    option_variant_expression, primitive_expression,
+    operand_is_string_list, option_variant_expression, primitive_expression,
 };
 
 pub(super) mod layouts;

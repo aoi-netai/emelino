@@ -143,11 +143,22 @@ pub(super) fn validate(program: &Program, options: &Options) -> Result<(), Vec<E
                                     | Builtin::IntShiftRight
                                     | Builtin::IntShiftRightUnsigned
                                     | Builtin::IntToString
+                                    | Builtin::StringAppend
+                                    | Builtin::StringByteSize
+                                    | Builtin::StringContains
+                                    | Builtin::StringEndsWith
+                                    | Builtin::StringJoin
+                                    | Builtin::StringStartsWith
+                                    | Builtin::StringTrim
                             ) =>
                         {
                             require(&f.name, "builtin operations")?
                         }
-                        Value::Runtime { .. } => require(&f.name, "runtime operations")?,
+                        Value::Runtime { op, .. }
+                            if !matches!(op, RuntimeOp::ShowString | RuntimeOp::DebugPrint) =>
+                        {
+                            require(&f.name, "runtime operations")?
+                        }
                         Value::Coerce(source)
                             if dst.is_some_and(|dst| {
                                 f.vars[dst].ty == TypeId::ANY && f.vars[*source].ty == TypeId::UNIT

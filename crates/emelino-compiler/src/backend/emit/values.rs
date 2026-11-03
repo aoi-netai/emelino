@@ -28,6 +28,22 @@ pub(in crate::backend::emit) fn operand_is_string(
     }
 }
 
+pub(in crate::backend::emit) fn operand_is_string_list(
+    layouts: &TypeLayouts<'_>,
+    function: &Function,
+    operand: &Operand,
+) -> bool {
+    match operand {
+        Operand::Var(variable) => {
+            matches!(
+                layouts.shapes.types[function.vars[*variable].ty],
+                Type::List(TypeId::STRING)
+            )
+        }
+        _ => false,
+    }
+}
+
 pub(in crate::backend::emit) fn operand_is_int(
     layouts: &TypeLayouts<'_>,
     function: &Function,

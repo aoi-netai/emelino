@@ -18,15 +18,23 @@ impl HelperEmission for Helper {
             Self::I64Division => features::primitive_operations::emit_i64_division_helpers(writer),
             Self::FloatToInt => features::builtins::float::emit_float_to_int_helper(writer),
             Self::DynamicDefect => features::terms::defect::emit_dynamic_defect_kind_helper(writer),
-            Self::StringMatchesAt => return Err(unsupported("runtime", "StringMatchesAt")),
-            Self::StringContains => return Err(unsupported("runtime", "StringContains")),
-            Self::StringStartsWith => return Err(unsupported("runtime", "StringStartsWith")),
-            Self::StringEndsWith => return Err(unsupported("runtime", "StringEndsWith")),
-            Self::Utf8Decode => return Err(unsupported("runtime", "Utf8Decode")),
+            Self::StringMatchesAt => string_runtime::emit_string_matches_at_helper(writer),
+            Self::StringContains => {
+                features::builtins::string_contains::emit_string_contains_helper(writer)
+            }
+            Self::StringStartsWith => {
+                features::builtins::string_starts_with::emit_string_starts_with_helper(writer)
+            }
+            Self::StringEndsWith => {
+                features::builtins::string_ends_with::emit_string_ends_with_helper(writer)
+            }
+            Self::Utf8Decode => string_runtime::emit_utf8_decode_helper(writer),
             Self::Grapheme => return Err(unsupported("runtime", "Grapheme")),
-            Self::StringTrim => return Err(unsupported("runtime", "StringTrim")),
-            Self::StringJoin => return Err(unsupported("runtime", "StringJoin")),
-            Self::StringAppend => return Err(unsupported("runtime", "StringAppend")),
+            Self::StringTrim => features::builtins::string_trim::emit_string_trim_helper(writer),
+            Self::StringJoin => features::builtins::string_join::emit_string_join_helper(writer),
+            Self::StringAppend => {
+                features::builtins::string_append::emit_string_append_helper(writer)
+            }
             Self::StringShow => features::runtime::emit_string_show_helpers(writer),
             Self::IntToString => string_runtime::emit_int_to_string_helper(writer),
             Self::IntParse => features::builtins::int_parse::emit_int_parse_helper(writer),

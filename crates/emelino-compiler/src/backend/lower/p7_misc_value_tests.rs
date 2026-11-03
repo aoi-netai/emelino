@@ -91,6 +91,41 @@ fn checked_add_preserves_all_four_legacy_option_boundaries() {
 }
 
 #[test]
+fn debug_print_passes_the_original_string_view_to_the_board_hook() {
+    let mut f = simple();
+    f.ret = TypeId::UNIT;
+    let text = aggregate_variable(&mut f, TypeId::STRING);
+    f.params.push(text);
+    let print = binding(
+        &mut f,
+        None,
+        Value::Runtime {
+            op: RuntimeOp::DebugPrint,
+            args: vec![text.into()],
+        },
+    );
+    f.seqs[f.body.unwrap()] = Seq {
+        stmts: vec![print],
+        term: Term::Return(None),
+    };
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
+    let board = &output
+        .files
+        .iter()
+        .find(|file| file.path == "emela_board.h")
+        .unwrap()
+        .contents;
+    assert!(board.contains("void emela_board_debug(const char *bytes, uint16_t length);"));
+    assert!(!board.contains("emela_board_defect"));
+    execute(
+        &output,
+        "#include <stdlib.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int calls;\nvoid emela_board_debug(const char *p,uint16_t n){if(n!=3||memcmp(p,\"abc\",3))exit(1);calls++;}\nint main(void){for(int i=0;i<1000;i++)answer((EmelaString){\"xabc\"+1,3,NULL});return calls==1000?0:2;}\n",
+        0,
+    );
+}
+
+#[test]
 fn float_primitive_cases_keep_the_fixed_old_arithmetic_comparison_and_nan_results() {
     let cases = [
         (

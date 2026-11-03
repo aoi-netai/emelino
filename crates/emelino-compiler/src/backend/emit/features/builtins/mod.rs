@@ -10,6 +10,13 @@ pub(in crate::backend::emit) mod int_to_string;
 pub(in crate::backend::emit) mod integer;
 pub(in crate::backend::emit) mod integer64;
 pub(in crate::backend::emit) mod rejected;
+pub(in crate::backend::emit) mod string_append;
+pub(in crate::backend::emit) mod string_byte_size;
+pub(in crate::backend::emit) mod string_contains;
+pub(in crate::backend::emit) mod string_ends_with;
+pub(in crate::backend::emit) mod string_join;
+pub(in crate::backend::emit) mod string_starts_with;
+pub(in crate::backend::emit) mod string_trim;
 pub(in crate::backend::emit) fn emit(
     context: &mut BuiltinContext<'_, '_>,
     dst: Option<VarId>,
@@ -18,15 +25,15 @@ pub(in crate::backend::emit) fn emit(
 ) -> Result<(), Vec<Error>> {
     match op {
         Builtin::StringLength => Err(unsupported(&context.function.name, "string_length")),
-        Builtin::StringByteSize => Err(unsupported(&context.function.name, "string_byte_size")),
-        Builtin::StringAppend => Err(unsupported(&context.function.name, "string_append")),
-        Builtin::StringContains => Err(unsupported(&context.function.name, "string_contains")),
-        Builtin::StringStartsWith => Err(unsupported(&context.function.name, "string_starts_with")),
-        Builtin::StringEndsWith => Err(unsupported(&context.function.name, "string_ends_with")),
+        Builtin::StringByteSize => string_byte_size::string_byte_size(context, dst, args),
+        Builtin::StringAppend => string_append::string_append(context, dst, args),
+        Builtin::StringContains => string_contains::string_contains(context, dst, args),
+        Builtin::StringStartsWith => string_starts_with::string_starts_with(context, dst, args),
+        Builtin::StringEndsWith => string_ends_with::string_ends_with(context, dst, args),
         Builtin::StringSplit => Err(unsupported(&context.function.name, "string_split")),
         Builtin::StringChars => Err(unsupported(&context.function.name, "string_chars")),
-        Builtin::StringJoin => Err(unsupported(&context.function.name, "string_join")),
-        Builtin::StringTrim => Err(unsupported(&context.function.name, "string_trim")),
+        Builtin::StringJoin => string_join::string_join(context, dst, args),
+        Builtin::StringTrim => string_trim::string_trim(context, dst, args),
         Builtin::StringCodePoints => Err(unsupported(&context.function.name, "string_code_points")),
         Builtin::StringFromCodePoint => Err(unsupported(
             &context.function.name,
