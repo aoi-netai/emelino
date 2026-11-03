@@ -1,5 +1,5 @@
 //! C formatting of a complete, immutable backend plan.
-use crate::contract::abi::CLayoutPlan as TypeLayouts;
+use crate::contract::abi::{AggregateKind, CLayoutPlan as TypeLayouts};
 use crate::contract::ir::*;
 use crate::contract::strings::StringBuffers as StringBufferPlan;
 use crate::semantics::abi::LayoutRead;
@@ -16,7 +16,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let options = &plan.options;
     let compiled = plan.input;
     let flow = &compiled.lowered;
-    let _closures = &compiled.closures;
+    let closures = &compiled.closures;
     let runtime_consts = &compiled.runtime_consts;
     let layouts = &plan.layouts;
     let external_bindings = &plan.external_bindings;
@@ -69,12 +69,41 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     source.blank();
 
     layouts.emit_runtime_value_declarations(&mut source);
+    if heap_required {
+        layouts.emit_list_node_declarations(&mut source);
+        crate::backend::emit::heap::emit_runtime(
+            &mut source,
+            options.heap_bytes(),
+            layouts.has_cell_cycles(),
+        );
 
-    source.line("static inline EMELA_UNUSED void emela_heap_retain(void *value) { (void)value; }");
-    source.line("static inline EMELA_UNUSED void emela_heap_release(void *value) { (void)value; }");
+        emit_closure_string_copy_helper(layouts, &mut source);
+        bytes_runtime::emit(layouts, &mut source);
 
-    layouts.emit_noheap_ownership_stubs(&mut source);
-    source.blank();
+        emit_any_ownership_declarations(layouts, &mut source);
+        layouts.emit_heap_ownership_helpers(&mut source);
+        owned::emit_helpers(layouts, &mut source);
+
+        emit_any_ownership(layouts, true, &mut source);
+
+        layouts.emit_heap_destroy_switch(&closures.environments, &mut source);
+        layouts.emit_public_release_helpers(&mut source);
+        layouts.emit_public_function_ownership_helpers(&mut source);
+        crate::backend::emit::heap::emit_public_retain(&mut source);
+        crate::backend::emit::heap::emit_public_release(&mut source);
+        emit_public_string_ownership(&mut source);
+    } else {
+        source.line(
+            "static inline EMELA_UNUSED void emela_heap_retain(void *value) { (void)value; }",
+        );
+        source.line(
+            "static inline EMELA_UNUSED void emela_heap_release(void *value) { (void)value; }",
+        );
+
+        emit_any_ownership(layouts, false, &mut source);
+        layouts.emit_noheap_ownership_stubs(&mut source);
+        source.blank();
+    }
 
     runtime.emit_helpers(&mut source)?;
 
@@ -282,11 +311,13 @@ use control::{
 };
 use functions::signature;
 use functions::{
-    emit_local_declarations, emit_owned_cleanup, emit_release_if_owned, emit_retain_operand,
+    emit_any_ownership, emit_any_ownership_declarations, emit_closure_string_copy_helper,
+    emit_local_declarations, emit_owned_cleanup, emit_public_string_ownership,
+    emit_release_if_owned, emit_retain_operand,
 };
 use values::{
-    constant_expression, emit_builtin, emit_runtime, operand_expression, operand_is_string,
-    primitive_expression,
+    constant_expression, emit_aggregate_field_store, emit_builtin, emit_runtime,
+    operand_expression, operand_is_string, primitive_expression,
 };
 
 pub(super) mod layouts;
@@ -301,6 +332,7 @@ use crate::writer::Writer;
 use crate::{GeneratedFile, Output};
 mod c;
 mod numeric_runtime;
+mod owned;
 mod platform;
 use crate::contract::operations as analysis;
 use c::*;
@@ -310,6 +342,9 @@ const HEADER_FILE: &str = "emela_embedded.h";
 const SOURCE_FILE: &str = "emela_embedded.c";
 
 mod entry;
+
+mod bytes_runtime;
+mod heap;
 
 use crate::semantics::operands::operand_type;
 

@@ -2,9 +2,19 @@
 use super::*;
 pub(in crate::backend::emit) mod builtin;
 pub(in crate::backend::emit) mod call;
+pub(in crate::backend::emit) mod coerce;
 pub(in crate::backend::emit) mod const_;
+pub(in crate::backend::emit) mod field;
+pub(in crate::backend::emit) mod list;
+pub(in crate::backend::emit) mod list_head;
+pub(in crate::backend::emit) mod list_is_empty;
+pub(in crate::backend::emit) mod list_tail;
+pub(in crate::backend::emit) mod make;
 pub(in crate::backend::emit) mod prim;
 pub(in crate::backend::emit) mod runtime;
+pub(in crate::backend::emit) mod tag;
+pub(in crate::backend::emit) mod tuple;
+pub(in crate::backend::emit) mod tuple_get;
 pub(in crate::backend::emit) fn emit(
     context: &mut Context<'_, '_>,
     dst: &Option<VarId>,
@@ -15,15 +25,15 @@ pub(in crate::backend::emit) fn emit(
         Value::Prim { .. } => prim::emit(context, dst, value),
         Value::Call { .. } => call::emit(context, dst, value),
         Value::Builtin { .. } => builtin::emit(context, dst, value),
-        Value::Make { .. } => Err(unsupported(&context.function.name, "make")),
-        Value::Field { .. } => Err(unsupported(&context.function.name, "field")),
-        Value::Tag(_) => Err(unsupported(&context.function.name, "tag")),
-        Value::Tuple(_) => Err(unsupported(&context.function.name, "tuple")),
-        Value::TupleGet { .. } => Err(unsupported(&context.function.name, "tuple_get")),
-        Value::List { .. } => Err(unsupported(&context.function.name, "list")),
-        Value::ListIsEmpty(_) => Err(unsupported(&context.function.name, "list_is_empty")),
-        Value::ListHead(_) => Err(unsupported(&context.function.name, "list_head")),
-        Value::ListTail(_) => Err(unsupported(&context.function.name, "list_tail")),
+        Value::Make { .. } => make::emit(context, dst, value),
+        Value::Field { .. } => field::emit(context, dst, value),
+        Value::Tag(_) => tag::emit(context, dst, value),
+        Value::Tuple(_) => tuple::emit(context, dst, value),
+        Value::TupleGet { .. } => tuple_get::emit(context, dst, value),
+        Value::List { .. } => list::emit(context, dst, value),
+        Value::ListIsEmpty(_) => list_is_empty::emit(context, dst, value),
+        Value::ListHead(_) => list_head::emit(context, dst, value),
+        Value::ListTail(_) => list_tail::emit(context, dst, value),
         Value::FnRef(_) => Err(unsupported(&context.function.name, "fn_ref")),
         Value::Closure(_) => Err(unsupported(&context.function.name, "closure")),
         Value::MakeClosure { .. } => Err(unsupported(&context.function.name, "make_closure")),
@@ -35,6 +45,6 @@ pub(in crate::backend::emit) fn emit(
         Value::IsError { .. } => Err(unsupported(&context.function.name, "is_error")),
         Value::AsError { .. } => Err(unsupported(&context.function.name, "as_error")),
         Value::Runtime { .. } => runtime::emit(context, dst, value),
-        Value::Coerce(_) => Err(unsupported(&context.function.name, "coerce")),
+        Value::Coerce(_) => coerce::emit(context, dst, value),
     }
 }
