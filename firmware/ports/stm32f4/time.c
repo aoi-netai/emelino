@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 #include "bsp.h"
+#include "board_config.h"
 
 /* The initial board profile deliberately keeps reset HSI and all APB clocks at 16 MHz. */
-uint32_t SystemCoreClock = 16000000U;
+uint32_t SystemCoreClock = EMELA_BOARD_CLOCK_HZ;
 static volatile uint64_t milliseconds;
 
 uint32_t HAL_RCC_GetHCLKFreq(void) { return SystemCoreClock; }

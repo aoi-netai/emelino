@@ -1,3 +1,4 @@
 /target/
 /.local/
 /out/
+__pycache__/

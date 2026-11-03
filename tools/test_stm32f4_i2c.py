@@ -29,7 +29,7 @@ def test(args, report):
     renode = Path(found).resolve()
     generated, firmware = output / "generated", output / "firmware"
     commands = [[args.emelino.resolve(), "build", FIXTURE / "main.emel", "--config", FIXTURE / "config.json", "--out-dir", generated],
-                [sys.executable, ROOT / "boards/stm32/stm32f4/build.py", "--generated-dir", generated,
+                [sys.executable, ROOT / "tools/build_firmware.py", "--generated-dir", generated,
                  "--output-dir", firmware, "--source", FIXTURE / "probe.c", "--optimization", args.optimization,
                  "--link-arg=-Wl,--wrap=HAL_I2C_Master_Seq_Transmit_IT"]]
     if args.cc:

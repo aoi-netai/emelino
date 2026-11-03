@@ -19,6 +19,9 @@ volatile uint32_t emela_board_boot_initialized;
 void _init(void) {}
 void _fini(void) {}
 
+/* A board may provide init.c for additional board-level setup. */
+__attribute__((weak)) void emela_board_init(void) {}
+
 _Noreturn void emela_board_defect(EmelaDefectKind kind, const char *message, uint16_t length) {
     (void)message;
     (void)length;
@@ -70,6 +73,7 @@ int main(void) {
 #ifdef EMELA_PERIPHERAL_TIME
     stm32f4_time_init();
 #endif
+    emela_board_init();
     emela_embedded_start();
     for (;;) emela_board_idle();
 }

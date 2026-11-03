@@ -111,5 +111,13 @@
     "SPDIF_RX_IRQHandler",
     "FMPI2C1_EV_IRQHandler",
     "FMPI2C1_ER_IRQHandler"
-  ]
+  ],
+  "cpu": "cortex-m4",
+  "float_abi": "hard",
+  "fpu": "fpv4-sp-d16",
+  "flash_origin": 134217728,
+  "ram_origin": 536870912,
+  "schema_version": 1,
+  "port": "stm32f4",
+  "cmsis_define": "STM32F446xx"
 }

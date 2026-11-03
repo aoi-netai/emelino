@@ -71,7 +71,7 @@ int main(void) {
             source.write_text(harness)
             executable = directory / "test"
             subprocess.run([os.environ.get("CC", "cc"), "-std=c11", "-Wall", "-Wextra", "-Werror",
-                            "-I", str(ROOT / "boards/stm32/stm32f4"), str(source), "-o", str(executable)], check=True)
+                            "-I", str(ROOT / "firmware/ports/stm32f4"), str(source), "-o", str(executable)], check=True)
             subprocess.run([str(executable)], check=True)
 
 

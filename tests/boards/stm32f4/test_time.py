@@ -13,7 +13,7 @@ class DeadlineTest(unittest.TestCase):
     def test_completion_cannot_skip_deadline_after_interrupt_delay(self):
         # Compile the actual wait function separately from the Cortex-M clock.
         # Clock samples model normal progress and preemption across a deadline.
-        source = (ROOT / "boards/stm32/stm32f4/time.c").read_text()
+        source = (ROOT / "firmware/ports/stm32f4/time.c").read_text()
         start = source.index("bool stm32f4_delay_us(")
         first_brace = source.index("{", start)
         depth = 1

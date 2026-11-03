@@ -30,7 +30,7 @@ def test(args, report):
     generated, firmware = output / "generated", output / "firmware"
     commands = [[args.emelino.resolve(), "build", FIXTURE / "main.emel", "--config", FIXTURE / "config.json",
                  "--out-dir", generated],
-                [sys.executable, ROOT / "boards/stm32/stm32f4/build.py",
+                [sys.executable, ROOT / "tools/build_firmware.py",
                  "--generated-dir", generated, "--output-dir", firmware,
                  "--source", FIXTURE / "probe.c", "--optimization", args.optimization]]
     if args.cc:
