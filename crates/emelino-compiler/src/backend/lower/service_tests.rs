@@ -1,4 +1,6 @@
 use super::*;
+#[path = "service_spi_tests.rs"]
+mod spi;
 
 fn clock_binding(params: &[TypeId], ret: TypeId, symbol: &str) -> Program {
     let mut p = program(vec![]);

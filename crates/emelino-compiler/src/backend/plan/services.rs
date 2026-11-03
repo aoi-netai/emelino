@@ -1,5 +1,6 @@
 //! Trusted adapters for the shared Embedded.Board handlers.
 use super::*;
+mod spi;
 
 const MODULE: &str = "Embedded.Board.";
 const SYMBOL: &str = "__emela_peripheral_";
@@ -106,7 +107,19 @@ pub(super) fn resolve(
         .iter()
         .map(|&p| function.vars[p].ty)
         .collect();
-    let return_valid = if operation.fails {
+    if !spi::valid(&flow.core, &operation) {
+        return Err(unsupported(
+            &function.name,
+            "invalid compound SPI board binding shape",
+        ));
+    }
+    let return_valid = if operation.peripheral == "spi"
+        && matches!(
+            operation.name.as_str(),
+            "create_device" | "transaction" | "recover"
+        ) {
+        matches!(&flow.core.types[function.ret], Type::Tuple(fields) if fields == &[TypeId::INT, TypeId::INT, TypeId::INT, operation.ret])
+    } else if operation.fails {
         matches!(&flow.core.types[function.ret], Type::Tuple(fields) if fields == &[TypeId::INT, operation.ret])
     } else {
         function.ret == operation.ret

@@ -1,6 +1,7 @@
 use super::*;
 use crate::contract::services::Operation;
 use std::collections::BTreeSet;
+mod spi;
 fn snake(name: &str) -> String {
     let mut result = String::new();
     for (index, ch) in name.chars().enumerate() {
@@ -71,7 +72,10 @@ fn emit_enum(
     let guard = format!("EMELA_DEFINED_{}", snake(&name).to_uppercase());
     writer.line(&format!("#ifndef {guard}"));
     writer.line(&format!("#define {guard}"));
-    if def.variants.iter().all(|variant| variant.tys.is_empty()) {
+    if def.name == "Embedded.Spi.SpiOperation" {
+        writer.line("enum { EMELA_SPI_OPERATION_WRITE = 0, EMELA_SPI_OPERATION_READ = 1, EMELA_SPI_OPERATION_TRANSFER = 2 };");
+        writer.line("typedef struct { int32_t tag; const uint16_t *data; uint16_t length; } EmelaSpiOperation;");
+    } else if def.variants.iter().all(|variant| variant.tys.is_empty()) {
         writer.line(&format!("typedef int32_t {name};"));
         writer.line("enum {");
         for (index, variant) in def.variants.iter().enumerate() {
@@ -137,6 +141,14 @@ fn prototype(
     peripheral: &str,
     op: &crate::contract::ir::OpDef,
 ) -> Result<String, Vec<Error>> {
+    if peripheral == "spi" {
+        match op.name.as_str() {
+            "create_device" => return Ok("EmelaSpiTransactionStatus emela_spi_create_device(EmelaSpiDeviceConfig config, EmelaSpiDevice *out);".into()),
+            "transaction" => return Ok("EmelaSpiTransactionStatus emela_spi_transaction(EmelaSpiDevice device, const EmelaSpiOperation *ops, uint16_t count, int64_t timeout_ms, uint16_t *out_words, uint16_t capacity, uint16_t *out_lengths);".into()),
+            "recover" => return Ok("EmelaSpiTransactionStatus emela_spi_recover(EmelaSpiId id);".into()),
+            _ => {},
+        }
+    }
     let mut params = Vec::new();
     for (index, &ty) in op.params.iter().enumerate() {
         // The generated library owns closures; the BSP only configures the IRQ.
@@ -186,6 +198,9 @@ pub(super) fn headers(
     let mut used = BTreeSet::new();
     for operation in operations.values() {
         used.insert(operation.peripheral.clone());
+    }
+    if used.contains("spi") {
+        used.insert("gpio".into());
     }
     let mut files = Vec::new();
     if used
@@ -257,6 +272,15 @@ pub(super) fn headers(
                     {
                         emit_enum(&flow.core, id, &mut written, &mut writer)?;
                     }
+                }
+                if peripheral == "spi" {
+                    writer.line(
+                        "/* Each field: 0 = absent; corresponding ErrorKind ordinal + 1 = failure.",
+                    );
+                    writer.line(" * At most one of primary_spi/primary_gpio may be nonzero; cleanup_gpio is independent.");
+                    writer.line(" * transaction borrows all buffers. out_lengths has count entries: Write=0,");
+                    writer.line(" * Read/Transfer=requested length. out_words concatenates their results in order. */");
+                    writer.line("typedef struct { int32_t primary_spi, primary_gpio, cleanup_gpio; } EmelaSpiTransactionStatus;");
                 }
                 if peripheral == "gpio" {
                     writer.line(
@@ -375,7 +399,10 @@ pub(super) fn emit_gpio_runtime(
     layouts: &TypeLayouts<'_>,
     writer: &mut Writer,
 ) -> bool {
-    if !operations.values().any(|op| op.peripheral == "gpio") {
+    if !operations
+        .values()
+        .any(|op| matches!(op.peripheral.as_str(), "gpio" | "spi"))
+    {
         return false;
     }
     let registration = operations.values().find(|op| {
@@ -499,6 +526,17 @@ pub(super) fn emit_adapter(
     } = options;
     writer.begin_block(&signature(layouts, function, name, true, false, false));
     let variables: Vec<_> = function.params.iter().map(|&p| variable_name(p)).collect();
+    if op.peripheral == "spi"
+        && matches!(
+            op.name.as_str(),
+            "create_device" | "transaction" | "recover"
+        )
+    {
+        spi::emit(op, layouts, function, &variables, capacity, writer)?;
+        writer.end_block();
+        writer.blank();
+        return Ok(true);
+    }
     if op.peripheral == "gpio"
         && gpio_callbacks
         && matches!(op.name.as_str(), "enable_interrupt" | "disable_interrupt")
@@ -541,7 +579,12 @@ pub(super) fn emit_adapter(
         if returns_list {
             if op.name != "transfer" {
                 let size = &variables[variables.len() - 2];
-                writer.line(&format!("if ({size} < 0) {{ result.f0 = EMELA_PERIPHERAL_INVALID_ARGUMENT; return result; }}"));
+                let minimum = if op.name == "write_read" || op.peripheral == "uart" {
+                    1
+                } else {
+                    0
+                };
+                writer.line(&format!("if ({size} < {minimum}) {{ result.f0 = EMELA_PERIPHERAL_INVALID_ARGUMENT; return result; }}"));
                 writer.line(&format!("if ((uint32_t){size} > UINT32_C({capacity})) {{ result.f0 = EMELA_PERIPHERAL_CAPACITY_EXCEEDED; return result; }}"));
             }
             writer.line(&format!("uint16_t output[{capacity}] = {{0}};"));
@@ -572,6 +615,34 @@ pub(super) fn emit_adapter(
                         .position(|&ty| int_list(&flow.core, ty))
                         .unwrap();
                     writer.line(&format!("if (output_length > length_{index}) {{ result.f0 = EMELA_PERIPHERAL_CAPACITY_EXCEEDED; return result; }}"));
+                }
+                if op.name == "receive_some" {
+                    writer.line("if (output_length == 0) { result.f0 = EMELA_UART_ERROR_KIND_OTHER + 1; return result; }");
+                }
+                if matches!(op.name.as_str(), "receive" | "write_read" | "transfer")
+                    && flow.core.enums.iter().any(|(_, def)| {
+                        def.name.ends_with(&format!(
+                            ".{}ErrorKind",
+                            match op.peripheral.as_str() {
+                                "i2c" => "I2c",
+                                "uart" => "Uart",
+                                _ => "Spi",
+                            }
+                        ))
+                    })
+                {
+                    let expected = if op.name == "transfer" {
+                        format!(
+                            "length_{}",
+                            op.params
+                                .iter()
+                                .position(|&ty| int_list(&flow.core, ty))
+                                .unwrap()
+                        )
+                    } else {
+                        variables[variables.len() - 2].clone()
+                    };
+                    writer.line(&format!("if (output_length != (uint32_t)({expected})) {{ result.f0 = EMELA_{}_ERROR_KIND_OTHER + 1; return result; }}", op.peripheral.to_uppercase()));
                 }
                 let node = layouts.list_node_name(op.ret);
                 let kind = layouts.list_index(op.ret);
