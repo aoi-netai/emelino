@@ -4,6 +4,11 @@
 Emela本体がFlow以前を所有する構成でemelinoを開始する。
 この文書は今回の実装と残作業を区別して記録する。
 
+2026-11-03追記: 最小実験後の実装方針・段階・終了条件は
+[implementation-plan.md](implementation-plan.md) を正本とする。
+本書の「今の経路」と実験profileは実装済みS0の記録であり、
+今後は本体無変更のまま、標準Flowから既存backendの入力IRへ接続する。
+
 ## 今の経路
 
 ```text
@@ -20,9 +25,10 @@ Emelaソース + 本体のcore/std
 本体には調査した固定版で汎用Flowファイル出力CLIがない。
 そのため今回はCLI内の小さな接続部が本体の公開Rust APIを呼ぶ。
 字句解析器、構文木、型推論、単相化、標準ライブラリーの独自実装は持たない。
-本体のC backendや旧emela-emb compilerも取り込まない。
+最小実験には本体のC backendや旧emela-emb compilerを取り込んでいない。
+今後は前回のemela-embのbackend・runtimeを選んで再利用する。
 
-本体APIの呼び出しは `target = "c"`、`Roots::Exported` の通常経路とする。
+現在の本体API呼び出しは `target = "c"`、`Roots::Exported` の通常経路である。
 本体による単相化の後に独自の単相化・由来追跡・Core書換えを追加しない。
 本体の `from_core` はCore関数とFlow関数の先頭部分の順序・名前の対応を保証する。
 その対応を確認し、Flowが所有するCoreの**宣言情報**からC export aliasを読む。
@@ -54,9 +60,10 @@ producer名・固定revisionを照合する。未知フィールド・未知演�
 
 `program.flow.txt` は実際の本体dumpだが、逆変換には使わない。
 JSONは全Flowのcodecでも本体が保証する安定形式でもない。
-将来の正式な交換形式にはID参照、型・enum・effect・external・export等の定義表、
-feature/version、診断、入力の出自を含める必要がある。
-正式な本体CLI/交換形式ができた段階で、この接続部と実験profileを置き換える。
+今後は標準Flowを前回のProgramを基礎とするBackendInputへ変換し、
+その入力をversion付きで保存する。必要な定義表とID参照を成果物内で完結させる。
+これはemelino専用の保存形式であり、本体の汎用Flow codecの完成を前提にしない。
+本体CLI/交換形式が将来提供された場合の接続部置換は、別の変更として検討する。
 
 今回の接続部は単一ファイル用で、Pome依存解決や本体driverの全検査を代替しない。
 専用のdriver処理が必要な `@test` / `@internal` は、ユーザー入力では未対応として拒否する。
@@ -74,8 +81,18 @@ external宣言の言語上の検査は本体、受信した宣言のC表現とAB
 board側のadapter/BSPが実機関数へ接続し、firmware生成・flashを組み立てる。
 
 現在の通常C targetにはsuspend exportなどの制約がある。
-ISR・非同期・固定容量runtimeを拡張するときは、本体の言語検査とbackend固有の制約の
-分離を改めて確認する。今の単純なC呼出し成功をISR安全性の保証として扱わない。
+次段階では公開APIの `Roots::Public` を使い、普通の `pub fn` をFlowへ含める。
+C公開名・起動入口・ISR入口はemelino側の設定で選び、生成ABIと到達性をbackendで検査する。
+公開rootの範囲・具体型wrapper・標準C ABIとの違いは実装計画に従う。
+今の単純なC呼出し成功をISR安全性の保証として扱わない。
+
+## 本体の既知問題への対応
+
+汎化constの特殊化間で初期化が共有されない固定版本体の問題は、
+[UPSTREAM-001](upstream-known-issues.md) として記録する。
+本体仕様の単一初期化は目標として保持し、現在の出力を受け入れて実装を進める。
+独自の由来追跡・追加単相化やC最適化による共有の復元を前提にしない。
+本体の修正版が利用可能になったら依存と接続部を調整し、回帰試験で確認する。
 
 ## 最初の終了条件
 

@@ -69,6 +69,17 @@ Pomeプロジェクト・追加ユーザーモジュール・`@test`・`@interna
 C生成部はボードを知らず、生成したヘッダーを介してホスト側から呼び出す境界を保ちます。
 所有範囲と今後の接続方針は [docs/architecture.md](docs/architecture.md) に記録しています。
 
+## 次の実装計画
+
+[docs/implementation-plan.md](docs/implementation-plan.md) に、前回のbackendを再利用して
+旧fork相当へ接続する6段階の計画をまとめています。本体無変更を維持し、
+backend入力形式の保存と、`pub fn` をemelino側設定でC公開する方式へ進みます。
+これらの拡張は計画段階であり、上記の最小実験のコマンド・入力形式は現在の実装のままです。
+
+汎化constの共有問題は [本体由来の既知バグ](docs/upstream-known-issues.md) として記録し、
+emelino側の独自単相化等では回避しません。本体の修正パッチが利用可能になった段階で、
+依存・接続部を更新し、回帰試験で修正を確認します。
+
 ## 検証
 
 ```sh

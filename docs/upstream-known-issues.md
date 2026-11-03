@@ -1,0 +1,95 @@
+# 本体依存の既知差分
+
+本体を変更せず、固定した依存版の挙動を受け入れる項目を記録する。
+言語仕様の変更や、emelinoが独自に修正済みであるという判定にはしない。
+
+## UPSTREAM-001: 汎化constの特殊化ごとに初期化cacheが分かれる
+
+| 項目 | 状態 |
+| --- | --- |
+| 判定 | 既知の本体差分として受入済み・未修正 |
+| 確認日 | 2026-11-03 |
+| 本体revision | `ec1031cb0b98386baf0e9b0ced67e8829bb2c529` |
+| 実行確認 | 本体公開APIによるJS生成、Node v24.21.0で実行 |
+| emelinoへの方針 | 本体を変更せず、受信したFlowのconst単位を維持する |
+
+### 仕様と観測
+
+本体仕様の [`[data.const]`](https://github.com/emela-lang/emela/blob/ec1031cb0b98386baf0e9b0ced67e8829bb2c529/spec/language/05-data.md#L92-L98)
+は、汎化constも一度だけ初期化し、単一の値を記憶すると定める。
+この意味は将来の対応目標として維持する。型ごとの初期化を新しい言語仕様とは定義しない。
+
+一方、この固定版ではconstが型ごとに単相化され、JS出力も関数ごとに別のcacheを作る。
+JSはFlowを経由しないが、共通のCore単相化で分かれた初期化がそのまま残る。
+JS emitterの `emit.rs` は各constant関数に専用cellを生成し、runtimeの `$constant`
+は渡されたcell単位で値とdefectを記憶する。元のconst名は診断用であり、共有キーではない。
+
+再現入力 `probe.emel`:
+
+```emel
+const EMPTY = {
+  dbg("INIT")
+  []
+}
+
+fn ints(xs: List[Int]) -> Int { List.length(xs) }
+fn strings(xs: List[String]) -> Int { List.length(xs) }
+
+@export(js, "probe")
+pub fn probe() -> Int {
+  ints(EMPTY) + strings(EMPTY)
+}
+```
+
+確認では同じrevisionのsyntax・resolve・types・core・codegen-jsの公開APIを使用した。
+本体の構文解析・名前解決・型検査の後、`lower(target = "js", Roots::Exported)` による
+標準単相化と `verify_monomorphic` を通し、`emela_codegen_js::emit_module` へ渡した。
+runtimeは `RuntimeMode::Inline` として `probe.mjs` に含めた。
+本体CLIを起動した試験ではなく、同じ本体lowerとJS emitterを呼ぶ実験である。
+
+実行用 `run.mjs`:
+
+```js
+import { probe } from "./probe.mjs";
+console.log("first:", probe());
+console.log("second:", probe());
+```
+
+`node run.mjs` の終了コードは0。stdout:
+
+```text
+first: 0
+second: 0
+```
+
+stderr:
+
+```text
+"INIT"
+"INIT"
+```
+
+最初の呼出しで2回初期化され、2回目には追加の初期化出力がない。
+生成JSには `EMPTY$Int$cell` と `EMPTY$String$cell` が別々に存在した。
+本書に再現入力・生成経路・観測結果を保持し、ローカルの未追跡実験ファイルを根拠の必須条件にしない。
+これは確認した固定版のJS経路の結果であり、全targetで実行確認したものではない。
+最新upstreamの修正状況は未調査で、上流へのissue登録・修正時期も未確定である。
+
+### 現在の受入範囲
+
+- emelinoで由来追跡、追加単相化、共有initializerの生成、名前からのconst統合を実装しない。
+- backend移植時は受信Flowのconstごとに初期化・cacheを扱い、特殊化をまたぐ共有を保証しない。
+- Cコンパイラーの最適化で初期化回数や共有identityが復元されるとは期待しない。
+- 旧forkとの対応判定では本項を例外として別記し、共有動作を `verified` として数えない。
+- この既知差分は合意した範囲の移行を妨げないが、新たな差分を自動的に許容する根拠にはしない。
+
+現在のemelinoはInt即値を返す最小profileのみで、汎化constのbackendはまだ移植していない。
+上記は今後の実装方針であり、emelinoでconstの生成Cを検証済みという意味ではない。
+
+### 本体の修正版を採用するとき
+
+1. 本体の修正内容と実際のCore/Flow契約を確認し、共有初期化と型別アクセスの表現を特定する。
+2. 本体の5 crate（syntax・resolve・types・core・lir）を同一の修正revisionへ更新し、`Cargo.lock` も更新する。
+3. 新しい表現に合わせてFlow変換部・入力形式・backendを必要に応じて修正する。依存更新だけで直るとは仮定しない。
+4. 複数型からの一度きり初期化、defectの記憶、所有値の寿命・解放を、本体からC実行まで確認する。
+5. 関連する旧試験と通常constの回帰試験を実行し、結果と採用revisionを記録してから本項を解消済みにする。
