@@ -38,6 +38,8 @@ mod p7_misc_values;
 mod p7_string_frames;
 #[path = "p7_switch_frame_tests.rs"]
 mod p7_switch_frames;
+#[path = "service_tests.rs"]
+mod services;
 #[path = "source_builtin_tests.rs"]
 mod source_builtins;
 #[path = "suspend_tests.rs"]

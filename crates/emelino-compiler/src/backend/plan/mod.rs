@@ -103,7 +103,16 @@ pub(super) fn prepare<'a>(
                 .insert(flow.functions[id].name.clone());
         }
     }
-    let services: HashMap<FnId, crate::contract::services::Operation> = HashMap::new();
+    let services = flow
+        .functions
+        .iter()
+        .filter(|(id, _)| emitted_functions.contains(id))
+        .filter_map(|(id, f)| match services::resolve(flow, f) {
+            Ok(Some(operation)) => Some(Ok((id, operation))),
+            Ok(None) => None,
+            Err(errors) => Some(Err(errors)),
+        })
+        .collect::<Result<HashMap<_, _>, Vec<Error>>>()?;
     let external_bindings =
         external::resolve(flow, &emitted_functions, &mut layouts, options, &services)?;
     let derived_plan = DerivationPlan::new(flow, &emitted_functions, &layouts)?;
@@ -553,6 +562,7 @@ pub(super) fn prepare<'a>(
 }
 
 mod interrupts;
+mod services;
 
 use crate::semantics::c::type_name;
 use crate::semantics::{child, deferred, operands::operand_type};

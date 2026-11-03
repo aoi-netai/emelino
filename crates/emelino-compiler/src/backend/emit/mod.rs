@@ -35,7 +35,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
     let task_value_types = &plan.task_value_types;
     let heap_required = !heap_functions.is_empty();
     let main_entry = plan.main_entry.map(|id| (id, &flow.functions[id]));
-    let target_headers: Vec<GeneratedFile> = Vec::new();
+    let target_headers = services::headers(flow, &plan.services)?;
     let function_ref_adapters = &plan.function_ref_adapters;
     let header = header::emit(header::Context {
         flow,
@@ -296,6 +296,18 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
             }
             if function.derivation.is_some() {
                 derive_runtime::emit_adapter(layouts, function, &names[&id], &mut source);
+                continue;
+            }
+            if let Some(operation) = plan.services.get(&id) {
+                services::emit_adapter(
+                    flow,
+                    operation,
+                    layouts,
+                    function,
+                    &names[&id],
+                    options.peripheral_buffer_capacity(),
+                    &mut source,
+                )?;
                 continue;
             }
             external::emit_adapter(
@@ -610,6 +622,7 @@ const HEADER_FILE: &str = "emela_embedded.h";
 const SOURCE_FILE: &str = "emela_embedded.c";
 
 mod entry;
+mod services;
 
 mod bytes_runtime;
 mod heap;
