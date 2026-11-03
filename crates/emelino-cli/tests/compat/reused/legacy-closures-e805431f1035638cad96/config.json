@@ -1,0 +1,9 @@
+{
+  "exports": [
+    {
+      "function": "apply",
+      "symbol": "legacy_apply"
+    }
+  ],
+  "heap_bytes": 2048
+}

@@ -1,0 +1,17 @@
+{
+  "exports": [
+    {
+      "function": "has_a",
+      "symbol": "legacy_has_a"
+    },
+    {
+      "function": "starts_a",
+      "symbol": "legacy_starts_a"
+    },
+    {
+      "function": "ends_a",
+      "symbol": "legacy_ends_a"
+    }
+  ],
+  "heap_bytes": 0
+}

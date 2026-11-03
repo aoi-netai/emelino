@@ -1,0 +1,22 @@
+{
+  "exports": [
+    {
+      "function": "closure_order",
+      "symbol": "closure_order"
+    },
+    {
+      "function": "function_values",
+      "symbol": "function_values"
+    },
+    {
+      "function": "closure_snapshot",
+      "symbol": "closure_snapshot"
+    },
+    {
+      "function": "closure_failure",
+      "symbol": "closure_failure"
+    }
+  ],
+  "heap_bytes": 16384,
+  "string_capacity": 256
+}

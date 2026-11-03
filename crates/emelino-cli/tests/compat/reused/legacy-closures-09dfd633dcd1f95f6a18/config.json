@@ -1,0 +1,13 @@
+{
+  "exports": [
+    {
+      "function": "classify",
+      "symbol": "legacy_classify"
+    },
+    {
+      "function": "length",
+      "symbol": "legacy_length"
+    }
+  ],
+  "heap_bytes": 2048
+}

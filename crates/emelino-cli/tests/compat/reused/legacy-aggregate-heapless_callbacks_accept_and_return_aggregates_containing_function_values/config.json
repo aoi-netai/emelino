@@ -1,0 +1,8 @@
+{
+  "exports": [
+    {
+      "function": "work",
+      "symbol": "legacy_work"
+    }
+  ]
+}
