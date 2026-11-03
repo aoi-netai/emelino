@@ -23,3 +23,9 @@ fixture_test!(
     false
 );
 fixture_test!(bytes_ownership_and_wide_lengths, "p3-bytes-owned", true);
+
+fixture_test!(
+    record_updates_order_and_ownership,
+    "p7-record-updates",
+    true
+);

@@ -38,3 +38,34 @@ const HEADERS: &str = r#"
 int test_heap_empty(void);
 _Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){fprintf(stderr,"defect %d: %.*s\n",k,(int)n,m);abort();}
 "#;
+
+#[test]
+fn full_legacy_helper_source_preserves_lambda_patterns_numerics_and_nul_ascii() {
+    let output = output(include_str!(
+        "compat/legacy-corpus/sources/aec1355cd027e7f537cecf16a009001890e7075427332b2744204853c841896f.emel"
+    ));
+    support::compile_and_run(
+        &output,
+        &format!(
+            r#"{HEADERS}
+int main(void) {{
+  char buffer[256];static const char text[]="A\xce\xbbz\0Q";
+  EmelaString input={{text,sizeof text-1,NULL}};
+  for(int i=0;i<1000;i++){{
+    assert(lambda_patterns(i)==4*i+3);
+    assert(list_helpers(i)==3*i+3);
+    EmelaString result=ascii(input,buffer,sizeof buffer);
+    static const char expected[]="a\xce\xbbz\0q|A\xce\xbbZ\0Q";
+    assert(result.length==sizeof expected-1 && !memcmp(result.data,expected,sizeof expected-1));
+    assert(numeric(-i)==i && numeric(INT32_MIN)==INT32_MIN);
+    assert(numeric64(INT64_MIN)==INT64_MIN && numeric64(-INT64_MAX)==INT64_MAX);
+    assert(numeric_float(NAN) && numeric_float(-0.0) && numeric_float(-INFINITY));
+    assert(boolean((EmelaString){{"True",4,NULL}}));
+    assert(!boolean((EmelaString){{"False",5,NULL}}));
+    assert(test_heap_empty());
+  }}return 0;
+}}
+"#
+        ),
+    );
+}
