@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
+  "upstream_revision": "ec1031cb0b98386baf0e9b0ced67e8829bb2c529",
+  "entries": [
+    {
+      "legacy_tests": [
+        "emit::string_comparison::all_constant_comparisons_match_runtime_order_without_emitting_the_helper"
+      ],
+      "reuse_test": {
+        "path": "crates/emela-emb-compiler/tests/p2_static_strings.rs",
+        "symbol": "every_legacy_constant_string_comparison_folds_without_a_runtime_helper"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_static_strings.rs",
+        "symbol": "every_legacy_constant_string_comparison_folds_without_a_runtime_helper"
+      },
+      "source_test_sha256": "bbc80f950dbb7fd3096c88902eba0b9811d874f2a0e7e4bd3106a8bdade93260",
+      "current_file_sha256": "ed98cb18387dc2409d42d8cd064a5ded7fb6413c310eff697b80daeeb4e6a30e",
+      "status": "verified",
+      "observation_kind": "source-to-C-with-saved-input-replay",
+      "options": {},
+      "C_harness_raw_fragments_unchanged": true,
+      "observations": [
+        "Five original constant-string pairs × all six comparison operators execute with the original expected byte order, including NUL, UTF8 width differences and composed/decomposed text.",
+        "All 30 generated C results are asserted; generated C contains no emela_emb_string_compare helper.",
+        "Default Options are unchanged."
+      ],
+      "fixture_changes": [
+        "Only compile(&source) is replaced with the shared test-only legacy compile_sources helper and default Options. The source builder, expected-value matrix, C harness format and no-helper assertion are unchanged."
+      ]
+    },
+    {
+      "legacy_tests": [],
+      "reuse_test": {
+        "path": "crates/emela-emb-compiler/tests/p5_string_alias.rs",
+        "symbol": "tail_recursive_string_views_preserve_prepend_append_and_concat_without_heap_or_stack_growth"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_string_alias.rs",
+        "symbol": "tail_recursive_string_views_preserve_prepend_append_and_concat_without_heap_or_stack_growth"
+      },
+      "source_test_sha256": "94ade6056416696b361d1049b80ee5223d22daf9b57216978989d1aafc4ebf3c",
+      "current_file_sha256": "80e40a63ffd0502379efbf4e9fedf210fc8fef3513802fb3f9f3bfc8020eb6b8",
+      "status": "verified",
+      "observation_kind": "source-to-C-with-saved-input-replay",
+      "options": {
+        "string_capacity": 64
+      },
+      "C_harness_raw_fragments_unchanged": true,
+      "observations": [
+        "Prepend, append and doubling preserve exact original string results without emitted heap storage.",
+        "100000 trim recursions keep the same native stack address; ten repetitions return42.",
+        "Caller-buffer append returns leftright with length9."
+      ],
+      "fixture_changes": [
+        "The test-only stack_mark external has explicit use {} so the official frontend accepts its ordinary C binding. The observer C implementation and all source operations are unchanged.",
+        "The shared helper converts old export annotations into configured aliases before official compilation."
+      ],
+      "legacy_id_note": "Supplemental test from the reusable compiler baseline; no additional fixed-oldfork canonical test ID is invented."
+    },
+    {
+      "legacy_tests": [
+        "emit::string_append::literal_prefixes_are_copied_without_treating_readonly_bytes_as_writable_output"
+      ],
+      "reuse_test": {
+        "path": "crates/emela-emb-compiler/tests/p5_string_alias.rs",
+        "symbol": "append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits"
+      },
+      "current_test": {
+        "path": "crates/emelino-cli/tests/legacy_string_alias.rs",
+        "symbol": "append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits"
+      },
+      "source_test_sha256": "94ade6056416696b361d1049b80ee5223d22daf9b57216978989d1aafc4ebf3c",
+      "current_file_sha256": "80e40a63ffd0502379efbf4e9fedf210fc8fef3513802fb3f9f3bfc8020eb6b8",
+      "status": "verified",
+      "observation_kind": "source-to-C-with-saved-input-replay",
+      "options": {
+        "string_capacity": 64
+      },
+      "C_harness_raw_fragments_unchanged": true,
+      "observations": [
+        "The original explicit internal append probe covers prefix/suffix/self-overlap, partial overlaps, shifted output, both literal-copy flag values, a512-byte maximum result and a1-byte exact-fit buffer.",
+        "Runtime capacities0 and513 raise EMELA_DEFECT_STRING_CAPACITY; the compiler rejects both corresponding Options values.",
+        "The ordinary source containing append is compiled through upstream before adding the unchanged C-only internal observation probe."
+      ],
+      "fixture_changes": [
+        "Only the shared helper and explicit stack_mark use {} source declaration change; all C raw fragments and internal append calls remain byte-identical."
+      ],
+      "legacy_id_note": "Supplies the explicit append overlap/literal-copy matrix used by the established replacement of the readonly-prefix canonical case; does not replace the separate original-source readonly-prefix fixture."
+    }
+  ],
+  "validation": {
+    "command": "cargo test -p emelino-cli --test legacy_static_strings --test legacy_string_alias --locked --offline",
+    "passed": 3,
+    "failed": 0,
+    "ignored": 0,
+    "saved_input_artifact_equality": true,
+    "C_optimizations": [
+      "-O0",
+      "-O2"
+    ],
+    "C_flags": [
+      "-std=c11",
+      "-Wall",
+      "-Werror"
+    ],
+    "clippy": "cargo clippy -p emelino-cli --test legacy_static_strings --test legacy_string_alias --locked --offline -- -D warnings"
+  },
+  "scope": "Source and original C observations are preserved. The explicit appended C runtime probe is identified separately from ordinary source-level String.append; no upstream source or compiler production code was changed."
+}
