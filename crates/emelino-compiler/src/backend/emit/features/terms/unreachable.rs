@@ -27,3 +27,15 @@ pub(in crate::backend::emit) fn emit_function(
     };
     Ok(())
 }
+
+pub(in crate::backend::emit) fn emit_suspend(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let writer = &mut *context.writer;
+    let Node::Unreachable = node else {
+        unreachable!("frame state dispatch")
+    };
+    writer.line("emela_scheduler_invalid();");
+    Ok(())
+}

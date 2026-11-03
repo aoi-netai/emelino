@@ -69,6 +69,29 @@ pub(in crate::backend::emit) fn emit_function(
     Ok(())
 }
 
+pub(in crate::backend::emit) fn emit_suspend(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let strings = context.strings;
+    let Node::Defect(value) = node else {
+        unreachable!("frame state dispatch")
+    };
+    {
+        emit_return(
+            layouts,
+            function,
+            &Term::Defect(value.clone()),
+            strings,
+            writer,
+        )?;
+    };
+    Ok(())
+}
+
 pub(in crate::backend::emit) fn emit_dynamic_defect_kind_helper(writer: &mut Writer) {
     writer.begin_block(
         "static inline EMELA_UNUSED int emela_emb_string_matches(EmelaString value, const char *expected, uint16_t length, int exact)",

@@ -1,6 +1,128 @@
 //! Validate the concrete structured-fiber ABI before entering the scheduler planner.
 use super::*;
 
+pub(super) fn runtime_metadata(program: &Program, emitted: &HashSet<FnId>) -> bool {
+    let mut scopes = false;
+    for (id, function) in program.functions.iter() {
+        if !emitted.contains(&id) {
+            continue;
+        }
+        for (id, statement) in function.stmts.iter() {
+            if !function.active_statements.contains(&id) {
+                continue;
+            }
+            let Stmt::Let {
+                value: Value::Fiber { op, .. },
+                ..
+            } = statement
+            else {
+                continue;
+            };
+            scopes |= matches!(
+                op,
+                FiberOp::Scope { .. }
+                    | FiberOp::Fork
+                    | FiberOp::Deferred
+                    | FiberOp::Join
+                    | FiberOp::Await { .. }
+                    | FiberOp::Interrupt
+                    | FiberOp::Complete
+                    | FiberOp::Poll
+                    | FiberOp::DeferredAwait
+            );
+        }
+    }
+    scopes
+}
+
+/// Merely constructing Scope's capability includes its deferred operation closure.
+/// It needs storage only when a reachable operation actually calls that constructor.
+pub(super) fn needs_deferred_pool(
+    program: &Program,
+    closures: &crate::contract::lowered::ClosureMetadata,
+    options: &crate::Options,
+) -> bool {
+    let reachable = super::closure::runtime_reachable(program, options);
+    let mut constructors = HashSet::new();
+    for (id, function) in program.functions.iter() {
+        if !reachable.contains(&id) {
+            continue;
+        }
+        let (positions, _) = super::positions(function);
+        for (id, statement) in function.stmts.iter() {
+            if !positions.contains_key(&id) {
+                continue;
+            }
+            let Stmt::Let {
+                value: Value::Handler { effect, ops, .. },
+                ..
+            } = statement
+            else {
+                continue;
+            };
+            if !super::scope_abi::is_scope(&program.core.effects[*effect]) {
+                continue;
+            }
+            for (index, operation) in program.core.effects[*effect].ops.iter().enumerate() {
+                if operation.name != "deferred" {
+                    continue;
+                }
+                for (_, definition) in function.stmts.iter() {
+                    if let Stmt::Let {
+                        dst: Some(dst),
+                        value: Value::FnRef(target),
+                        ..
+                    } = definition
+                    {
+                        if *dst == ops[index] && closures.functions.contains_key(target) {
+                            constructors.insert(*target);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    program.functions.iter().any(|(id, function)| {
+        if !reachable.contains(&id) {
+            return false;
+        }
+        let (positions, _) = super::positions(function);
+        function.stmts.iter().any(|(statement, value)| {
+            positions.contains_key(&statement)
+                && match value {
+                    Stmt::Let {
+                        value:
+                            Value::Fiber {
+                                op: FiberOp::Deferred,
+                                ..
+                            },
+                        ..
+                    } => !constructors.contains(&id),
+                    Stmt::Let {
+                        value:
+                            Value::Fiber {
+                                op: FiberOp::Complete | FiberOp::Poll | FiberOp::DeferredAwait,
+                                ..
+                            },
+                        ..
+                    } => true,
+                    Stmt::Let {
+                        value:
+                            Value::Call {
+                                callee: Callee::Op { effect, op, .. },
+                                ..
+                            },
+                        ..
+                    } => {
+                        super::scope_abi::is_scope(&program.core.effects[*effect])
+                            && program.core.effects[*effect].ops[*op].name == "deferred"
+                    }
+                    _ => false,
+                }
+        })
+    })
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn value_type(
     program: &Program,
@@ -247,4 +369,55 @@ fn exit_type(
         }
     }
     Ok(expected.unwrap_or(TypeId::UNIT))
+}
+
+/// Runtime constructors return the common owning Any handle; typed destinations
+/// retain their nominal identity through an explicit checked extraction.
+pub(super) fn normalize_values(program: &mut Program) {
+    for (_, function) in program.functions.iter_mut() {
+        let pending: Vec<_> = function
+            .stmts
+            .iter()
+            .filter_map(|(id, statement)| {
+                let Stmt::Let {
+                    dst: Some(dst),
+                    value:
+                        Value::Fiber {
+                            op: FiberOp::Fork | FiberOp::Deferred,
+                            ..
+                        },
+                    ..
+                } = statement
+                else {
+                    return None;
+                };
+                (function.vars[*dst].ty != TypeId::ANY).then_some((id, *dst))
+            })
+            .collect();
+        let mut after = HashMap::new();
+        for (statement, destination) in pending {
+            let raw = function.vars.alloc(VarData {
+                hint: "fiber_handle".into(),
+                ty: TypeId::ANY,
+                repr: Repr::Ref,
+            });
+            if let Stmt::Let { dst, .. } = &mut function.stmts[statement] {
+                *dst = Some(raw);
+            }
+            let cast = function.stmts.alloc(Stmt::Let {
+                dst: Some(destination),
+                value: Value::Coerce(raw),
+                on_defect: None,
+                on_suspend: None,
+            });
+            after.insert(statement, cast);
+        }
+        for (_, sequence) in function.seqs.iter_mut() {
+            sequence.stmts = sequence
+                .stmts
+                .iter()
+                .flat_map(|id| std::iter::once(*id).chain(after.get(id).copied()))
+                .collect();
+        }
+    }
 }

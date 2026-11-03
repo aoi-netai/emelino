@@ -1,0 +1,21 @@
+{
+  "exports": [
+    {
+      "function": "cancel",
+      "symbol": "legacy_cancel"
+    }
+  ],
+  "heap_bytes": 8192,
+  "fiber_capacity": 8,
+  "frame_capacity": 40,
+  "frame_bytes": 512,
+  "deferred_capacity": 3,
+  "task_capacity": 1,
+  "event_capacity": 1,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}

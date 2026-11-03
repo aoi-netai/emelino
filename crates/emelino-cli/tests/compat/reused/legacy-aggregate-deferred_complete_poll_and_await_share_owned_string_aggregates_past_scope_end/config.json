@@ -1,0 +1,22 @@
+{
+  "exports": [
+    {
+      "function": "work",
+      "symbol": "legacy_work"
+    },
+    {
+      "function": "head",
+      "symbol": "legacy_head"
+    },
+    {
+      "function": "tail",
+      "symbol": "legacy_tail"
+    }
+  ],
+  "heap_bytes": 4096,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 768,
+  "string_capacity": 64,
+  "deferred_capacity": 1
+}

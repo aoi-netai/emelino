@@ -1,0 +1,29 @@
+{
+  "exports": [
+    {
+      "function": "work",
+      "symbol": "legacy_work"
+    },
+    {
+      "function": "unit",
+      "symbol": "legacy_unit"
+    },
+    {
+      "function": "discard",
+      "symbol": "legacy_discard"
+    }
+  ],
+  "heap_bytes": 4096,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 512,
+  "task_capacity": 2,
+  "event_capacity": 2,
+  "deferred_capacity": 8,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}

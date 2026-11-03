@@ -7,7 +7,7 @@ use crate::contract::operations::*;
 use crate::contract::strings::StringBuffers as StringBufferPlan;
 use crate::semantics::abi::{LayoutRead, option_payload_type};
 use crate::semantics::c::{self, function_name, is_c_identifier};
-use crate::semantics::diagnostics::{self, invalid_flow_ir, unsupported};
+use crate::semantics::diagnostics::{self, invalid_flow_ir, unsupported, value_name};
 use crate::{Error, ErrorKind, Options};
 use std::collections::{HashMap, HashSet};
 fn function_positions(function: &Function) -> (HashMap<StmtId, usize>, HashMap<SeqId, usize>) {
@@ -28,6 +28,7 @@ use operations as features;
 pub(in crate::backend::plan) mod analysis;
 use analysis::{HeapContext, StringBehaviorRead};
 pub(in crate::backend::plan) mod heap;
+pub(in crate::backend::plan) mod suspend;
 
 pub(in crate::backend::plan) mod strings;
 use strings::{StringPlanning, functions_with_string_output};
@@ -44,6 +45,7 @@ use validation::{
 };
 
 mod adapters;
+pub(in crate::backend::plan) mod task_values;
 
 use crate::contract::auxiliary::{ConstBridgePlan, DerivationPlan};
 use crate::contract::planned::{FunctionRefAdapter, PlannedModule};
@@ -83,9 +85,9 @@ pub(super) fn prepare<'a>(
     let discarded_results = compiled.discarded_results.clone();
     let flow = lowered_flow;
     let emitted_functions = compiled.emitted_functions.clone();
-    let has_scheduler = false;
-    let has_tasks = false;
-    let task_value_types = Vec::new();
+    let has_scheduler = suspend::validate(flow, &emitted_functions, options)?;
+    let has_tasks = suspend::has_tasks(flow, &emitted_functions);
+    let task_value_types = task_values::result_types(flow, &emitted_functions);
     let mut layouts = TypeLayouts::new(flow, &emitted_functions, closures, deferred_pool)?;
     layouts.functions.discarded_results = discarded_results;
     layouts.functions.runtime_consts = runtime_consts.clone();
@@ -102,7 +104,7 @@ pub(super) fn prepare<'a>(
     let external_bindings =
         external::resolve(flow, &emitted_functions, &mut layouts, options, &services)?;
     let derived_plan = DerivationPlan::new(flow, &emitted_functions, &layouts)?;
-
+    task_values::validate_types(flow, &emitted_functions, &layouts)?;
     validate_function_value_types(&layouts, &emitted_functions, flow)?;
     validate_function_refs(flow, &emitted_functions, &layouts)?;
     let mut string_output_functions =
@@ -217,7 +219,7 @@ pub(super) fn prepare<'a>(
                 return Err(unsupported(&function.name, "exported external functions"));
             }
             if function.suspends {
-                Err(unsupported(&function.name, "task adapters"))?
+                suspend::external_symbol(function, options)?
             } else {
                 let binding = &external_bindings[&id];
                 if binding.adapted {
@@ -490,13 +492,23 @@ pub(super) fn prepare<'a>(
         })
         .collect();
     let main_entry = main_entry.map(|(id, _)| id);
-    let has_failing_tasks = false;
+    let has_failing_tasks = suspend::has_failing_tasks(flow, &emitted_functions);
     let mut suspensions = HashMap::new();
     for (id, function) in flow.functions.iter().filter(|(id, function)| {
         emitted_functions.contains(id) && function.suspends && function.external.is_none()
     }) {
         let _ = function;
-        suspensions.insert(id, Err(unsupported(&function.name, "suspension frames"))?);
+        suspensions.insert(
+            id,
+            suspend::prepare_frame(
+                &compiled.suspensions[&id],
+                id,
+                &layouts,
+                &string_output_functions,
+                closures.functions.get(&id).copied(),
+                options,
+            )?,
+        );
     }
     let layouts = layouts::freeze(layouts);
     let plan = PlannedModule {

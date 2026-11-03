@@ -12,16 +12,30 @@ mod memory;
 mod p7_aggregate_failure;
 #[path = "p7_binding_tests.rs"]
 mod p7_binding;
+#[path = "p7_contract_tests.rs"]
+mod p7_contract;
 #[path = "p7_data_tests.rs"]
 mod p7_data;
+#[path = "p7_discarded_tests.rs"]
+mod p7_discarded;
 #[path = "p7_evidence_tests.rs"]
 mod p7_evidence;
+#[path = "p7_input_tests.rs"]
+mod p7_input;
 #[path = "p7_list_alias_tests.rs"]
 mod p7_list_alias;
 #[path = "p7_misc_value_tests.rs"]
 mod p7_misc_value;
+#[path = "p7_string_frame_tests.rs"]
+mod p7_string_frame;
+#[path = "p7_switch_frame_tests.rs"]
+mod p7_switch_frame;
 #[path = "source_builtin_tests.rs"]
 mod source_builtin;
+#[path = "suspend_tests.rs"]
+mod suspend;
+#[path = "upstream_contract_tests.rs"]
+mod upstream_contract;
 use super::*;
 use crate::{Options, Output};
 use std::path::PathBuf;

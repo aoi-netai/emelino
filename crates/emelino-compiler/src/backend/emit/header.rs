@@ -1,7 +1,8 @@
 //! Public C types, runtime interfaces, and exported function declarations.
 use super::functions::signature;
-use super::{HEADER_FILE, TypeLayouts};
+use super::{HEADER_FILE, TypeLayouts, suspend, task_values};
 use crate::contract::ir::{FnId, Program as Module};
+use crate::contract::ir::{Type, TypeId};
 use crate::{GeneratedFile, writer::Writer};
 use std::collections::{HashMap, HashSet};
 
@@ -11,9 +12,13 @@ pub(super) struct Context<'a, 'ir> {
     pub layouts: &'a TypeLayouts<'ir>,
     pub emitted_functions: &'a HashSet<FnId>,
 
+    pub names: &'a HashMap<FnId, String>,
     pub public_names: &'a HashMap<FnId, String>,
     pub string_output_functions: &'a HashSet<FnId>,
-
+    pub task_value_types: &'a [TypeId],
+    pub has_scheduler: bool,
+    pub has_tasks: bool,
+    pub has_failing_tasks: bool,
     pub heap_required: bool,
     pub entry_declaration: Option<&'static str>,
 }
@@ -24,9 +29,13 @@ pub(super) fn emit(context: Context<'_, '_>) -> GeneratedFile {
         layouts,
         emitted_functions,
 
+        names,
         public_names,
         string_output_functions,
-
+        task_value_types,
+        has_scheduler,
+        has_tasks,
+        has_failing_tasks,
         heap_required,
         entry_declaration,
     } = context;
@@ -43,7 +52,15 @@ pub(super) fn emit(context: Context<'_, '_>) -> GeneratedFile {
     header
         .line("typedef struct { const uint8_t *data; uint32_t length; void *owner; } EmelaBytes;");
     header.blank();
-
+    if has_scheduler
+        || layouts
+            .shapes
+            .function_types
+            .iter()
+            .any(|&ty| matches!(&layouts.shapes.types[ty], Type::Fn(ft) if ft.suspends))
+    {
+        header.line("typedef struct emela_fiber emela_fiber;");
+    }
     if layouts.runtime.has_error_abi || layouts.runtime.any_abi {
         header.line("typedef struct EmelaError EmelaError;");
         if layouts.runtime.any_abi {
@@ -53,6 +70,33 @@ pub(super) fn emit(context: Context<'_, '_>) -> GeneratedFile {
     }
     layouts.emit_declarations(&mut header);
 
+    if has_scheduler {
+        header.line(include_str!("runtime/scheduler.h"));
+    }
+    if has_tasks {
+        header.line("#define EMELA_HAS_TASK_RUNTIME 1");
+        header.line(include_str!("runtime/task.h"));
+        if !task_value_types.is_empty() || has_failing_tasks {
+            header.line(include_str!("runtime/task_context.h"));
+        }
+        if has_failing_tasks {
+            header.line(include_str!("runtime/task_failure.h"));
+        }
+        task_values::emit_header(layouts, task_value_types, &mut header);
+        for (id, function) in flow
+            .functions
+            .iter()
+            .filter(|(id, f)| emitted_functions.contains(id) && f.suspends && f.external.is_some())
+        {
+            if !suspend::scalar(&layouts.shapes.types, function.ret) {
+                header.line(&format!("/* Success: emela_task_complete_value_{}. Arguments are borrowed only during start. */", function.ret.index()));
+            }
+            header.line(&format!(
+                "{};",
+                suspend::task_signature(layouts, function, &names[&id])
+            ));
+        }
+    }
     if !layouts.shapes.aggregates.is_empty() {
         header.blank();
     }
@@ -62,6 +106,13 @@ pub(super) fn emit(context: Context<'_, '_>) -> GeneratedFile {
         .iter()
         .filter(|(id, f)| emitted_functions.contains(id) && f.exported)
     {
+        if function.suspends {
+            header.line(&format!(
+                "{};",
+                suspend::start_signature(layouts, function, &public_names[&id])
+            ));
+            continue;
+        }
         let name = &public_names[&id];
         let takes_string_output = string_output_functions.contains(&id);
         if takes_string_output {

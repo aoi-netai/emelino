@@ -126,3 +126,33 @@ pub(in crate::backend::emit) fn emit_function(
     }
     Ok(())
 }
+
+pub(in crate::backend::emit) fn emit_suspend(
+    context: &mut SuspendContext<'_, '_>,
+    node: &Node,
+) -> Result<(), Vec<Error>> {
+    let layouts = context.layouts;
+    let function = context.function;
+    let writer = &mut *context.writer;
+    let Node::Return(value) = node else {
+        unreachable!("frame state dispatch")
+    };
+    {
+        if let Some(value) = value {
+            writer.begin_block("if (frame->result != NULL)");
+            let mut expression =
+                operand_expression(value).map_err(|why| unsupported(&function.name, why))?;
+            if function.ret == TypeId::ANY
+                && matches ! (value , Operand :: Const (Const :: String (s)) if s . is_empty ())
+            {
+                expression = "(EmelaAny){0}".into();
+            }
+            writer.decl(&layouts.c_type(function.ret), "returned", Some(&expression));
+            retain_frame_value(layouts, function.ret, "returned", writer);
+            writer.line("*frame->result = returned;");
+            writer.end_block();
+        }
+        writer.line("emela_frame_return(fiber); return;");
+    };
+    Ok(())
+}

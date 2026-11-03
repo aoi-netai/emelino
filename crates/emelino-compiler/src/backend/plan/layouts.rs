@@ -83,10 +83,10 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
             },
             runtime: RuntimeValues {
                 resume_types: Vec::new(),
-                has_resumes: false || flow.has_scopes,
-                has_unwind: false
+                has_resumes: suspend::has_operations(flow, emitted) || flow.has_scopes,
+                has_unwind: suspend::has_operations(flow, emitted)
                     || flow.has_scopes
-                    || false
+                    || suspend::has_protects(flow, emitted)
                     || (flow
                         .functions
                         .iter()

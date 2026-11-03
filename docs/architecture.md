@@ -143,9 +143,9 @@ Bytesのソース・型・8個のbuiltinはv0.26.1の`Std.Bytes`を使う。
 実装は`crates/emelino-compiler/src/semantics/{numeric.rs,strings.rs,unicode_grapheme.rs}`と
 `backend/emit/{numeric_runtime.rs,string_runtime.rs,unicode_grapheme.rs}`、
 `backend/emit/features/builtins/bytes.rs`、CLIのbuiltin投影が担当する。
-source観測は`crates/emelino-cli/tests/source_semantics.rs`、
-`legacy_string_alias.rs`、`legacy_bytes.rs`にある。
-中断と取消を含むBytes観測はPR5、const Stringのfold観測はPR6で追加する。
+source観測は`crates/emelino-cli/tests/source_semantics.rs`、`legacy_strings.rs`、
+`legacy_string_alias.rs`、`legacy_bytes.rs`、`legacy_bytes_runtime.rs`にある。
+const Stringのfold観測はPR6で追加する。
 `legacy_bytes::bytes_decode_checks_the_full_u32_length_before_narrowing_to_string`は長さの切詰めを防ぎ、
 `legacy_string_alias::append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits`はaliasと容量境界を確認する。
 Unicode vectorは`crates/emelino-compiler/tests/data/GraphemeBreakTest-18.0.0.txt`に保持する。
@@ -184,3 +184,37 @@ CLIの保存再生成も`Config::validate_entry`を通し、未処理Evidenceを
 `legacy_traits.rs`は構造表示・typed Cause・公開failure、`source_builtins.rs`は表示の一度だけの評価と
 panic/todo/assertのboard停止を観測する。
 `legacy_runtime.rs`の`legacy_cause_*`と`legacy_aggregate_*`はCause・所有capture・間接callを確認する。
+
+<a id="async-runtime"></a>
+## 中断・task・Scope・Fiber・Deferred（PR5）
+
+suspendするcallは生存変数をframeに保持して戻り、完了eventをmain側schedulerが処理して再開する。
+handlerの即時resumeではoperation本体の終了順を保ち、遅延resumeではcallerが次の中断まで進む。
+同じcontinuationの重複resumeは定義された診断を行う。
+値とerrorの所有をframe・task context・callerの間で移し、成功・失敗・取消のいずれでも回収する。
+
+Scopeは子の寿命を囲む。終了時は未開始の子を取消し、進行中の子とoperation tailのcleanupを待つ。
+Fiberのjoin/awaitは完了済み結果を再利用でき、複数waiterは完了側の処理が終わってからFIFOで再開する。
+interruptは子のcleanup完了を待つ。中断したcleanupを途中で捨てて外へescapeしない。
+終了したScope由来のcallbackはslot再利用後も古いscopeとして拒否する。
+取消後の古いtask通知やready eventを、新しいslotの結果へ誤配信しない。
+
+Deferredは最初のcompleteで値を保存し、pollはyieldせず、awaitは実際のresume境界になる。
+String/List/tuple等はscope終了後も必要な所有を保つ。
+Scopeの終了はcapture経由の循環参照を切り、waiterの連結をhead・middle・tailそれぞれで解除する。
+Deferredを使わないプログラムにはそのpoolを生成しない。
+
+| 容量設定 | 既定値 | 境界 |
+| --- | ---: | --- |
+| `fiber_capacity` | 8 | 完了後でも未解放のhandleを含む |
+| `frame_capacity` / `frame_bytes` | 32 / 256 | headerを含む型付きframe。実際のsizeofはC側でも検査 |
+| `task_capacity` / `event_capacity` | 8 / 8 | pending externalと完了eventの固定数 |
+| `deferred_capacity` | 8 | 同時に生存するDeferred |
+
+pool枯渇はresource defectとして停止し、暗黙に拡張しない。
+`frame_bytes`はtargetのlayoutにも依存するため、あるhostでの成功を別のtargetへ一般化しない。
+実装は`crates/emelino-compiler/src/backend/lower/fiber*`、`backend/plan/task_values.rs`、
+`backend/emit/{deferred.rs,task_values.rs}`と`backend/emit/runtime/`のscheduler/scope/taskが担当する。
+`crates/emelino-cli/tests/reused_concurrency.rs`、`legacy_runtime.rs`、`legacy_more.rs`、
+`legacy_bytes_runtime.rs`は再開順・取消・所有値・slot再利用・pool枯渇を観測する。
+boardの所有値adapterとClockのC境界を使う観測はPR7で追加する。

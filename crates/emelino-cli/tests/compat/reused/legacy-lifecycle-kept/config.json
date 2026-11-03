@@ -1,0 +1,38 @@
+{
+  "exports": [
+    {
+      "function": "work",
+      "symbol": "legacy_work"
+    },
+    {
+      "function": "abandoned",
+      "symbol": "legacy_abandoned"
+    },
+    {
+      "function": "kept",
+      "symbol": "legacy_kept"
+    },
+    {
+      "function": "head",
+      "symbol": "legacy_head"
+    },
+    {
+      "function": "tail",
+      "symbol": "legacy_tail"
+    }
+  ],
+  "heap_bytes": 4096,
+  "fiber_capacity": 4,
+  "frame_capacity": 128,
+  "frame_bytes": 1024,
+  "task_capacity": 2,
+  "event_capacity": 2,
+  "deferred_capacity": 0,
+  "string_capacity": 32,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}

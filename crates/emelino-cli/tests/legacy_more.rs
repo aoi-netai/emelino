@@ -3,6 +3,46 @@
 mod support;
 
 #[test]
+fn legacy_suspend_completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events() {
+    support::run_fixture(
+        "legacy-suspend-completed_roots_release_waiting_operation_tasks_and_ignore_their_queued_events",
+        true,
+    );
+}
+
+#[test]
+fn legacy_suspend_immediate_resume_finishes_the_operation_body_before_the_caller_continues() {
+    support::run_fixture(
+        "legacy-suspend-immediate_resume_finishes_the_operation_body_before_the_caller_continues",
+        true,
+    );
+}
+
+#[test]
+fn legacy_suspend_delayed_resume_runs_the_caller_until_its_next_suspension() {
+    support::run_fixture(
+        "legacy-suspend-delayed_resume_runs_the_caller_until_its_next_suspension",
+        true,
+    );
+}
+
+#[test]
+fn legacy_suspend_duplicate_resume_reports_the_operation_and_handler() {
+    support::run_fixture(
+        "legacy-suspend-duplicate_resume_reports_the_operation_and_handler",
+        false,
+    );
+}
+
+#[test]
+fn legacy_suspend_suspend_handler_source_waits_and_resumes_into_the_callers_result() {
+    support::run_fixture(
+        "legacy-suspend-suspend_handler_source_waits_and_resumes_into_the_callers_result",
+        true,
+    );
+}
+
+#[test]
 fn legacy_closures_e805431f1035638cad96() {
     support::run_fixture("legacy-closures-e805431f1035638cad96", true);
 }
@@ -38,6 +78,11 @@ fn legacy_closures_c587ef1e19686afdfe06() {
 }
 
 #[test]
+fn legacy_closures_45d10a963a24d47032c7() {
+    support::run_fixture("legacy-closures-45d10a963a24d47032c7", true);
+}
+
+#[test]
 fn legacy_closures_f9a6b6eea98c9abe5d11() {
     support::run_fixture("legacy-closures-f9a6b6eea98c9abe5d11", true);
 }
@@ -65,4 +110,24 @@ fn legacy_recursive_8f6003cb6b231900471a() {
 #[test]
 fn legacy_recursive_3e99d1b04faf8e90bba0() {
     support::run_fixture("legacy-recursive-3e99d1b04faf8e90bba0", true);
+}
+
+#[test]
+fn legacy_lifecycle_rounds() {
+    support::run_fixture("legacy-lifecycle-rounds", true);
+}
+
+#[test]
+fn legacy_lifecycle_discard() {
+    support::run_fixture("legacy-lifecycle-discard", true);
+}
+
+#[test]
+fn legacy_lifecycle_kept() {
+    support::run_fixture("legacy-lifecycle-kept", true);
+}
+
+#[test]
+fn legacy_child_handleless() {
+    support::run_fixture("legacy-child-handleless", true);
 }

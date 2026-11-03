@@ -1,0 +1,37 @@
+{
+  "exports": [
+    {
+      "function": "make",
+      "symbol": "legacy_make"
+    },
+    {
+      "function": "delayed",
+      "symbol": "legacy_delayed"
+    },
+    {
+      "function": "maker",
+      "symbol": "legacy_maker"
+    },
+    {
+      "function": "scoped",
+      "symbol": "legacy_scoped"
+    },
+    {
+      "function": "encoded",
+      "symbol": "legacy_encoded"
+    }
+  ],
+  "heap_bytes": 8192,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 768,
+  "task_capacity": 2,
+  "event_capacity": 2,
+  "string_capacity": 64,
+  "task_adapters": [
+    {
+      "symbol": "host_wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}

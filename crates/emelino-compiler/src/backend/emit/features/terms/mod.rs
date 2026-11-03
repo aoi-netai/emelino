@@ -5,6 +5,7 @@ pub(in crate::backend::emit) mod fail;
 pub(in crate::backend::emit) mod recur;
 pub(in crate::backend::emit) mod return_;
 pub(in crate::backend::emit) mod unreachable;
+pub(in crate::backend::emit) mod unwind;
 pub(in crate::backend::emit) mod r#yield;
 pub(in crate::backend::emit) fn emit(
     context: &mut Context<'_, '_>,
@@ -18,7 +19,7 @@ pub(in crate::backend::emit) fn emit(
         Term::Break { .. } => r#break::emit(context, term, dst),
         Term::Recur(..) => recur::emit(context, term, dst),
         Term::Defect(..) => defect::emit(context, term, dst),
-        Term::Unwind => Err(unsupported(&context.function.name, "unwind")),
+        Term::Unwind => unwind::emit(context, term, dst),
         Term::Unreachable => unreachable::emit(context, term, dst),
     }
 }
@@ -39,7 +40,7 @@ pub(in crate::backend::emit) fn emit_function(
         }
         Term::Recur(..) => recur::emit_function(layouts, function, term, string_buffers, writer),
         Term::Defect(..) => defect::emit_function(layouts, function, term, string_buffers, writer),
-        Term::Unwind => Err(unsupported(&function.name, "unwind")),
+        Term::Unwind => unwind::emit_function(layouts, function, term, string_buffers, writer),
         Term::Unreachable => {
             unreachable::emit_function(layouts, function, term, string_buffers, writer)
         }

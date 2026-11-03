@@ -1,0 +1,15 @@
+{
+  "exports": [
+    {
+      "function": "run",
+      "symbol": "source_suspend"
+    }
+  ],
+  "heap_bytes": 16384,
+  "task_adapters": [
+    {
+      "symbol": "wait",
+      "adapter": "board_wait_start"
+    }
+  ]
+}

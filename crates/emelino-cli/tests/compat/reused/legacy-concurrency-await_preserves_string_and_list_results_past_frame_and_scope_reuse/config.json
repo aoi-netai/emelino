@@ -1,0 +1,21 @@
+{
+  "exports": [
+    {
+      "function": "text",
+      "symbol": "legacy_text"
+    },
+    {
+      "function": "list",
+      "symbol": "legacy_list"
+    },
+    {
+      "function": "length",
+      "symbol": "legacy_length"
+    }
+  ],
+  "heap_bytes": 8192,
+  "fiber_capacity": 8,
+  "frame_capacity": 24,
+  "frame_bytes": 512,
+  "deferred_capacity": 1
+}
