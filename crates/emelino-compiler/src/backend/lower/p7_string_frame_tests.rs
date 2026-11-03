@@ -89,7 +89,7 @@ fn split_views_and_distinct_join_results_survive_a_real_suspension_with_nul_and_
         term: Term::Return(Some(after.into())),
     };
     p.functions.alloc(f);
-    let mut output = crate::backend::compile_program(
+    let mut output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(8192)
@@ -161,7 +161,7 @@ fn constant_numeric_and_string_values_fold_and_constant_float_append_keeps_its_e
         term: Term::Return(Some(s.into())),
     }));
     p.functions.alloc(joined);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     assert!(!output.c_source.contains("emela_emb_string_append("));
     execute(
         &output,
@@ -211,7 +211,8 @@ fn constant_numeric_and_string_values_fold_and_constant_float_append_keeps_its_e
         stmts: vec![a, b, c, d],
         term: Term::Return(Some(length.into())),
     };
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     assert!(output.c_source.contains("UINT16_C(19)"));
     execute(
         &output,
@@ -262,7 +263,7 @@ fn selected_entry_supplies_dynamic_string_buffers_at_minimum_and_maximum_capacit
     }));
     p.functions.alloc(f);
     for capacity in [2, 64, 512] {
-        let output = crate::backend::compile_program(
+        let output = crate::backend::compile_saved_program(
             p.clone(),
             &Options::default().with_string_capacity(capacity),
         )

@@ -177,7 +177,8 @@ fn owned_any_nested_in_error_payloads_survives_indirect_success_and_failure() {
     };
     p.functions.alloc(f);
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(2048)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(2048))
+            .unwrap();
     audit_owned_heap(&mut output);
 
     execute(
@@ -332,7 +333,8 @@ fn growing_generic_arguments_through_function_results_keep_owned_lazy_payloads()
     assert!(lowered.lowered.core.expanding_enums.contains(&grow));
     assert!(lowered.lowered.core.types.len() < 64);
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     audit_owned_heap(&mut output);
     execute(
         &output,

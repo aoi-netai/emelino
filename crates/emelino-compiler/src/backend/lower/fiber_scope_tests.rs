@@ -188,7 +188,7 @@ fn scope_handlers_merge_callback_failure_abis_and_box_typed_child_results() {
     );
     assert!(lowered.emitted_functions.iter().all(|id| lowered.lowered.functions[*id].vars.iter()
         .all(|(_, variable)| !matches!(lowered.lowered.core.ty(variable.ty), Type::Fn(ft) if ft.fails))));
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         scope_program(),
         &Options::default()
             .with_heap_bytes(16384)
@@ -259,7 +259,7 @@ fn ordinary_error_values_in_a_pure_scope_do_not_keep_unused_display_functions() 
     );
     function.seqs[function.body.unwrap()].stmts.insert(0, make);
     execute_answer(
-        crate::backend::compile_program(
+        crate::backend::compile_saved_program(
             p,
             &Options::default()
                 .with_heap_bytes(16384)
@@ -381,13 +381,17 @@ fn calling_the_generated_scope_deferred_operation_requires_its_pool() {
     let options = Options::default()
         .with_heap_bytes(16384)
         .with_frame_bytes(2048);
-    let error =
-        crate::backend::compile_program(p.clone(), &options.clone().with_deferred_capacity(0))
-            .unwrap_err();
+    let error = crate::backend::compile_saved_program(
+        p.clone(),
+        &options.clone().with_deferred_capacity(0),
+    )
+    .unwrap_err();
     assert!(
         error
             .iter()
             .any(|error| error.kind == crate::ErrorKind::InvalidOptions)
     );
-    execute_answer(crate::backend::compile_program(p, &options.with_deferred_capacity(1)).unwrap());
+    execute_answer(
+        crate::backend::compile_saved_program(p, &options.with_deferred_capacity(1)).unwrap(),
+    );
 }

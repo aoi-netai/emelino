@@ -155,7 +155,8 @@ fn list_string_bytes_and_any_release_owned_values_after_repeated_calls() {
     };
     p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     execute_repeatedly(
         output,
         r#"
@@ -197,7 +198,8 @@ fn any_boxes_retain_managed_lists_and_release_their_payloads() {
     };
     p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     execute_repeatedly(
         output,
         "for (int i = 0; i < 10000; ++i) { assert(answer() == 17); assert(test_heap_empty()); }",
@@ -328,9 +330,11 @@ fn recursive_enum_tail_construction_and_deep_release_use_fixed_heap() {
         term: Term::Return(Some(head.into())),
     };
     p.functions.alloc(answer);
-    let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(2 * 1024 * 1024))
-            .unwrap();
+    let output = crate::backend::compile_saved_program(
+        p,
+        &Options::default().with_heap_bytes(2 * 1024 * 1024),
+    )
+    .unwrap();
     execute_repeatedly(
         output,
         "for(int i=0;i<5;++i) { assert(answer()==1); assert(test_heap_empty()); }",
@@ -585,7 +589,8 @@ fn bytes_optional_results_concat_and_unicode_lists_preserve_contents() {
     f.seqs[f.body.unwrap()].stmts = statements;
     p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     execute_repeatedly(
         output,
         "for(int i=0;i<1000;++i) { assert(answer()==42); assert(test_heap_empty()); }",
@@ -608,7 +613,8 @@ fn discarded_list_construction_keeps_fixed_heap_exhaustion() {
     f.seqs[f.body.unwrap()].stmts.push(allocation);
     p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     execute(
         &output,
         r#"
@@ -683,7 +689,7 @@ fn unused_growing_recursive_payloads_remain_opaque_without_expansion() {
     assert!(lowered.lowered.core.expanding_enums.contains(&id));
     assert!(lowered.lowered.core.types.len() < 32);
     let output =
-        crate::backend::compile_program(p.clone(), &Options::default().with_heap_bytes(1024))
+        crate::backend::compile_saved_program(p.clone(), &Options::default().with_heap_bytes(1024))
             .unwrap();
     execute_repeatedly(
         output,
@@ -714,7 +720,8 @@ fn unused_growing_recursive_payloads_remain_opaque_without_expansion() {
     };
     p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(1024)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(1024))
+            .unwrap();
     execute_repeatedly(
         output,
         "for(int i=0;i<1000;++i) { assert(answer().tag==0); assert(test_heap_empty()); }",
@@ -821,7 +828,8 @@ fn recursive_enum_edges_inside_tuples_are_boxed_and_released() {
     };
     p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     execute_repeatedly(
         output,
         "for(int i=0;i<1000;++i) { assert(answer()==7); assert(test_heap_empty()); }",

@@ -36,7 +36,7 @@ fn external_task_resumes_an_independent_frame_and_rejects_repeated_completion() 
     let lowered = lower_program(p.clone()).unwrap();
     assert!(lowered.suspensions.contains_key(&answer));
     let options = Options::default().with_task_adapter("wait", "board_wait_start");
-    let output = crate::backend::compile_program(p.clone(), &options).unwrap();
+    let output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
     assert!(output.exports[0].suspends);
     execute(
         &output,
@@ -121,7 +121,7 @@ fn typed_task_producers_run_on_main_and_their_string_survives_another_suspension
         .with_frame_bytes(1024)
         .with_task_adapter("text", "board_text_start")
         .with_task_adapter("wait", "board_wait_start");
-    let mut output = crate::backend::compile_program(p, &options).unwrap();
+    let mut output = crate::backend::compile_saved_program(p, &options).unwrap();
     audit_heap(&mut output);
     execute(
         &output,
@@ -199,7 +199,7 @@ fn suspending_closures_keep_managed_captures_and_return_owned_strings() {
         .with_heap_bytes(4096)
         .with_frame_bytes(1024)
         .with_task_adapter("wait", "board_wait_start");
-    let mut output = crate::backend::compile_program(p, &options).unwrap();
+    let mut output = crate::backend::compile_saved_program(p, &options).unwrap();
     audit_heap(&mut output);
     execute(
         &output,
@@ -403,14 +403,15 @@ fn immediate_suspend_operations_finish_before_the_caller_and_resume_is_one_shot(
         .with_heap_bytes(4096)
         .with_frame_bytes(1024);
     let mut output =
-        crate::backend::compile_program(operation_program(false, false), &options).unwrap();
+        crate::backend::compile_saved_program(operation_program(false, false), &options).unwrap();
     audit_heap(&mut output);
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint test_heap_empty(void);\nstatic int order;\nvoid mark(int32_t n){if(n!=++order)abort();}\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){for(int i=0;i<1000;i++){order=0;if(answer()!=42||order!=3||!test_heap_empty())return 1;}return 0;}\n",
         0,
     );
-    let output = crate::backend::compile_program(operation_program(false, true), &options).unwrap();
+    let output =
+        crate::backend::compile_saved_program(operation_program(false, true), &options).unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nvoid mark(int32_t n){(void)n;}\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){const char*expected=\"resume called twice in operation `get` of handler `Waiting`\";exit(k==EMELA_DEFECT_PANIC&&n==strlen(expected)&&!memcmp(m,expected,n)?77:78);}\nint main(void){(void)answer();return 1;}\n",
@@ -425,7 +426,7 @@ fn delayed_suspend_operations_resume_the_waiting_caller_after_external_completio
         .with_frame_bytes(1024)
         .with_task_adapter("wait", "board_wait_start");
     let mut output =
-        crate::backend::compile_program(operation_program(true, false), &options).unwrap();
+        crate::backend::compile_saved_program(operation_program(true, false), &options).unwrap();
     audit_heap(&mut output);
     execute(
         &output,
@@ -480,7 +481,7 @@ fn suspending_cleanup_delays_delivery_of_the_original_result() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(answer);
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_frame_bytes(1024)
@@ -603,7 +604,7 @@ fn typed_task_success_and_error_notifications_share_main_context_ownership() {
             .with_heap_bytes(4096)
             .with_frame_bytes(1024)
             .with_task_adapter("value", "board_value_start");
-        let mut output = crate::backend::compile_program(p, &options).unwrap();
+        let mut output = crate::backend::compile_saved_program(p, &options).unwrap();
         audit_heap(&mut output);
         let harness = r#"
 #include <stdlib.h>
@@ -704,14 +705,14 @@ fn recursive_frames_return_into_the_callers_storage_and_exhaust_fixed_capacity()
     let options = Options::default()
         .with_frame_capacity(8)
         .with_frame_bytes(512);
-    let output = crate::backend::compile_program(p.clone(), &options).unwrap();
+    let output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){for(int i=0;i<1000;i++){int32_t result=0;EmelaFiber f=answer_start(i%6,&result);while(!emela_fiber_done(f))if(!emela_scheduler_run(1))return 1;emela_fiber_release(f);if(result!=42+i%6)return 2;}return 0;}\n",
         0,
     );
     let output =
-        crate::backend::compile_program(p.clone(), &options.clone().with_frame_capacity(2))
+        crate::backend::compile_saved_program(p.clone(), &options.clone().with_frame_capacity(2))
             .unwrap();
     execute(
         &output,
@@ -724,14 +725,14 @@ fn recursive_frames_return_into_the_callers_storage_and_exhaust_fixed_capacity()
         options.clone().with_frame_bytes(0),
     ] {
         assert!(
-            crate::backend::compile_program(p.clone(), &options)
+            crate::backend::compile_saved_program(p.clone(), &options)
                 .unwrap_err()
                 .iter()
                 .any(|error| error.kind == crate::ErrorKind::InvalidOptions)
         );
     }
     assert!(
-        crate::backend::compile_program(p, &options.with_isr_entry("answer"))
+        crate::backend::compile_saved_program(p, &options.with_isr_entry("answer"))
             .unwrap_err()
             .iter()
             .any(|error| error.message.contains("ISR"))
@@ -969,7 +970,7 @@ fn suspending_cleanup_preserves_the_failure_until_an_outer_handler_runs() {
         .with_heap_bytes(4096)
         .with_frame_bytes(1024)
         .with_task_adapter("wait", "board_wait_start");
-    let mut output = crate::backend::compile_program(p, &options).unwrap();
+    let mut output = crate::backend::compile_saved_program(p, &options).unwrap();
     audit_heap(&mut output);
     execute(
         &output,
@@ -1001,7 +1002,8 @@ fn constructing_an_immediate_handler_keeps_scheduler_storage_omitted() {
         term: Term::Return(Some(handler.into())),
     };
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     assert!(
         !output.c_source.contains("emela_frames[")
             && !output.c_source.contains("struct emela_resume {")
@@ -1039,7 +1041,7 @@ fn task_adapter_and_capacities_are_required_and_exhaustion_unlocks_events() {
     };
     p.functions.alloc(answer);
     assert!(
-        crate::backend::compile_program(p.clone(), &Options::default())
+        crate::backend::compile_saved_program(p.clone(), &Options::default())
             .unwrap_err()
             .iter()
             .any(|error| error.message.contains("with_task_adapter"))
@@ -1052,7 +1054,7 @@ fn task_adapter_and_capacities_are_required_and_exhaustion_unlocks_events() {
         options.clone().with_event_capacity(0),
     ] {
         assert!(
-            crate::backend::compile_program(p.clone(), &options)
+            crate::backend::compile_saved_program(p.clone(), &options)
                 .unwrap_err()
                 .iter()
                 .any(|error| error.kind == crate::ErrorKind::InvalidOptions)
@@ -1062,7 +1064,7 @@ fn task_adapter_and_capacities_are_required_and_exhaustion_unlocks_events() {
         options.clone().with_task_capacity(1),
         options.clone().with_event_capacity(1),
     ] {
-        let output = crate::backend::compile_program(p.clone(), &options).unwrap();
+        let output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
         execute(
             &output,
             "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int locked;\nstatic unsigned count;\nstatic EmelaTask pending[2];\nuint32_t emela_board_event_lock(void){uint32_t old=(uint32_t)locked;locked=1;return old;}\nvoid emela_board_event_unlock(uint32_t p){if(!locked)abort();locked=(int)p;}\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)m;(void)n;exit(k==EMELA_DEFECT_HEAP_EXHAUSTED&&!locked?77:78);}\nvoid board_wait_start(EmelaTask t,int32_t n){(void)n;if(count>=2)abort();pending[count++]=t;}\nint main(void){static int32_t a,b;(void)answer_start(1,&a);(void)answer_start(2,&b);(void)emela_scheduler_run(2);if(count!=2)return 1;if(!emela_task_complete_int(pending[0],1))return 2;(void)emela_task_complete_int(pending[1],2);return 3;}\n",
@@ -1207,7 +1209,7 @@ fn function_coercions_adapt_sync_and_suspend_values_to_suspending_evidence_calls
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(answer);
-    let mut output = crate::backend::compile_program(
+    let mut output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(4096)
@@ -1266,7 +1268,7 @@ fn suspending_function_references_dispatch_to_external_tasks_then_internal_frame
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(answer);
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_frame_bytes(1024)
@@ -1350,7 +1352,7 @@ fn synchronous_string_producers_coerced_to_suspend_values_keep_small_buffers_and
     let options = Options::default()
         .with_heap_bytes(4096)
         .with_frame_bytes(1024);
-    let mut output = crate::backend::compile_program(p.clone(), &options).unwrap();
+    let mut output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
     let source = &output
         .files
         .iter()
@@ -1365,7 +1367,8 @@ fn synchronous_string_producers_coerced_to_suspend_values_keep_small_buffers_and
         "#include <stdlib.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint test_heap_empty(void);\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nstatic void finish(EmelaFiber f){while(!emela_fiber_done(f))if(!emela_scheduler_run(1))abort();emela_fiber_release(f);}\nint main(void){for(int i=0;i<1000;i++){EmelaString first={0},second={0};finish(text_start(INT32_MIN,&first));finish(text_start(INT32_MAX,&second));if(!first.owner||first.length!=11||memcmp(first.data,\"-2147483648\",11)||!second.owner||second.length!=10||memcmp(second.data,\"2147483647\",10))return 1;emela_embedded_release_string(&first);emela_embedded_release_string(&second);finish(discard_start(INT32_MIN));finish(text_start(INT32_MIN,NULL));if(!test_heap_empty())return 2;}return 0;}\n",
         0,
     );
-    let small = crate::backend::compile_program(p, &options.with_string_capacity(10)).unwrap();
+    let small =
+        crate::backend::compile_saved_program(p, &options.with_string_capacity(10)).unwrap();
     execute(
         &small,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)m;(void)n;exit(k==EMELA_DEFECT_STRING_CAPACITY?7:8);}\nint main(void){EmelaString result={0};EmelaFiber f=text_start(INT32_MIN,&result);while(!emela_fiber_done(f))if(!emela_scheduler_run(1))return 1;return 2;}\n",

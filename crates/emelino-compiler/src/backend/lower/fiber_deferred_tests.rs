@@ -133,7 +133,7 @@ fn deferred_wakes_fifo_waiters_with_owned_strings_and_releases_the_scope_value()
     });
     scope_function(&mut p, &mut f, body, scope);
     p.functions.alloc(f);
-    let mut output = crate::backend::compile_program(
+    let mut output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(16384)
@@ -222,7 +222,7 @@ fn discarded_deferreds_reuse_one_slot_in_a_long_lived_scope() {
         });
         scope_function(&mut p, &mut f, body, scope);
         p.functions.alloc(f);
-        let output = crate::backend::compile_program(
+        let output = crate::backend::compile_saved_program(
             p,
             &Options::default()
                 .with_heap_bytes(4096)

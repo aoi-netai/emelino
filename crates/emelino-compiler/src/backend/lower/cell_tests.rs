@@ -18,7 +18,7 @@ fn cell_binding(
 }
 fn execute_cells(program: Program, body: &str) {
     let mut output =
-        crate::backend::compile_program(program, &Options::default().with_heap_bytes(1024))
+        crate::backend::compile_saved_program(program, &Options::default().with_heap_bytes(1024))
             .unwrap();
     output.files.iter_mut().find(|file| file.path == "emela_embedded.c").unwrap().contents.push_str(
         "\nint test_heap_empty(void){for(unsigned char*p=emela_heap_storage;emela_heap_initialized&&p<emela_heap_end();){emela_heap_block*b=(emela_heap_block*)(void*)p;if(!b->is_free)return 0;p+=b->size;}return 1;}\n");

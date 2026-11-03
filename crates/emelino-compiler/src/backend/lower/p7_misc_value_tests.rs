@@ -6,7 +6,8 @@ fn static_string_constant_returns_a_nul_and_unicode_view_without_an_owner() {
     f.ret = TypeId::STRING;
     f.constant = true;
     f.seqs[f.body.unwrap()].term = Term::Return(Some(Const::String("a\0é".into()).into()));
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     execute(
         &output,
         "#include <string.h>\n#include \"emela_embedded.h\"\nint main(void){const unsigned char expected[]={0x61,0,0xc3,0xa9};for(int i=0;i<1000;i++){EmelaString s=answer();if(s.length!=4||s.owner||memcmp(s.data,expected,4))return 1;}return 0;}\n",
@@ -44,7 +45,8 @@ fn int64_decimal_conversion_uses_exactly_twenty_bytes_of_scratch() {
         stmts: vec![convert, compare],
         term: Term::Return(Some(same.into())),
     };
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     assert!(output.c_source.contains("char emela_string_buffer_0[20];"));
     execute(
         &output,
@@ -96,7 +98,7 @@ fn checked_add_preserves_all_four_legacy_option_boundaries() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(f);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     let harness = format!(
         "#include \"emela_embedded.h\"\nint main(void){{for(int i=0;i<1000;i++){{{c_type} x=answer(INT32_MAX,1);if(x.tag!=1)return 1;x=answer(INT32_MIN,-1);if(x.tag!=1)return 2;x=answer(INT32_MAX,0);if(x.tag!=0||x.payload.v0.f0!=INT32_MAX)return 3;x=answer(-2,1);if(x.tag!=0||x.payload.v0.f0!=-1)return 4;}}return 0;}}\n"
     );
@@ -126,7 +128,7 @@ fn code_point_lists_require_a_heap_even_when_only_the_head_is_returned() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(f);
-    let errors = crate::backend::compile_program(p, &Options::default()).unwrap_err();
+    let errors = crate::backend::compile_saved_program(p, &Options::default()).unwrap_err();
     assert!(
         errors
             .iter()
@@ -177,14 +179,15 @@ fn split_join_keeps_the_old_multibyte_value_and_capacity_five_defect() {
     };
     p.functions.alloc(f);
     let options = Options::default().with_heap_bytes(2048);
-    let mut output = crate::backend::compile_program(p.clone(), &options).unwrap();
+    let mut output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
     audit_owned_heap(&mut output);
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nint test_heap_empty(void);\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){for(int i=0;i<1000;i++)if(!answer((EmelaString){\"alpha::βeta\",12,NULL})||!test_heap_empty())return 1;return 0;}\n",
         0,
     );
-    let output = crate::backend::compile_program(p, &options.with_string_capacity(5)).unwrap();
+    let output =
+        crate::backend::compile_saved_program(p, &options.with_string_capacity(5)).unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){exit(k==EMELA_DEFECT_STRING_CAPACITY&&n==24&&!memcmp(m,\"string capacity exceeded\",24)?0:2);}\nint main(void){(void)answer((EmelaString){\"alpha::beta\",11,NULL});return 1;}\n",
@@ -210,7 +213,8 @@ fn debug_print_passes_the_original_string_view_to_the_board_hook() {
         stmts: vec![print],
         term: Term::Return(None),
     };
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     let board = &output
         .files
         .iter()
@@ -234,7 +238,7 @@ fn unreachable_terms_raise_the_native_or_scheduler_defect_when_reached() {
         f.suspends = suspends;
         f.seqs[f.body.unwrap()].term = Term::Unreachable;
         let output =
-            crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+            crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
         let (message, call) = if suspends {
             (
                 "invalid scheduler state",
@@ -270,7 +274,8 @@ fn discarded_integer_division_and_remainder_keep_defects_in_native_and_suspend_c
                     term: Term::Return(None),
                 };
                 let output =
-                    crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+                    crate::backend::compile_saved_program(program(vec![f]), &Options::default())
+                        .unwrap();
                 let call = if suspends {
                     "(void)answer_start();while(emela_scheduler_run(1)){}"
                 } else {
@@ -340,7 +345,8 @@ fn derived_bytes_equality_and_display_keep_unsigned_values_at_the_c_boundary() {
         p.functions.alloc(f);
     }
     let output =
-        crate::backend::compile_program(p, &Options::default().with_string_capacity(64)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_string_capacity(64))
+            .unwrap();
     execute(
         &output,
         r#"
@@ -369,7 +375,7 @@ fn dynamic_defect_preserves_an_offset_string_view_and_embedded_nul() {
         } else {
             Options::default()
         };
-        let output = crate::backend::compile_program(program(vec![f]), &options).unwrap();
+        let output = crate::backend::compile_saved_program(program(vec![f]), &options).unwrap();
         let call = if suspends {
             "(void)answer_start((EmelaString){data+1,3,NULL});while(emela_scheduler_run(1)){}"
         } else {
@@ -495,7 +501,7 @@ fn float_primitive_cases_keep_the_fixed_old_arithmetic_comparison_and_nan_result
             term: Term::Return(Some(result.into())),
         };
         let output =
-            crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+            crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
         let ty = if result_type == TypeId::FLOAT {
             "double"
         } else {

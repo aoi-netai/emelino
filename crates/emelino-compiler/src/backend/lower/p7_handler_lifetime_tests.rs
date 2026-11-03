@@ -132,7 +132,7 @@ fn retirement_keeps_active_checks_through_all_aliases_in_native_and_suspend_call
             };
             p.functions.alloc(f);
             let output =
-                crate::backend::compile_program(p, &Options::default().with_heap_bytes(2048))
+                crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(2048))
                     .unwrap();
             let invoke = if suspends {
                 "int32_t result=0;(void)answer_start(&result);while(emela_scheduler_run(1)){}"

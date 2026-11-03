@@ -48,8 +48,8 @@ fn isr_entries_reject_discarded_cells_in_direct_and_nested_calls() {
             nested,
         );
         let options = Options::default().with_heap_bytes(1024);
-        crate::backend::compile_program(p.clone(), &options).unwrap();
-        let errors = crate::backend::compile_program(
+        crate::backend::compile_saved_program(p.clone(), &options).unwrap();
+        let errors = crate::backend::compile_saved_program(
             p,
             &options.with_isr_entry(if nested { "answer" } else { "action" }),
         )

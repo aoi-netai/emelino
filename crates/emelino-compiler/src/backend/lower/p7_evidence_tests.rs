@@ -114,7 +114,8 @@ fn discarded_handler_and_evidence_constructors_release_before_the_next_statement
         f.seqs[f.body.unwrap()].stmts = vec![make, loop_];
         p.functions.alloc(f);
         let mut output =
-            crate::backend::compile_program(p, &Options::default().with_heap_bytes(1024)).unwrap();
+            crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(1024))
+                .unwrap();
         audit_owned_heap(&mut output);
         output.files.iter_mut().find(|file|file.path=="emela_embedded.c").unwrap().contents.push_str("\nvoid inspect_live(void){int live=0;for(unsigned char*p=emela_heap_storage;emela_heap_initialized&&p<emela_heap_end();){emela_heap_block*b=(emela_heap_block*)(void*)p;if(!b->is_free)live++;p+=b->size;}if(live!=EXPECTED)emela_board_defect(EMELA_DEFECT_PANIC,\"x\",1);}\n");
         let file = output
@@ -188,7 +189,8 @@ fn discarded_dynamic_evidence_lookup_checks_missing_handlers_without_releasing_t
         }));
         p.functions.alloc(run);
         let mut output =
-            crate::backend::compile_program(p, &Options::default().with_heap_bytes(1024)).unwrap();
+            crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(1024))
+                .unwrap();
         audit_owned_heap(&mut output);
         execute(
             &output,

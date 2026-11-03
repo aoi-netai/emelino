@@ -226,7 +226,7 @@ fn legacy_inline_layouts_preserve_generic_fields_tags_and_unit_positions_at_the_
     return_body(&mut project, vec![ignored_unit, read], result.into());
     program.functions.alloc(project);
 
-    let output = crate::backend::compile_program(program, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(program, &Options::default()).unwrap();
     let maybe_c = crate::semantics::c::type_name(maybe_type);
     let boxed_c = crate::semantics::c::type_name(boxed_type);
     let named_c = crate::semantics::c::type_name(named_type);
@@ -340,7 +340,7 @@ fn legacy_literal_and_enum_switches_cover_numeric_extremes_and_reject_invalid_ta
     let (_, color_type) = color(&mut program);
     enum_switch(&mut program, "classify", maybe_type, Repr::Ref, [71, 82]);
     enum_switch(&mut program, "color_code", color_type, Repr::I32, [3, 5]);
-    let output = crate::backend::compile_program(program, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(program, &Options::default()).unwrap();
     let maybe_c = crate::semantics::c::type_name(maybe_type);
     execute(
         &output,

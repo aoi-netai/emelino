@@ -154,7 +154,8 @@ fn returned_lists_shared_tails_and_inline_list_owners_reuse_the_old_1024_byte_he
     }
     let c_type = crate::semantics::c::type_name(tuple);
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(1024)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(1024))
+            .unwrap();
     audit_owned_heap(&mut output);
     let release = output
         .header
@@ -213,7 +214,7 @@ fn empty_lists_keep_the_null_c_boundary_without_requiring_a_heap() {
         finish(&mut f, body, result.into());
         p.functions.alloc(f);
     }
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     assert!(!output.c_source.contains("emela_heap_storage"));
     execute(
         &output,
@@ -231,7 +232,7 @@ fn returning_a_borrowed_list_alias_requires_reference_management_capacity() {
     f.params.push(input);
     finish(&mut f, vec![], input.into());
     p.functions.alloc(f);
-    let errors = crate::backend::compile_program(p, &Options::default()).unwrap_err();
+    let errors = crate::backend::compile_saved_program(p, &Options::default()).unwrap_err();
     assert!(
         errors
             .iter()
@@ -349,7 +350,8 @@ fn captured_closure_success_and_propagated_failure_use_the_original_indirect_cal
     finish(&mut f, body, result.into());
     p.functions.alloc(f);
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(2048)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(2048))
+            .unwrap();
     audit_owned_heap(&mut output);
     execute(
         &output,

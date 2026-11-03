@@ -75,7 +75,7 @@ fn returned_function_references_remain_reachable_and_indirect_calls_use_their_ab
         term: Term::Return(Some(result.into())),
     };
     let answer_id = p.functions.alloc(answer);
-    let output = crate::backend::compile_program(p.clone(), &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p.clone(), &Options::default()).unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}\nint main(void){for(int i=0;i<1000;i++)if(answer()!=42)return 1;return 0;}\n",
@@ -204,7 +204,8 @@ fn returned_closures_own_captured_string_views_and_release_every_call() {
     };
     p.functions.alloc(answer);
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     output.files.iter_mut().find(|file| file.path=="emela_embedded.c").unwrap().contents.push_str("\nint test_heap_empty(void){for(unsigned char*p=emela_heap_storage;emela_heap_initialized&&p<emela_heap_end();){emela_heap_block*b=(emela_heap_block*)(void*)p;if(!b->is_free)return 0;p+=b->size;}return 1;}\n");
     execute(
         &output,
@@ -303,7 +304,7 @@ fn loop_variable_captures_use_the_value_at_closure_creation() {
     };
     let function = p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p.clone(), &Options::default().with_heap_bytes(4096))
+        crate::backend::compile_saved_program(p.clone(), &Options::default().with_heap_bytes(4096))
             .unwrap();
     execute(
         &output,
@@ -403,7 +404,7 @@ fn function_coercion_adapts_unit_erasure_evidence_and_failure_abi() {
     };
     let function = p.functions.alloc(f);
     let mut output =
-        crate::backend::compile_program(p.clone(), &Options::default().with_heap_bytes(4096))
+        crate::backend::compile_saved_program(p.clone(), &Options::default().with_heap_bytes(4096))
             .unwrap();
     output.files.iter_mut().find(|file| file.path=="emela_embedded.c").unwrap().contents.push_str("\nint test_heap_empty(void){for(unsigned char*p=emela_heap_storage;emela_heap_initialized&&p<emela_heap_end();){emela_heap_block*b=(emela_heap_block*)(void*)p;if(!b->is_free)return 0;p+=b->size;}return 1;}\n");
     execute(
@@ -520,7 +521,8 @@ fn never_returning_function_values_widen_results_without_losing_failure_channels
         };
         p.functions.alloc(f);
         let output =
-            crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+            crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+                .unwrap();
         if fails {
             execute(&output, DEFECT_HARNESS, 0);
         } else {
@@ -616,6 +618,6 @@ fn projected_function_abis_share_type_identity_through_composite_values() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(answer);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
 }

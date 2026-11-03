@@ -19,7 +19,7 @@ fn discarded_runtime_show_string_still_checks_its_output_capacity() {
         stmts: vec![show],
         term: Term::Return(None),
     };
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         program(vec![function]),
         &Options::default().with_string_capacity(3),
     )

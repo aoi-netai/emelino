@@ -213,7 +213,7 @@ fn closure_with_fiber_failure_edge(local_handler: bool) -> Program {
 }
 
 fn execute_shifted_edge(local_handler: bool) {
-    let mut output = crate::backend::compile_program(
+    let mut output = crate::backend::compile_saved_program(
         closure_with_fiber_failure_edge(local_handler),
         &Options::default().with_heap_bytes(4096),
     )

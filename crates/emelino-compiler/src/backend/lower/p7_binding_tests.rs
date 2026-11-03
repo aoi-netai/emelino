@@ -49,7 +49,7 @@ fn global_named_file_and_bundled_host_metadata_preserve_the_external_c_symbol() 
         };
         program.functions.alloc(entry);
     }
-    let output = crate::backend::compile_program(program, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(program, &Options::default()).unwrap();
     execute(
         &output,
         r#"

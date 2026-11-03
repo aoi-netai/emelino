@@ -10,7 +10,7 @@ fn unit_any_boxes_round_trip_without_c_storage_and_release_their_heap() {
     let box_ = binding(&mut f, Some(boxed), Value::Coerce(unit));
     let unbox = binding(&mut f, Some(restored), Value::Coerce(boxed));
     f.seqs[f.body.unwrap()].stmts = vec![make, box_, unbox];
-    let mut output = crate::backend::compile_program(
+    let mut output = crate::backend::compile_saved_program(
         program(vec![f]),
         &Options::default().with_heap_bytes(1024),
     )
@@ -94,7 +94,7 @@ fn unit_children_keep_side_effects_and_join_without_a_result_slot() {
     });
     scope_function(&mut p, &mut f, scope_body, scope);
     p.functions.alloc(f);
-    let mut output = crate::backend::compile_program(
+    let mut output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(8192)
@@ -201,7 +201,7 @@ fn unit_deferred_distinguishes_empty_and_full_without_payload_storage() {
     });
     scope_function(&mut p, &mut f, body, scope);
     p.functions.alloc(f);
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(8192)

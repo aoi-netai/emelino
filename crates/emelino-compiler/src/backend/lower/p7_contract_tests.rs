@@ -57,7 +57,7 @@ fn unwind_environment_values_and_refcount_statements_are_rejected_as_input() {
                 },
             };
             p.functions.alloc(f);
-            let errors = crate::backend::compile_program(p, &Options::default()).unwrap_err();
+            let errors = crate::backend::compile_saved_program(p, &Options::default()).unwrap_err();
             let expected = match variant {
                 "Unwind" => "terminal variant",
                 "MakeClosure" | "EnvGet" => "value variant",
@@ -208,7 +208,8 @@ fn local_failure_handlers_are_validated_and_normalized_in_sync_and_suspend_calls
                 )))
         );
         let mut output =
-            crate::backend::compile_program(p, &Options::default().with_heap_bytes(2048)).unwrap();
+            crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(2048))
+                .unwrap();
         audit_owned_heap(&mut output);
         let invoke = if suspends {
             "int32_t result=0;EmelaFiber f=answer_start(bad,&result);while(!emela_fiber_done(f))if(!emela_scheduler_run(1))abort();emela_fiber_release(f);if(result!=42)abort();"
@@ -276,7 +277,7 @@ fn interrupt_masks_are_rejected_from_nested_isr_entries_with_or_without_unwind_r
                     }));
                     p.functions.alloc(f);
                 }
-                let errors = crate::backend::compile_program(
+                let errors = crate::backend::compile_saved_program(
                     p,
                     &Options::default().with_isr_entry("answer"),
                 )

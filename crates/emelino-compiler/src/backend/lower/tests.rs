@@ -326,7 +326,7 @@ fn tail_recursion_uses_parallel_parameter_assignment_and_scalar_external_calls()
         term: Term::Return(Some(incremented.into())),
     };
     p.functions.alloc(answer);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     assert!(output.c_source.contains("emela_recur_tmp_"));
     execute(
         &output,
@@ -347,7 +347,8 @@ fn unused_checked_builtin_still_reports_a_defect() {
         },
     );
     f.seqs[f.body.unwrap()].stmts.push(shift);
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k, const char *m, uint16_t n) { (void)m; (void)n; exit(k == EMELA_DEFECT_NEGATIVE_SHIFT ? 7 : 8); }\nint main(void) { return answer(); }\n",
@@ -401,7 +402,7 @@ fn block_yield_and_break_to_enclosing_block_execute() {
             term: Term::Return(Some(result.into())),
         };
         let output =
-            crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+            crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
         execute(&output, DEFECT_HARNESS, 0);
     }
 }
@@ -485,7 +486,8 @@ fn loop_initial_values_yield_and_multiple_recur_variables_execute() {
         stmts: vec![statement],
         term: Term::Return(Some(result.into())),
     };
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
 }
 
@@ -497,7 +499,7 @@ fn private_entry_remains_reachable_beside_an_export() {
         term: Term::Return(None),
     }));
     let output =
-        crate::backend::compile_program(program(vec![simple(), entry]), &Options::default())
+        crate::backend::compile_saved_program(program(vec![simple(), entry]), &Options::default())
             .unwrap();
     assert_eq!(output.exports.len(), 1);
     assert!(output.c_source.contains("void emela_embedded_start(void)"));
@@ -562,7 +564,7 @@ fn rejects_explicit_export_and_external_symbol_collisions() {
         term: Term::Return(Some(dst.into())),
     };
     p.functions.alloc(answer);
-    let errors = crate::backend::compile_program(p, &Options::default()).unwrap_err();
+    let errors = crate::backend::compile_saved_program(p, &Options::default()).unwrap_err();
     assert!(
         errors[0]
             .message
@@ -595,7 +597,8 @@ fn float_constant_bits_and_non_finite_values_execute() {
             f
         })
         .collect();
-    let output = crate::backend::compile_program(program(functions), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(functions), &Options::default()).unwrap();
     execute(
         &output,
         "#include <math.h>\n#include \"emela_embedded.h\"\nint main(void) {\n if (float_value0() != 1.25 || float_value1() != 1e100) return 1;\n if (float_value2() != 0.0 || !signbit(float_value2())) return 2;\n if (!isinf(float_value3()) || signbit(float_value3())) return 3;\n if (!isinf(float_value4()) || !signbit(float_value4())) return 4;\n return isnan(float_value5()) ? 0 : 5;\n}\n",
@@ -654,7 +657,8 @@ fn strings_unicode_comparisons_and_float_rounding_execute() {
         stmts: vec![text, length, floor, add],
         term: Term::Return(Some(result.into())),
     };
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
     let mut f = simple();
     f.ret = TypeId::BOOL;
@@ -675,7 +679,8 @@ fn strings_unicode_comparisons_and_float_rounding_execute() {
         stmts: vec![compare],
         term: Term::Return(Some(result.into())),
     };
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     execute(
         &output,
         &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_C(1)"),
@@ -701,7 +706,7 @@ fn discarded_string_results_keep_capacity_checks() {
         },
     );
     f.seqs[f.body.unwrap()].stmts.push(append);
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         program(vec![f]),
         &Options::default().with_string_capacity(3),
     )
@@ -816,7 +821,7 @@ fn tuple_constructor_projection_and_enum_switch_execute() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(f);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
 }
 
@@ -947,7 +952,7 @@ fn failure_payload_recovery_runs_cleanup_once() {
             .message
             .contains("error operation type")
     );
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int ticks;\nvoid tick(void) { ++ticks; }\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { (void)k;(void)m;(void)n;exit(9); }\nint main(void) { int value=answer(); return value==42 && ticks==1 ? 0 : 1; }\n",
@@ -1060,7 +1065,8 @@ fn string_parameter_tail_recursion_tracks_loop_ownership() {
         stmts: vec![condition, branch],
         term: Term::Unreachable,
     };
-    let output = crate::backend::compile_program(program(vec![f]), &Options::default()).unwrap();
+    let output =
+        crate::backend::compile_saved_program(program(vec![f]), &Options::default()).unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { (void)k;(void)m;(void)n;exit(9); }\nint main(void) { EmelaString a={\"same\",UINT16_C(4),NULL}; EmelaString b={\"other\",UINT16_C(5),NULL}; if (!answer(a,a,100000)) return 1; return answer(a,b,100001) ? 2 : 0; }\n",
@@ -1157,7 +1163,8 @@ fn runtime_const_program(defect: bool) -> Program {
 #[test]
 fn monomorphic_runtime_const_initializes_once() {
     let output =
-        crate::backend::compile_program(runtime_const_program(false), &Options::default()).unwrap();
+        crate::backend::compile_saved_program(runtime_const_program(false), &Options::default())
+            .unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int reads;\nint32_t read_once(void) { ++reads;return INT32_C(21); }\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { (void)k;(void)m;(void)n;exit(9); }\nint main(void) { return answer()==42 && answer()==42 && reads==1 ? 0 : 1; }\n",
@@ -1176,13 +1183,14 @@ fn evaluated_const_does_not_emit_unused_initializer_helpers() {
     }));
     let lowered = lower_program(p.clone()).unwrap();
     assert!(!lowered.emitted_functions.contains(&helper_id));
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
 }
 #[test]
 fn runtime_const_defect_is_cached_with_context() {
     let output =
-        crate::backend::compile_program(runtime_const_program(true), &Options::default()).unwrap();
+        crate::backend::compile_saved_program(runtime_const_program(true), &Options::default())
+            .unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include <setjmp.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\nstatic int reads; static jmp_buf target;\nint32_t read_once(void) { ++reads;return INT32_C(21); }\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n) { const char expected[]=\"while evaluating const Once: division by zero\"; if (k!=EMELA_DEFECT_DIVISION_BY_ZERO || n!=sizeof expected-1 || memcmp(m,expected,n)!=0) exit(9); longjmp(target,1); }\nint main(void) { for (int i=0;i<2;i++) { if (setjmp(target)==0) { (void)answer();return 1; } } return reads==1 ? 0 : 2; }\n",
@@ -1236,7 +1244,7 @@ fn static_const_and_aggregate_runtime_const_execute() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(answer);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
     let mut answer = simple();
     answer.constant = true;
@@ -1255,7 +1263,7 @@ fn static_const_and_aggregate_runtime_const_execute() {
         term: Term::Return(Some(result.into())),
     };
     let output =
-        crate::backend::compile_program(program(vec![answer]), &Options::default()).unwrap();
+        crate::backend::compile_saved_program(program(vec![answer]), &Options::default()).unwrap();
     execute(
         &output,
         &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_MIN"),
@@ -1343,7 +1351,7 @@ fn structural_equality_and_show_use_materialized_tuple_layouts() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(answer);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(
         &output,
         &DEFECT_HARNESS.replace("INT32_C(42)", "INT32_C(10)"),
@@ -1419,7 +1427,7 @@ fn unit_enum_uses_the_scalar_tag_representation() {
         term: Term::Return(Some(result.into())),
     };
     p.functions.alloc(f);
-    let output = crate::backend::compile_program(p, &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p, &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
 }
 

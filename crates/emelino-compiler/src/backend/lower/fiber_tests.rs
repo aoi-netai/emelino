@@ -31,11 +31,12 @@ fn raw_interrupt_masks_are_unit_operations_and_are_rejected_from_isr_entries() {
     f.seqs[f.body.unwrap()].stmts = vec![hold, unhold];
     let p = program(vec![f]);
     let options = Options::default();
-    let output = crate::backend::compile_program(p.clone(), &options).unwrap();
+    let output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
     assert!(!output.c_source.contains("emela_frame_storage"));
     let errors =
-        crate::backend::compile_program(p.clone(), &options.with_isr_entry("answer")).unwrap_err();
+        crate::backend::compile_saved_program(p.clone(), &options.with_isr_entry("answer"))
+            .unwrap_err();
     assert!(errors.iter().any(|error| {
         error
             .message
@@ -178,7 +179,7 @@ fn scope_fork_and_join_reclaim_children_and_their_erased_values() {
     });
     scope_function(&mut p, &mut f, scope_body, scope);
     p.functions.alloc(f);
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(8192)
@@ -364,10 +365,10 @@ fn deferred_complete_poll_and_await_share_one_typed_value_until_scope_closes() {
         .with_heap_bytes(8192)
         .with_frame_bytes(1024)
         .with_deferred_capacity(1);
-    let output = crate::backend::compile_program(p.clone(), &options).unwrap();
+    let output = crate::backend::compile_saved_program(p.clone(), &options).unwrap();
     execute_answer(output);
     assert!(
-        crate::backend::compile_program(p, &options.with_deferred_capacity(0))
+        crate::backend::compile_saved_program(p, &options.with_deferred_capacity(0))
             .unwrap_err()
             .iter()
             .any(|error| error.kind == crate::ErrorKind::InvalidOptions)
@@ -648,7 +649,7 @@ fn attempts_preserve_success_and_typed_cause_failures_across_raise() {
                 term: Term::Unreachable,
             };
             p.functions.alloc(f);
-            let mut output = crate::backend::compile_program(
+            let mut output = crate::backend::compile_saved_program(
                 p,
                 &Options::default()
                     .with_heap_bytes(8192)
@@ -884,7 +885,7 @@ fn interruption_waits_for_nested_suspending_cleanup_before_await_reports_its_cau
     });
     scope_function(&mut p, &mut f, scope_body, scope);
     p.functions.alloc(f);
-    let mut output = crate::backend::compile_program(
+    let mut output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(16384)

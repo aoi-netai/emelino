@@ -46,7 +46,7 @@ fn clock_binding(params: &[TypeId], ret: TypeId, symbol: &str) -> Program {
 
 #[test]
 fn board_clock_now_without_a_handler_requires_no_task_runtime() {
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         clock_binding(&[], TypeId::INT64, "__emela_peripheral_clock_now"),
         &Options::default(),
     )
@@ -96,7 +96,7 @@ fn malformed_board_bindings_and_zero_transfer_capacity_are_rejected() {
             "invalid standard board binding signature",
         ),
     ] {
-        let errors = crate::backend::compile_program(
+        let errors = crate::backend::compile_saved_program(
             clock_binding(params, ret, symbol),
             &Options::default(),
         )
@@ -117,13 +117,13 @@ fn malformed_board_bindings_and_zero_transfer_capacity_are_rejected() {
     }
     assert_eq!(Options::default().peripheral_buffer_capacity(), 256);
     for capacity in [1, 256, u16::MAX] {
-        crate::backend::compile_program(
+        crate::backend::compile_saved_program(
             program(vec![]),
             &Options::default().with_peripheral_buffer_capacity(capacity),
         )
         .unwrap();
     }
-    let errors = crate::backend::compile_program(
+    let errors = crate::backend::compile_saved_program(
         program(vec![]),
         &Options::default().with_peripheral_buffer_capacity(0),
     )

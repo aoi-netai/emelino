@@ -74,7 +74,7 @@ fn literal_i32_and_i64_switches_resume_into_cases_and_default() {
         TypeId::INT64,
         [Const::Int64(i64::MIN), Const::Int64(i64::MAX)],
     );
-    let output = crate::backend::compile_program(
+    let output = crate::backend::compile_saved_program(
         p,
         &Options::default()
             .with_heap_bytes(0)

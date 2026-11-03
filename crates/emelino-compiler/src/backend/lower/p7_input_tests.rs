@@ -35,7 +35,7 @@ fn residual_heap_runtime_operations_are_rejected_in_native_and_suspending_input(
                 term: Term::Return(None),
             };
             let errors =
-                crate::backend::compile_program(program(vec![function]), &Options::default())
+                crate::backend::compile_saved_program(program(vec![function]), &Options::default())
                     .unwrap_err();
             assert!(
                 errors
@@ -71,8 +71,9 @@ fn explicit_defect_and_suspension_landing_edges_are_rejected_before_planning() {
             stmts: vec![statement],
             term: Term::Return(None),
         };
-        let errors = crate::backend::compile_program(program(vec![function]), &Options::default())
-            .unwrap_err();
+        let errors =
+            crate::backend::compile_saved_program(program(vec![function]), &Options::default())
+                .unwrap_err();
         assert!(
             errors
                 .iter()

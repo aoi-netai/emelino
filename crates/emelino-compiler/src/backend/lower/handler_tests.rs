@@ -108,7 +108,7 @@ fn static_evidence_resolves_without_heap_and_invalid_handler_operations_are_reje
         term: Term::Return(Some(result.into())),
     };
     let fid = p.functions.alloc(f);
-    let output = crate::backend::compile_program(p.clone(), &Options::default()).unwrap();
+    let output = crate::backend::compile_saved_program(p.clone(), &Options::default()).unwrap();
     execute(&output, DEFECT_HARNESS, 0);
     assert!(!output.c_source.contains("emela_evidence_node"));
     assert!(!output.c_source.contains("emela_heap_allocate("));
@@ -243,7 +243,8 @@ fn dynamic_evidence_keeps_handlers_alive_and_protection_retires_and_releases_the
     };
     p.functions.alloc(f);
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     audit_heap(&mut output);
     execute(
         &output,
@@ -341,7 +342,8 @@ fn cell_closure_any_cycles_are_collected_after_the_last_root_is_dropped() {
     };
     p.functions.alloc(f);
     let mut output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     audit_heap(&mut output);
     execute(
         &output,
@@ -419,7 +421,8 @@ fn retirement_through_an_erased_alias_keeps_operation_active_checks() {
     };
     p.functions.alloc(f);
     let output =
-        crate::backend::compile_program(p, &Options::default().with_heap_bytes(4096)).unwrap();
+        crate::backend::compile_saved_program(p, &Options::default().with_heap_bytes(4096))
+            .unwrap();
     execute(
         &output,
         "#include <stdlib.h>\n#include <string.h>\n#include \"emela_embedded.h\"\n#include \"emela_board.h\"\n_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){const char*expected=\"handler Read42 was used after release\";exit(k==EMELA_DEFECT_PANIC&&n==strlen(expected)&&memcmp(m,expected,n)==0?77:78);}\nint main(void){(void)answer();return 1;}\n",
@@ -591,7 +594,7 @@ fn labeled_evidence_keeps_distinct_keys_and_shares_the_base_handler_lifetime() {
             .all(|node| !matches!(node, Type::Handler(effect) if *effect != read))
     );
     let mut output =
-        crate::backend::compile_program(p.clone(), &Options::default().with_heap_bytes(4096))
+        crate::backend::compile_saved_program(p.clone(), &Options::default().with_heap_bytes(4096))
             .unwrap();
     audit_heap(&mut output);
     execute(
@@ -620,7 +623,7 @@ fn labeled_evidence_keeps_distinct_keys_and_shares_the_base_handler_lifetime() {
     );
     f.seqs[f.body.unwrap()].stmts.splice(5..5, [lookup, retire]);
     let output =
-        crate::backend::compile_program(retired, &Options::default().with_heap_bytes(4096))
+        crate::backend::compile_saved_program(retired, &Options::default().with_heap_bytes(4096))
             .unwrap();
     execute(
         &output,
