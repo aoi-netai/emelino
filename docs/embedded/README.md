@@ -69,6 +69,8 @@ Pico SDK・ESP-IDF・Arduino core向けのportは未実装。Nano 33 BLEはNordi
 
 ## ビルド
 
+WSL / Ubuntuで必要なツールとSDKを導入するには、[セットアップ手順](../setup.md)を参照する。
+
 共通で必要なものはRust/Cargo、Python 3、ARM GNU Toolchain。
 以下はSTM32CubeF4を使用するSTM32の例で、環境変数は手元のインストール先に合わせる。
 Nano 33 BLEのSDK指定とサンプルは[nRF52の手順](nrf52/README.md#ビルド)を参照する。
