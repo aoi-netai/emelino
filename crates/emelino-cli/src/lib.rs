@@ -2,6 +2,7 @@
 mod bundled;
 pub mod config;
 pub mod frontend;
+mod peripheral_defaults;
 pub mod upstream_adapter;
 
 pub fn errors(errors: Vec<emelino_compiler::Error>) -> String {

@@ -22,6 +22,8 @@ emelinoはEmelaの公開frontend APIが生成するFlowを受け取り、固定�
 `6021115103dd830e0efd9bb96a56a0ca97859329`に固定する。
 名前解決、型検査、標準単相化、汎用core/stdは本体の責任とし、本体へのpatch、
 独自frontend、兄弟checkoutへのpath依存を設けない。
+CLIは[組み込みAPIの省略引数](embedded/default-arguments.md)に限り、名前解決済みHIRへ
+省略分を追加する。effect操作の識別と補完後の型検査は本体APIを使い、宣言とC ABIは維持する。
 本体crateに依存する処理はCLIに閉じ込め、compilerはメモリー上のProgramとOptionsから生成物を返す。
 compilerにソース探索、ファイルI/O、board探索、外部process実行を持たせない。
 

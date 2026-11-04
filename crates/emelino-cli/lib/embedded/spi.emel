@@ -14,6 +14,8 @@ pub enum BitOrder { MostSignificantFirst, LeastSignificantFirst }
 ## A nonpositive master limit fails with InvalidArgument; no achievable frequency
 ## at or below the limit fails with Unsupported. The BSP never exceeds the limit.
 ## In Slave mode, SCK is supplied externally and max_frequency_hz is ignored.
+## Calls default to Master, TwoLine, Bits8, IdleLow, FirstEdge, 4000000 Hz
+## and MostSignificantFirst. Explicit fields retain their values.
 pub type SpiConfig(
   mode: SpiMode,
   direction: SpiDirection,
@@ -40,6 +42,8 @@ pub enum SpiErrorKind {
 pub error SpiError(kind: SpiErrorKind)
 
 ## A device description; create_device reserves and initializes its resources.
+## Calls require bus and cs; config defaults to SpiConfig(), active to Low,
+## and setup_us/hold_us to 0. Use named arguments to skip config.
 pub type SpiDeviceConfig(
   bus: SpiId,
   config: SpiConfig,
@@ -66,6 +70,8 @@ pub error SpiTransactionError(
 )
 
 pub effect Spi {
+  ## Calls may omit config (SpiConfig()); transfer/transaction calls may omit
+  ## timeout_ms (1000 ms). Other arguments remain required.
   fn configure(id: SpiId, config: SpiConfig) -> () fails SpiError
   fn transmit(id: SpiId, data: List[Int], timeout_ms: Int64) -> () fails SpiError
   fn receive(id: SpiId, size: Int, timeout_ms: Int64) -> List[Int] fails SpiError

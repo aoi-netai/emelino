@@ -6,6 +6,7 @@ import Embedded.Interrupt.{InterruptPriority}
 pub enum I2cId { I2c1, I2c2, I2c3 }
 pub enum I2cDutyCycle { Standard, Fast16To9 }
 pub enum MemoryAddressSize { Bits8, Bits16 }
+## Calls default to clock_speed_hz: 100000 and duty_cycle: Standard.
 pub type I2cConfig(clock_speed_hz: Int, duty_cycle: I2cDutyCycle)
 
 pub enum I2cErrorKind {
@@ -38,6 +39,9 @@ pub enum I2cEvent {
 }
 
 pub effect I2c {
+  ## Calls may omit config (I2cConfig()). Other call defaults: timeout_ms: 1000,
+  ## write_data: [], address_size: Bits8, trials: 1, priority: Normal.
+  ## All other arguments, including read_size, remain required.
   fn configure(id: I2cId, config: I2cConfig) -> () fails I2cError
   fn master_transmit(id: I2cId, address: Int, data: List[Int], timeout_ms: Int64) -> ()
     fails I2cError

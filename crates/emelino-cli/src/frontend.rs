@@ -3,6 +3,7 @@
 //! Parsing, resolution, typing, monomorphization and Flow construction belong to
 //! Emela. This module only arranges explicitly supplied inputs. It does not
 //! inspect Core function bodies or parse the human-readable Flow dump.
+//! The owned peripheral shorthand completes resolved calls before lowering.
 
 use std::path::Path;
 
@@ -204,13 +205,19 @@ pub fn generate_sources(
             def.name == "main" && def.kind == DefKind::Fn
         })
     });
-    let types = emela_types::check_program_with(
-        &hir,
-        &emela_types::CheckOptions {
-            main,
-            tests: Vec::new(),
-        },
-    );
+    // Expand only the bundled peripheral shorthand. Constructors already have
+    // resolved IDs; capability operations are identified by upstream inference.
+    // Recheck completed calls before lowering, preserving the full signatures.
+    let defaults = crate::peripheral_defaults::Defaults::new(&hir);
+    defaults.complete(&mut hir, None);
+    let check_options = emela_types::CheckOptions {
+        main,
+        tests: Vec::new(),
+    };
+    let mut types = emela_types::check_program_with(&hir, &check_options);
+    if defaults.complete(&mut hir, Some(&types)) {
+        types = emela_types::check_program_with(&hir, &check_options);
+    }
     check_messages(
         "type checking",
         types

@@ -7,6 +7,8 @@ import Embedded.Interrupt.{InterruptPriority}
 pub type GpioPin(id: Int)
 pub enum PinState { Low, High }
 pub enum Pull { NoPull, Up, Down }
+## Calls may omit pull (NoPull). Output initial defaults to Low for push pull,
+## High (released) for open drain. configure still requires an explicit mode.
 pub enum GpioConfig {
   Input(pull: Pull)
   OutputPushPull(pull: Pull, initial: PinState)
@@ -39,6 +41,7 @@ pub effect Gpio {
   ## Registration changes are main-context operations, synchronized with dispatch.
   ## Failed re-registration leaves the previous binding unchanged.
   ## priority controls the hardware IRQ, including callback execution.
+  ## Calls may omit priority (Normal); edge and on_event remain required.
   ## Pins sharing an IRQ must request the same priority, otherwise ResourceConflict is raised.
   fn enable_interrupt(
     pin: GpioPin,
