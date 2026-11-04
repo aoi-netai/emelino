@@ -1,6 +1,5 @@
 import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
 import Embedded.Gpio
-import Embedded.Interrupt.{Normal}
 import Embedded.Uart
 import Embedded.Spi
 import Embedded.I2c
@@ -18,17 +17,14 @@ pub fn main() -> Int {
       with BoardSpi {
         with BoardI2c {
           gpio = use Gpio.Gpio
-          gpio.configure(Gpio.GpioPin(16), Gpio.OutputPushPull(Gpio.NoPull, Gpio.High))
+          gpio.configure(Gpio.GpioPin(16), Gpio.OutputPushPull(initial: Gpio.High))
           gpio.configure(Gpio.GpioPin(43), Gpio.Input(Gpio.Up))
-          gpio.enable_interrupt(Gpio.GpioPin(43), Gpio.Falling, Normal, edge)
+          gpio.enable_interrupt(Gpio.GpioPin(43), Gpio.Falling, on_event: edge)
           uart = use Uart.Uart
-          uart.configure(Uart.Uart0, Uart.UartConfig(115200, Uart.Bits8, Uart.One,
-            Uart.NoParity, Uart.Both, Uart.NoFlowControl, Uart.Native))
+          uart.configure(Uart.Uart0, Uart.UartConfig(115200))
           (use Spi.Spi).create_device(Spi.SpiDeviceConfig(Spi.Spi1,
-            Spi.SpiConfig(Spi.Master, Spi.TwoLine, Spi.Bits8, Spi.IdleLow,
-              Spi.FirstEdge, 1000000, Spi.MostSignificantFirst),
-            Gpio.GpioPin(34), Gpio.Low, 0, 0))
-          (use I2c.I2c).configure(I2c.I2c1, I2c.I2cConfig(100000, I2c.Standard))
+            Spi.SpiConfig(max_frequency_hz: 1000000), cs: Gpio.GpioPin(34)))
+          (use I2c.I2c).configure(I2c.I2c1)
           uart.transmit(Uart.Uart0, [82, 69, 65, 68, 89, 10], 20)
           0
         }
