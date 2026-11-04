@@ -37,7 +37,7 @@ def test(args, report):
             f'bmp180: Sensors.BMP180 @ {bus} {settings["address"]:#x}\n')
         script = [f'logFile @{alias}/model.log', 'logLevel 1 file', 'logLevel 3 console']
         if args.controller_model:
-            script.append(f'include @{alias}/EmelinoSTM32F4I2C.cs')
+            script += args.platform.controller_includes(alias)
         script += ['mach create', f'machine LoadPlatformDescription @{alias}/machine.repl',
                    f'logLevel -1 sysbus.{bus}.bmp180',
                    f'sysbus.{bus}.bmp180 Temperature 24', f'sysbus.{bus}.bmp180 UncompensatedPressure 1100',

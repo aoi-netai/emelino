@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "board": "arduino-nano-33-ble",
+  "chip": "nrf52840",
+  "physical_board": "Arduino Nano 33 BLE",
+  "port": "nrf52",
+  "clock": {
+    "source": "hfint",
+    "frequency_hz": 64000000
+  },
+  "pins": {
+    "led": 13,
+    "led_red": 24,
+    "led_green": 16,
+    "led_blue": 6,
+    "spi_cs": 34
+  },
+  "gpio_pin_masks": [
+    4188086396,
+    65294
+  ],
+  "peripherals": {
+    "uart0": {
+      "tx_pin": 35,
+      "rx_pin": 42
+    },
+    "spi1": {
+      "sck_pin": 13,
+      "miso_pin": 40,
+      "mosi_pin": 33
+    },
+    "i2c1": {
+      "scl_pin": 2,
+      "sda_pin": 31
+    }
+  }
+}

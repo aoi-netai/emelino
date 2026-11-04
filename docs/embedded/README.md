@@ -1,8 +1,9 @@
 # ボード向けfirmware
 
-最初の実装は [STM32F4 / NUCLEO-F446RE](stm32f4/README.md) のGPIO・UART・SPI・I2C。
-Emelaソースから生成したCを、STM32CubeF4のHAL・CMSIS、BSP、startup、linker設定と
-組み合わせてELF/BINにする。ほかのボードのdriverは未実装。
+[STM32F4 / NUCLEO-F446RE](stm32f4/README.md) と
+[nRF52840 / Arduino Nano 33 BLE](nrf52/README.md) のGPIO・UART・SPI・I2Cに対応する。
+Emelaソースから生成したCを、SDKのデバイス定義・driver、BSP、startup、linker設定と
+組み合わせてELF/BINにする。
 
 ```text
 Embedded.Gpio / BoardGpio
@@ -22,15 +23,20 @@ EXTI IRQ → HAL_GPIO_EXTI_IRQHandler → HAL_GPIO_EXTI_Callback
 ```text
 firmware/
   boards/nucleo-f446re/board.json  # MCU・portの選択、配線、クロック方針
+  boards/arduino-nano-33-ble/board.json
   chips/stm32f446re.json           # CPU、メモリ、package pin、IRQ vector
-  ports/stm32f4/                  # HAL/CMSIS接続、起動・時刻・SDK別ビルド
+  chips/nrf52840.json
+  ports/stm32f4/                  # HAL/CMSIS接続、時刻・SDK別ビルド
+  ports/nrf52/                    # Nordic MDK/CMSIS接続
   common/                        # SDKに依存しないSPIの状態・複合操作
-  build/                         # manifest検証、profile、実行・成果物管理
+  common/cortex_m4f/              # 共通reset、linker、runtime入口
+  build/                         # manifest検証、profile、ARM GCC・成果物管理
 tests/
   embedded/scenarios/            # 通信手順・期待値・Emelaアプリ
   embedded/targets/              # 試験配線、適用シナリオ、使用モデル
   embedded/support/              # 共通runner、build、Renode実行、観測
   embedded/ports/stm32f4/         # レジスタ検査・HALエラー注入・固有回帰試験
+  embedded/ports/nrf52/           # Nordicのレジスタ観測と試験接続
   renode/models/                 # 共通peerと試験用コントローラーモデル
 tools/build_firmware.py          # ボード名を指定する共通ビルド入口
 tools/test_embedded.py           # ボードとシナリオを指定する共通試験入口
@@ -48,19 +54,21 @@ boardは配線を選び、chipはCPU/FPU・容量・アドレス・CMSIS define�
 portは対応するコントローラーとSDK操作を実装する。未実装のコントローラーは定義に書くだけでは
 使用可能にならない。現在のSTM32F4 portはUSART2・SPI1・I2C1とreset HSI 16 MHzに対応する。
 stack/guardの予約量はビルド設定で、既定値は16 KiB / 256 bytes。
-STM32F4の基板固有初期化は `init.c` に `void emela_board_init(void)` を定義する。
+基板固有初期化は `init.c` に `void emela_board_init(void)` を定義する。
 portの時刻初期化後、生成アプリの起動前に呼ばれる。定義がなければ弱い空実装を使う。
 
-共通ビルドはportを選んで実行し、SDK固有のコンパイラ・リンク・起動検証はportへ委ねる。
-Pico SDK・ESP-IDF・Arduino向けのportは未実装で、それぞれのSDKのビルド方式へ接続する。
+共通ビルドはportを選んで実行し、SDKの選択はportへ委ねる。
+STM32F4とnRF52はCortex-M4F起動処理とARM GCCのcompile/link・成果物検証も共有する。
+Pico SDK・ESP-IDF・Arduino core向けのportは未実装。Nano 33 BLEはNordicのbare-metal接続を使う。
 共通C層のSPIはdevice管理、操作列、CSのsetup/hold・解除、複合エラーを扱い、
 実際の転送、時刻取得、排他、GPIO操作はportのhookを使う。GPIO callbackの登録表と寿命管理は
 生成C側が所有し、port側には複製しない。
 
 ## ビルド
 
-必要なものはRust/Cargo、Python 3、ARM GNU Toolchain、STM32CubeF4。
-実行例の環境変数は手元のインストール先に合わせる。
+共通で必要なものはRust/Cargo、Python 3、ARM GNU Toolchain。
+以下はSTM32CubeF4を使用するSTM32の例で、環境変数は手元のインストール先に合わせる。
+Nano 33 BLEのSDK指定とサンプルは[nRF52の手順](nrf52/README.md#ビルド)を参照する。
 
 ```sh
 export ARM_GCC=/path/to/bin/arm-none-eabi-gcc

@@ -16,17 +16,15 @@ firmware/
 ├── chips/stm32f446re.json       # MCU の CPU・容量・package pin・IRQ vector
 ├── build/                     # 共通の manifest・profile・ビルド処理
 ├── common/                    # SDK 非依存の SPI 状態・複合操作
+│   └── cortex_m4f/            # 共通の startup.S・firmware.ld.in・platform.c
 └── ports/stm32f4/
     ├── gpio.c                 # GPIO と EXTI
     ├── uart.c / spi.c / i2c.c  # SDK による転送、内部 IRQ 処理、復旧
     ├── pins.c / bsp.h         # driver 間で共有する pin 所有権
     ├── time.c                 # SysTick と転送全体の deadline
-    ├── platform.c             # Emela の起動、待機、critical section
     ├── registers.h            # CMSIS の CPU 操作と critical section
     ├── stm32f4xx_hal_conf.h    # 使用する HAL module の設定
-    ├── startup.S              # vector table、FPU、data/bss 初期化
-    ├── firmware.ld.in         # Flash / SRAM / stack 配置
-    └── build.py               # STM32 固有のコンパイル・リンク・起動検証
+    └── build.py               # SDK の選択・STM32 設定、共通 GCC ビルドへの接続
 ```
 
 別 SDK との接続実装は `firmware/ports/` 以下へ追加する。

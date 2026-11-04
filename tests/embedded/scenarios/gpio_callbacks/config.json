@@ -1,0 +1,6 @@
+{
+  "entry": "main",
+  "exports": [{"function": "main", "symbol": "callbacks_main"}],
+  "heap_bytes": 16384,
+  "isr_safe_externals": ["callbacks_record", "callbacks_check"]
+}

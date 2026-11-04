@@ -1,0 +1,7 @@
+{
+  "entry": "main",
+  "exports": [{"function": "main", "symbol": "contract_main"}],
+  "heap_bytes": 32768,
+  "peripheral_buffer_capacity": 32,
+  "isr_safe_externals": ["contract_in_isr"]
+}

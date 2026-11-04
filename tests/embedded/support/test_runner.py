@@ -61,12 +61,16 @@ class RunnerFailureTest(unittest.TestCase):
             output = Path(directory)
             (output / "test").mkdir()
             (output / "test/target.emel").write_text(target_source({
-                "i2c": 1, "spi": 1, "cs_pin": 16, "address": 118, "missing_address": 117}))
+                "i2c": 1, "spi": 1, "uart": 0, "cs_pin": 16, "address": 118,
+                "missing_address": 117, "pins": {"input0": 43, "output": 16}}))
             (output / "main.emel").write_text('''import Test.Target
 pub fn main() -> Int {
   bus = Target.i2c()
   serial = Target.spi()
   pin = Target.chip_select()
+  uart = Target.uart()
+  input = Target.input0()
+  output = Target.output()
   Target.address() + Target.missing_address()
 }
 ''')
@@ -77,6 +81,12 @@ pub fn main() -> Int {
                 "--config", str(output / "config.json"), "--out-dir", str(output / "generated")],
                 capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_target_module_rejects_invalid_ids_and_pin_function_names(self):
+        for setting in ({"i2c": 0}, {"spi": 7}, {"uart": 8}, {"pins": {"input()": 1}},
+                        {"pins": {"uart": 1}}, {"pins": {"input": -1}}):
+            with self.subTest(setting=setting), self.assertRaises(ValueError):
+                target_source(setting)
 
 
 if __name__ == "__main__":

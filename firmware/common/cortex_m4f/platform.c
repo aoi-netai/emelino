@@ -4,7 +4,6 @@
 #include "emela_board.h"
 #include "emela_embedded.h"
 #include "emela_embedded_exports.h"
-#include "registers.h"
 #include "board_config.h"
 #include "bsp.h"
 
@@ -32,15 +31,15 @@ _Noreturn void emela_board_defect(EmelaDefectKind kind, const char *message, uin
 }
 
 uint32_t emela_board_event_lock(void) {
-    return stm32f4_interrupt_lock();
+    return emelino_platform_lock();
 }
 
 void emela_board_event_unlock(uint32_t previous) {
-    stm32f4_interrupt_unlock(previous);
+    emelino_platform_unlock(previous);
 }
 
 void emela_board_idle(void) {
-    uint32_t previous = stm32f4_interrupt_lock();
+    uint32_t previous = emelino_platform_lock();
 #ifdef EMELA_HAS_TASK_RUNTIME
     if (!emela_scheduler_ready()) {
 #endif
@@ -49,7 +48,7 @@ void emela_board_idle(void) {
 #ifdef EMELA_HAS_TASK_RUNTIME
     }
 #endif
-    stm32f4_interrupt_unlock(previous);
+    emelino_platform_unlock(previous);
 }
 
 /* Debug output needs a future Console driver; GPIO-only firmware is silent. */
@@ -71,7 +70,7 @@ int main(void) {
     emela_board_boot_bss = UINT32_C(0x4253534f);
     emela_board_boot_initialized = 1;
 #ifdef EMELA_PERIPHERAL_TIME
-    stm32f4_time_init();
+    emelino_platform_time_init();
 #endif
     emela_board_init();
     emela_embedded_start();

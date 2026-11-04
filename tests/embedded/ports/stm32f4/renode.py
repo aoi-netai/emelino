@@ -37,6 +37,9 @@ class Platform:
                 f'nvic:\n    systickFrequency: {board["clock"]["frequency_hz"]}\n'
                 f'flash:\n    size: {chip["flash_bytes"]:#x}\nsram:\n    size: {chip["ram_bytes"]:#x}\n')
 
+    def controller_includes(self, alias):
+        return [f'include @{alias}/EmelinoSTM32F4I2C.cs']
+
     def load_binary(self, alias):
         return f'sysbus LoadBinary @{alias}/firmware/firmware.bin {self.target["chip"]["flash_origin"]:#x}'
 

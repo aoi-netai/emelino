@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "board": "arduino-nano-33-ble",
+  "renode_port": "nrf52",
+  "scenarios": {
+    "gpio_callbacks": {
+      "bindings": true,
+      "port": "nrf52",
+      "pins": {
+        "output": 16,
+        "input0": 43,
+        "input1": 44,
+        "input2": 47,
+        "input3": 45,
+        "input4": 46,
+        "input5": 23,
+        "input6": 21,
+        "input7": 27,
+        "input8": 4
+      }
+    },
+    "peripheral_contract": {
+      "bindings": true,
+      "port": "nrf52",
+      "uart": 0,
+      "i2c": 1,
+      "spi": 1,
+      "cs_pin": 34,
+      "address": 119,
+      "controller_model": "tests/renode/models/EmelinoNRF52840I2C.cs",
+      "pins": {
+        "uart_tx": 35,
+        "uart_rx": 42,
+        "spi_sck": 13,
+        "i2c_sda": 31,
+        "input0": 43
+      }
+    },
+    "bmp180": {
+      "bindings": true,
+      "i2c": 1,
+      "address": 119,
+      "missing_address": 118,
+      "controller_model": "tests/renode/models/EmelinoNRF52840I2C.cs"
+    },
+    "mt25q": {"bindings": true, "spi": 1, "cs_pin": 34}
+  }
+}

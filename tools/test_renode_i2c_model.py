@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check STM32F4 I2C model register behavior without firmware or HAL."""
+"""Check I2C model register behavior without firmware or HAL."""
 import argparse
 import hashlib
 import json
@@ -14,7 +14,7 @@ import tempfile
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests/embedded"))
-from support.common import run, value
+from support.common import load_module, run, value
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "tests/renode/models/EmelinoSTM32F4I2C.cs"
@@ -228,6 +228,14 @@ def scenario(script, checks):
 
 
 def test(args, report):
+    model, steps = MODEL, scenario
+    platform = ('i2c: I2C.EmelinoSTM32F4I2C @ sysbus 0x40005400\n'
+                '    EventInterrupt -> inspect@0\n    ErrorInterrupt -> inspect@1\n'
+                'peer: I2C.EmelinoCountingPeer @ i2c 0x50\n'
+                'inspect: Miscellaneous.EmelinoI2cInspector @ sysbus 0x50000000\n    peer: peer\n')
+    if args.port != "stm32f4":
+        case = load_module(ROOT / "tests/renode/i2c" / (args.port + ".py"), "i2c_register_case")
+        model, steps, platform = case.MODEL, case.scenario, case.PLATFORM
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
     for filename in ("report.json", "model.log", "renode.log"):
@@ -235,7 +243,7 @@ def test(args, report):
     found = shutil.which(args.renode or os.environ.get("RENODE") or "renode")
     if not found:
         raise ValueError("Renode not found; pass --renode or set RENODE")
-    report.update({"model_sha256": hashlib.sha256(MODEL.read_bytes()).hexdigest(),
+    report.update({"port": args.port, "model_sha256": hashlib.sha256(model.read_bytes()).hexdigest(),
                    "peer_sha256": hashlib.sha256(PEER.read_bytes()).hexdigest(),
                    "firmware": False, "hal": False,
                    "scope": "direct MMIO with strict counting peer; no electrical timing validation"})
@@ -243,17 +251,13 @@ def test(args, report):
     with tempfile.TemporaryDirectory(prefix="emelino-i2c-model-", dir="/tmp") as temporary:
         alias = Path(temporary) / "run"
         alias.symlink_to(output, target_is_directory=True)
-        shutil.copyfile(MODEL, output / MODEL.name)
+        shutil.copyfile(model, output / model.name)
         shutil.copyfile(PEER, output / PEER.name)
-        (output / "machine.repl").write_text(
-            'i2c: I2C.EmelinoSTM32F4I2C @ sysbus 0x40005400\n'
-            '    EventInterrupt -> inspect@0\n    ErrorInterrupt -> inspect@1\n'
-            'peer: I2C.EmelinoCountingPeer @ i2c 0x50\n'
-            'inspect: Miscellaneous.EmelinoI2cInspector @ sysbus 0x50000000\n    peer: peer\n')
+        (output / "machine.repl").write_text(platform)
         script = [f'logFile @{alias}/model.log', 'logLevel 1 file', 'logLevel 3 console',
-                  f'include @{alias}/{MODEL.name}', f'include @{alias}/{PEER.name}',
+                  f'include @{alias}/{model.name}', f'include @{alias}/{PEER.name}',
                   'mach create', f'machine LoadPlatformDescription @{alias}/machine.repl']
-        scenario(script, checks)
+        steps(script, checks)
         script.append('quit')
         (output / "run.resc").write_text("\n".join(script) + "\n")
         status, log = run([found, '--disable-xwt', '--console', '--plain', '-e',
@@ -280,9 +284,13 @@ def test(args, report):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--renode')
-    parser.add_argument('--output-dir', type=Path, default=ROOT / 'out/renode-i2c-model')
+    parser.add_argument('--port', choices=['stm32f4', 'nrf52'], default='stm32f4')
+    parser.add_argument('--output-dir', type=Path)
     parser.add_argument('--timeout', type=float, default=60)
     args = parser.parse_args()
+    if args.output_dir is None:
+        args.output_dir = ROOT / ('out/renode-i2c-model' if args.port == 'stm32f4'
+                                  else 'out/renode-i2c-model-' + args.port)
     report = {"schema_version": 1, "status": "running"}
     try:
         test(args, report)
