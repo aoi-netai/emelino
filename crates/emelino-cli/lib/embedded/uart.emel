@@ -11,6 +11,8 @@ pub enum UartDirection { Receive, Transmit, Both }
 pub enum FlowControl { NoFlowControl, Rts, Cts, RtsCts }
 ## Native uses the board's sampling scheme without requesting a fixed ratio.
 pub enum Oversampling { By8, By16, Native }
+## Calls require baud_rate; omitted fields use Bits8, One, NoParity, Both,
+## NoFlowControl and Native. The full constructor/function-value signature is unchanged.
 pub type UartConfig(
   baud_rate: Int,
   data_bits: UartDataBits,
@@ -47,6 +49,7 @@ pub enum UartEvent {
 
 pub effect Uart {
   fn configure(id: UartId, config: UartConfig) -> () fails UartError
+  ## Transfer calls may omit timeout_ms (1000 ms).
   ## Waits for the final word to leave the transmitter; timeout covers the whole call.
   ## Values must fit the configured data width, excluding parity.
   fn transmit(id: UartId, data: List[Int], timeout_ms: Int64) -> () fails UartError
@@ -57,6 +60,7 @@ pub effect Uart {
   ## Discards at most max_size > 0 already received words without waiting for new input.
   fn discard_input(id: UartId, max_size: Int) -> Int fails UartError
   fn set_receive_mode(id: UartId, mode: UartReceiveMode) -> () fails UartError
+  ## Calls may omit priority (Normal) and notify_transmit (False).
   fn enable_interrupt(id: UartId, priority: InterruptPriority, notify_transmit: Bool) -> ()
     fails UartError
   fn disable_interrupt(id: UartId) -> () fails UartError

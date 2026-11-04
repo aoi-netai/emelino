@@ -5,6 +5,9 @@
 Emelaソースから生成したCを、SDKのデバイス定義・driver、BSP、startup、linker設定と
 組み合わせてELF/BINにする。
 
+各ペリフェラルの一般的な設定は[省略引数](default-arguments.md)で短く記述できる。
+明示した設定とBSPのC ABIは変更しない。
+
 ```text
 Embedded.Gpio / BoardGpio
   → 生成C bridge・emela_gpio.h
