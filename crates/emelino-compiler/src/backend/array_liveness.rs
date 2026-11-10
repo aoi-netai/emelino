@@ -212,10 +212,16 @@ pub(super) fn can_update(f: &Function, dst: VarId, source: VarId) -> bool {
         return false;
     }
     let live = live_after(f);
-    f.stmts
-        .iter()
-        .find(|(_, s)| s.dst() == Some(dst))
-        .is_some_and(|(id, _)| live.get(&id).is_some_and(|out| !out.contains(&source)))
+    let mut definitions = f.stmts.iter().filter(|(_, s)| s.dst() == Some(dst));
+    let Some((id, _)) = definitions.next() else {
+        return false;
+    };
+    // Saved Flow may assign one destination more than once. Without a specific
+    // statement identity, another assignment's liveness is not a proof.
+    if definitions.next().is_some() {
+        return false;
+    }
+    live.get(&id).is_some_and(|out| !out.contains(&source))
 }
 
 /// A live caller value must contribute an extra reference while a borrowed callee runs.

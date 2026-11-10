@@ -322,3 +322,81 @@ int main(void){void*warm=cached();emela_embedded_release(warm);size_t baseline=t
 "#,
     );
 }
+
+#[test]
+fn saved_array_assignments_do_not_inherit_an_earlier_bindings_last_use() {
+    use emelino_compiler::ir::{Builtin, Stmt, Value};
+    let source = r#"
+import Std.Array
+pub fn answer() -> Bool {
+  a = Array.from_list([1])
+  one = Array.set(a, 0, 2)
+  before = Array.size(one)
+  b = Array.from_list([3])
+  two = Array.set(b, 0, 4)
+  before == 1 && Array.get(two, 0) == Some(4) && Array.get(b, 0) == Some(3)
+}
+"#;
+    let flow = emelino_cli::frontend::generate(source, std::path::Path::new("main.emel")).unwrap();
+    let mut program =
+        emelino_cli::upstream_adapter::adapt(&flow.module, &[("answer".into(), "answer".into())])
+            .unwrap();
+    let f = program
+        .functions
+        .iter_mut()
+        .find(|(_, f)| f.name == "answer")
+        .unwrap()
+        .1;
+    let sets: Vec<_> = f
+        .stmts
+        .iter()
+        .filter_map(|(id, s)| match s {
+            Stmt::Let {
+                dst: Some(dst),
+                value:
+                    Value::Builtin {
+                        op: Builtin::ArraySet,
+                        ..
+                    },
+                ..
+            } => Some((id, *dst)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(sets.len(), 2);
+    let old = sets[1].1;
+    let reused = sets[0].1;
+    if let Stmt::Let { dst, .. } = &mut f.stmts[sets[1].0] {
+        *dst = Some(reused);
+    }
+    for (_, s) in f.stmts.iter_mut() {
+        if let Stmt::Let { value, .. } = s {
+            value.for_each_var_mut(|v| {
+                if *v == old {
+                    *v = reused;
+                }
+            });
+        }
+    }
+    let saved = emelino_compiler::BackendInput::new(program)
+        .unwrap()
+        .to_json()
+        .unwrap();
+    let output = heap::with_heap_audit(
+        emelino_compiler::BackendInput::from_json(&saved)
+            .unwrap()
+            .compile(&Options::default().with_heap_bytes(4096))
+            .unwrap(),
+    );
+    support::compile_and_run(
+        &output,
+        r#"
+#include <stdlib.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+int test_heap_empty(void);
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}
+int main(void){if(!answer())return 1;return !test_heap_empty();}
+"#,
+    );
+}
