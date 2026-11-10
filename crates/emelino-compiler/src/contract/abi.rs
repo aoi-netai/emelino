@@ -11,6 +11,7 @@ pub(crate) struct TypeShapes<'a> {
     pub(crate) expanding_enums: HashSet<EnumId>,
     pub(crate) recursive_box_types: Vec<TypeId>,
     pub(crate) recursive_box_ids: HashMap<TypeId, usize>,
+    pub(crate) array_types: Vec<TypeId>,
     pub(crate) list_types: Vec<TypeId>,
     pub(crate) list_ids: HashMap<TypeId, usize>,
     pub(crate) function_types: Vec<TypeId>,

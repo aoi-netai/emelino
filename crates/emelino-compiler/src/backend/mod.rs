@@ -29,3 +29,5 @@ pub(crate) fn compile_saved_program(
     );
     Ok(replay)
 }
+
+mod array_liveness;

@@ -160,7 +160,7 @@ fn has_parameter(types: &[Type], ty: TypeId, seen: &mut HashSet<TypeId>) -> Resu
     let children = match node {
         Type::Param(_) => return Ok(true),
         Type::Enum(_, args) | Type::Tuple(args) => args.clone(),
-        Type::List(element) | Type::Cell(element) => vec![*element],
+        Type::List(element) | Type::Array(element) | Type::Cell(element) => vec![*element],
         Type::Fn(ft) => ft
             .params
             .iter()

@@ -117,7 +117,9 @@ impl Preparation for Bridges {
         ) {
             (Type::Any, _) => layouts.add_any_box_type(destination),
             (_, Type::Any) => layouts.add_any_box_type(source),
-            (Type::List(a), Type::List(b)) => dependencies.push((a, b)),
+            (Type::List(a), Type::List(b)) | (Type::Array(a), Type::Array(b)) => {
+                dependencies.push((a, b))
+            }
             (Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => {
                 dependencies.extend(a.into_iter().zip(b))
             }

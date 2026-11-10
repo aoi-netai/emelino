@@ -35,6 +35,7 @@ pub(crate) fn planned(module: &LoweredModule) -> PlannedModule<'_> {
         expanding_enums: Default::default(),
         recursive_box_types: Default::default(),
         recursive_box_ids: Default::default(),
+        array_types: Vec::new(),
         list_types: Default::default(),
         list_ids: Default::default(),
         function_types: Default::default(),

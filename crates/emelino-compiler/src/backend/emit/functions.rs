@@ -14,6 +14,23 @@ pub(in crate::backend::emit) fn emit_local_declarations(
     string_buffers: &StringBufferPlan,
     writer: &mut Writer,
 ) {
+    if !function.suspends {
+        for &p in &function.params {
+            if matches!(layouts.shapes.types[function.vars[p].ty], Type::Array(_))
+                && function
+                    .vars
+                    .iter()
+                    .any(|(v, _)| crate::backend::array_liveness::loop_loan(function, v) == Some(p))
+            {
+                writer.line(&format!(
+                    "void * const emela_array_loan_{} = {}; (void)emela_array_loan_{};",
+                    u32::from(p.into_raw()),
+                    variable_name(p),
+                    u32::from(p.into_raw())
+                ));
+            }
+        }
+    }
     for (id, variable) in function.vars.iter() {
         if layouts.type_repr(variable.ty) == Repr::Void {
             continue;

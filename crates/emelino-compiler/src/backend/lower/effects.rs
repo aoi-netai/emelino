@@ -151,7 +151,7 @@ fn remap_children(node: &mut Type, map: &[TypeId]) -> Result<()> {
                 remap(ty)?;
             }
         }
-        Type::List(element) | Type::Cell(element) => remap(element)?,
+        Type::List(element) | Type::Array(element) | Type::Cell(element) => remap(element)?,
         Type::Fn(ft) => {
             for ty in &mut ft.params {
                 remap(ty)?;

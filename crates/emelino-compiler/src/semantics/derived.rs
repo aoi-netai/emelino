@@ -77,7 +77,8 @@ impl crate::semantics::derived::TypeGraph for Definitions {
                 id.into_raw().into_u32() as usize,
                 args.iter().map(|t| t.index()).collect(),
             ),
-            Type::Cell(_)
+            Type::Array(_)
+            | Type::Cell(_)
             | Type::Handler(_)
             | Type::Set(_)
             | Type::Evidence

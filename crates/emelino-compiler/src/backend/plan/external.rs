@@ -264,7 +264,7 @@ fn contains_any(layouts: &TypeLayouts<'_>, ty: TypeId, seen: &mut HashSet<TypeId
     }
     match &layouts.shapes.types[ty] {
         Type::Any => true,
-        Type::List(t) | Type::Cell(t) => contains_any(layouts, *t, seen),
+        Type::List(t) | Type::Array(t) | Type::Cell(t) => contains_any(layouts, *t, seen),
         _ => layouts.shapes.aggregate_ids.get(&ty).is_some_and(|&index| {
             match &layouts.shapes.aggregates[index].kind {
                 AggregateKind::Tuple(fields) => {

@@ -650,6 +650,43 @@ fn builtin_type(
 ) -> Result<TypeId> {
     use Builtin::*;
     let (inputs, result) = match op {
+        ArrayFromList | ArrayToList | ArraySize | ArrayGet | ArraySet | ArraySlice
+        | ArrayConcat => {
+            let first = args
+                .first()
+                .ok_or_else(|| invalid(&f.name, "Array operation needs an argument"))?;
+            let base = operand(f, first, available)?;
+            let element = match (op, program.core.ty(base)) {
+                (ArrayFromList, Type::List(t)) => *t,
+                (ArrayConcat, Type::List(t)) => match program.core.ty(*t) {
+                    Type::Array(e) => *e,
+                    _ => return Err(invalid(&f.name, "Array.concat expects a List of Array")),
+                },
+                (_, Type::Array(t)) if op != ArrayFromList && op != ArrayConcat => *t,
+                _ => return Err(invalid(&f.name, "Array operation has the wrong input type")),
+            };
+            let array = || {
+                program
+                    .core
+                    .types
+                    .ids
+                    .get(&Type::Array(element))
+                    .copied()
+                    .ok_or_else(|| invalid(&f.name, "Array type is missing from the type catalog"))
+            };
+            match op {
+                ArrayFromList | ArrayConcat => (vec![base], array()?),
+                ArrayToList => (vec![base], list_type(program, f, element)?),
+                ArraySize => (vec![base], TypeId::INT),
+                ArraySet => (vec![base, TypeId::INT, element], base),
+                ArraySlice => (vec![base, TypeId::INT, TypeId::INT], base),
+                ArrayGet => {
+                    arguments(f, args, &[base, TypeId::INT], available)?;
+                    return types::option_type(program, &f.name, element, expected);
+                }
+                _ => unreachable!(),
+            }
+        }
         CellNew => {
             if args.len() != 1 {
                 return Err(invalid(&f.name, "CellNew needs one initial value"));

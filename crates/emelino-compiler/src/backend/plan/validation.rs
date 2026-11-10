@@ -60,6 +60,7 @@ pub(in crate::backend::plan) fn function_value_abi_type_supported(
         | Type::Bytes
         | Type::Any
         | Type::List(_)
+        | Type::Array(_)
         | Type::Cell(_)
         | Type::Handler(_)
         | Type::Evidence

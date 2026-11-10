@@ -40,7 +40,11 @@ impl LayoutEmission for CLayoutPlan<'_> {
             || self.is_runtime_handle(ty)
             || matches!(
                 self.shapes.types[ty],
-                Type::Cell(_) | Type::Handler(_) | Type::Evidence | Type::FiberScope
+                Type::Array(_)
+                    | Type::Cell(_)
+                    | Type::Handler(_)
+                    | Type::Evidence
+                    | Type::FiberScope
             )
         {
             writer.line(&format!("emela_heap_retain({expression});"));
@@ -69,7 +73,11 @@ impl LayoutEmission for CLayoutPlan<'_> {
             || self.is_runtime_handle(ty)
             || matches!(
                 self.shapes.types[ty],
-                Type::Cell(_) | Type::Handler(_) | Type::Evidence | Type::FiberScope
+                Type::Array(_)
+                    | Type::Cell(_)
+                    | Type::Handler(_)
+                    | Type::Evidence
+                    | Type::FiberScope
             )
         {
             writer.line(&format!(
@@ -99,7 +107,11 @@ impl LayoutEmission for CLayoutPlan<'_> {
             || self.is_runtime_handle(ty)
             || matches!(
                 self.shapes.types[ty],
-                Type::Cell(_) | Type::Handler(_) | Type::Evidence | Type::FiberScope
+                Type::Array(_)
+                    | Type::Cell(_)
+                    | Type::Handler(_)
+                    | Type::Evidence
+                    | Type::FiberScope
             )
         {
             writer.line(&format!("emela_heap_release({expression});"));
@@ -330,6 +342,27 @@ impl LayoutEmission for CLayoutPlan<'_> {
                 "tail",
                 writer,
             );
+            writer.line("break;");
+            writer.end_block();
+        }
+        for &ty in &self.shapes.array_types {
+            let Type::Array(element) = self.shapes.types[ty] else {
+                unreachable!()
+            };
+            writer.line(&format!("case UINT32_C({}):", self.array_kind(ty)));
+            writer.begin_block("");
+            if self.is_managed_value(element) {
+                writer.line(&format!("{} *array = value;", self.array_name(ty)));
+                writer.begin_block("for (uint32_t i = 0; i < array->length; ++i)");
+                self.emit_enqueue_value_expression(
+                    element,
+                    "array->values[i]",
+                    "pending",
+                    "tail",
+                    writer,
+                );
+                writer.end_block();
+            }
             writer.line("break;");
             writer.end_block();
         }
@@ -637,6 +670,17 @@ impl LayoutEmission for CLayoutPlan<'_> {
     }
 
     fn emit_runtime_value_declarations(&self, writer: &mut Writer) {
+        for &ty in &self.shapes.array_types {
+            let Type::Array(element) = self.shapes.types[ty] else {
+                unreachable!()
+            };
+            let name = self.array_name(ty);
+            writer.line(&format!(
+                "typedef struct {name} {{ uint32_t length; {} values[]; }} {name};",
+                self.cell_content_c_type(element)
+            ));
+        }
+
         if self.runtime.evidence_nodes_required {
             writer.line("typedef struct emela_evidence_node {");
             writer.line("  uint32_t effect;");

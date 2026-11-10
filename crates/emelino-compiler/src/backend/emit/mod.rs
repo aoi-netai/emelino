@@ -131,6 +131,7 @@ pub(super) fn render(plan: &PlannedModule<'_>) -> Result<Output, Vec<Error>> {
         emit_any_ownership_declarations(layouts, &mut source);
         layouts.emit_heap_ownership_helpers(&mut source);
         owned::emit_helpers(layouts, &mut source);
+        features::builtins::arrays::helpers(layouts, &mut source);
         error_runtime::emit_ownership(layouts, true, &mut source);
         emit_any_ownership(layouts, true, &mut source);
         if layouts.runtime.deferred_pool {
