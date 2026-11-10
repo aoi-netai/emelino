@@ -290,3 +290,35 @@ int main(void){for(int i=0;i<100;i++){void*a=make();void*b=change(a);if(a==b||re
 "#,
     );
 }
+
+#[test]
+fn constant_arrays_keep_their_cache_and_copy_before_updates() {
+    let source = r#"
+import Std.Array.{Array}
+const VALUES = Array.from_list(["cached#{7}", "tail"])
+pub fn cached() -> Array[String] { VALUES }
+pub fn changed() -> Array[String] { Array.set(VALUES, 0, "new#{8}") }
+pub fn first(a: Array[String]) -> Bool { Array.get(a, 0) == Some("cached7") }
+"#;
+    let output = heap::with_heap_audit(support::compile(
+        source,
+        &[
+            ("cached", "cached"),
+            ("changed", "changed"),
+            ("first", "first"),
+        ],
+        &Options::default().with_heap_bytes(8192),
+    ));
+    support::compile_and_run(
+        &output,
+        r#"
+#include <stdlib.h>
+#include <stddef.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+size_t test_heap_used(void);
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}
+int main(void){void*warm=cached();emela_embedded_release(warm);size_t baseline=test_heap_used();for(int i=0;i<100;i++){void*a=cached();void*b=cached();void*c=changed();if(a!=b||a==c||!first(a)||first(c))return 1;emela_embedded_release(a);emela_embedded_release(b);emela_embedded_release(c);if(test_heap_used()!=baseline)return 2;}return 0;}
+"#,
+    );
+}
