@@ -1,0 +1,8 @@
+{
+  "entry": "main",
+  "exports": [{"function": "main", "symbol": "lsm9ds1_main"}],
+  "sources": ["lsm9ds1.emel", "registers.emel", "spi_registers.emel"],
+  "heap_bytes": 16384,
+  "string_capacity": 128,
+  "peripheral_buffer_capacity": 64
+}

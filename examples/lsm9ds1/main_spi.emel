@@ -1,0 +1,74 @@
+import Embedded.Board.{BoardSpi, BoardUart}
+import Embedded.Spi
+import Embedded.Gpio
+import Embedded.Uart
+import SpiRegisters
+import Lsm9ds1
+import Registers
+
+@external(c, "lsm9ds1_delay_ms")
+fn delay_ms(ms: Int) -> () use {}
+
+fn say(text: String) -> () fails Uart.UartError use Uart.Uart {
+  (use Uart.Uart).transmit(Uart.Uart2, String.code_points(text), 100)
+}
+
+fn report(name: String, axes: Lsm9ds1.Axes) -> () fails Uart.UartError use Uart.Uart {
+  say(
+    String.concat(
+      [
+        name,
+        " ",
+        Int.to_string(axes.x),
+        " ",
+        Int.to_string(axes.y),
+        " ",
+        Int.to_string(axes.z),
+        "\r\n",
+      ],
+    ),
+  )
+}
+
+# NUCLEO-F446RE: SPI1 on PA5/PA6/PA7, CS_A/G on PA4; UART2 on PA2/PA3.
+pub fn main() -> Int {
+  with BoardSpi {
+    with BoardUart {
+      device = (use Spi.Spi).create_device(
+        Spi.SpiDeviceConfig(
+          Spi.Spi1,
+          Spi.SpiConfig(
+            polarity: Spi.IdleHigh,
+            phase: Spi.SecondEdge,
+            max_frequency_hz: 1000000,
+          ),
+          cs: Gpio.GpioPin(4),
+          setup_us: 1,
+          hold_us: 1,
+        ),
+      )
+      (use Uart.Uart).configure(Uart.Uart2, Uart.UartConfig(115200))
+      with SpiRegisters.OverSpi(device) {
+        Lsm9ds1.config(Lsm9ds1.Config(Lsm9ds1.Accel2g, Lsm9ds1.Dps245))
+        Lsm9ds1.power(Lsm9ds1.On)
+        # Allow startup/filter settling before reading; no data-ready polling yet.
+        delay_ms(150)
+        say("LSM9DS1 raw 6-axis\r\n")
+        List.fold([1, 2, 3, 4, 5], (), fn(_, _) {
+          sample = Lsm9ds1.dataread()
+          report("accel", sample.acceleration)
+          report("gyro", sample.angular_rate)
+          delay_ms(100)
+        })
+        Lsm9ds1.power(Lsm9ds1.Down)
+        say("power down\r\n")
+        0
+      }
+    }
+  } escape {
+    Lsm9ds1.Error(_)              -> 1
+    Registers.RegisterError(_)    -> 2
+    Uart.UartError(_)             -> 3
+    Spi.SpiTransactionError(_, _) -> 4
+  }
+}

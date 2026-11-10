@@ -1,0 +1,41 @@
+import Embedded.Spi
+import Registers
+
+## Select a managed-CS, 8-bit, MSB-first, 4-wire SPI device (mode 3).
+## This is the A/G protocol: bit 7 is READ; bits 6..0 are the register address.
+## Burst address increment is enabled by Lsm9ds1.config, not a command MS bit.
+pub handler OverSpi(device: Spi.SpiDevice): Registers.Registers {
+  init(device: Spi.SpiDevice) { OverSpi(device: device) }
+
+  fn read(register, count) {
+    Registers.validate_read(register, count)
+    {
+      (use Spi.Spi).transaction(
+        self.device,
+        [Spi.Write([Int.bit_or(register, 128)]), Spi.Read(count)],
+        20,
+      ) match {
+        [[], bytes] -> Registers.checked(bytes, count)
+        _           -> fail Registers.RegisterError(Registers.InvalidResponse)
+      }
+    } escape {
+      Spi.SpiTransactionError(primary, cleanup) -> {
+        fail Registers.RegisterError(Registers.SpiFailure(primary, cleanup))
+      }
+    }
+  }
+
+  fn write(register, value) {
+    Registers.validate_write(register, value)
+    {
+      (use Spi.Spi).transaction(self.device, [Spi.Write([register, value])], 20) match {
+        [[]] -> ()
+        _    -> fail Registers.RegisterError(Registers.InvalidResponse)
+      }
+    } escape {
+      Spi.SpiTransactionError(primary, cleanup) -> {
+        fail Registers.RegisterError(Registers.SpiFailure(primary, cleanup))
+      }
+    }
+  }
+}
