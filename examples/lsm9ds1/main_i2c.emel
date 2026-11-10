@@ -1,0 +1,61 @@
+import Embedded.Board.{BoardI2c, BoardUart}
+import Embedded.I2c
+import Embedded.Uart
+import I2cRegisters
+import Lsm9ds1
+import Registers
+
+@external(c, "lsm9ds1_delay_ms")
+fn delay_ms(ms: Int) -> () use {}
+
+fn say(text: String) -> () fails Uart.UartError use Uart.Uart {
+  (use Uart.Uart).transmit(Uart.Uart2, String.code_points(text), 100)
+}
+
+fn report(name: String, axes: Lsm9ds1.Axes) -> () fails Uart.UartError use Uart.Uart {
+  say(
+    String.concat(
+      [
+        name,
+        " ",
+        Int.to_string(axes.x),
+        " ",
+        Int.to_string(axes.y),
+        " ",
+        Int.to_string(axes.z),
+        "\r\n",
+      ],
+    ),
+  )
+}
+
+# NUCLEO-F446RE: I2C1 on PB8/PB9; UART2 on PA2/PA3 (ST-LINK VCP).
+pub fn main() -> Int {
+  with BoardI2c {
+    with BoardUart {
+      (use I2c.I2c).configure(I2c.I2c1)
+      (use Uart.Uart).configure(Uart.Uart2, Uart.UartConfig(115200))
+      with I2cRegisters.OverI2c(I2c.I2c1, I2cRegisters.High) {
+        Lsm9ds1.config(Lsm9ds1.Config(Lsm9ds1.Accel2g, Lsm9ds1.Dps245))
+        Lsm9ds1.power(Lsm9ds1.On)
+        # Allow startup/filter settling before reading; no data-ready polling yet.
+        delay_ms(150)
+        say("LSM9DS1 raw 6-axis\r\n")
+        List.fold([1, 2, 3, 4, 5], (), fn(_, _) {
+          sample = Lsm9ds1.dataread()
+          report("accel", sample.acceleration)
+          report("gyro", sample.angular_rate)
+          delay_ms(100)
+        })
+        Lsm9ds1.power(Lsm9ds1.Down)
+        say("power down\r\n")
+        0
+      }
+    }
+  } escape {
+    Lsm9ds1.Error(_)           -> 1
+    Registers.RegisterError(_) -> 2
+    I2c.I2cError(_)            -> 2
+    Uart.UartError(_)          -> 3
+  }
+}

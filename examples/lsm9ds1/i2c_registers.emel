@@ -1,0 +1,34 @@
+import Embedded.I2c
+import Registers
+
+pub enum Address { Low, High }
+
+## Select one LSM9DS1 A/G device on an already configured I2C bus.
+pub handler OverI2c(bus: I2c.I2cId, address: Int): Registers.Registers {
+  init(bus: I2c.I2cId, address: Address) {
+    selected = address match {
+      Low  -> 106
+      High -> 107
+    }
+    OverI2c(bus: bus, address: selected)
+  }
+
+  fn read(register, count) {
+    Registers.validate_read(register, count)
+    {
+      bytes = (use I2c.I2c).write_read(self.bus, self.address, [register], count, 20)
+      Registers.checked(bytes, count)
+    } escape {
+      I2c.I2cError(kind) -> fail Registers.RegisterError(Registers.I2cFailure(kind))
+    }
+  }
+
+  fn write(register, value) {
+    Registers.validate_write(register, value)
+    {
+      (use I2c.I2c).master_transmit(self.bus, self.address, [register, value], 20)
+    } escape {
+      I2c.I2cError(kind) -> fail Registers.RegisterError(Registers.I2cFailure(kind))
+    }
+  }
+}

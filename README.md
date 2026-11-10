@@ -45,3 +45,6 @@ cargo build --locked -p emelino-cli
 
 各スクリプトは`--dry-run`で実行内容を確認できます。
 インストール先の変更や再実行については[セットアップ手順](docs/setup.md)を参照してください。
+
+センサーライブラリのサンプルとして、[LSM9DS1の6軸IMU読み出し](examples/lsm9ds1/README.md)を用意しています。
+NUCLEO-F446REでI²CまたはSPIを使い、加速度3軸と角速度3軸をUARTへ出力します。

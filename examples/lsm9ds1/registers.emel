@@ -1,0 +1,39 @@
+import Embedded.I2c
+import Embedded.Spi
+import Embedded.Gpio
+
+## Preserve the original bus cause, including a separate SPI CS-release failure.
+pub enum Failure {
+  InvalidArgument
+  InvalidResponse
+  I2cFailure(kind: I2c.I2cErrorKind)
+  SpiFailure(primary: Option[Spi.SpiTransactionFailure], cleanup: Option[Gpio.GpioErrorKind])
+}
+pub error RegisterError(reason: Failure)
+
+## A single selected device. Addresses are unencoded 7-bit register numbers.
+## Read returns exactly count bytes; write stores one byte.
+pub effect Registers {
+  fn read(register: Int, count: Int) -> List[Int] fails RegisterError
+  fn write(register: Int, value: Int) -> () fails RegisterError
+}
+
+pub fn validate_read(register: Int, count: Int) -> () fails RegisterError use {} {
+  if register < 0 || register > 127 || count <= 0 || count > 128 - register {
+    fail RegisterError(InvalidArgument)
+  }
+}
+
+pub fn validate_write(register: Int, value: Int) -> () fails RegisterError use {} {
+  if register < 0 || register > 127 || value < 0 || value > 255 {
+    fail RegisterError(InvalidArgument)
+  }
+}
+
+pub fn checked(bytes: List[Int], count: Int) -> List[Int] fails RegisterError use {} {
+  if List.length(bytes) != count
+    || !List.fold(bytes, True, fn(ok, value) { ok && value >= 0 && value <= 255 }) {
+    fail RegisterError(InvalidResponse)
+  }
+  bytes
+}

@@ -1,0 +1,91 @@
+import Registers
+
+pub enum Power { Down, On }
+pub enum AccelerationRange { Accel2g, Accel4g, Accel8g, Accel16g }
+pub enum AngularRateRange { Dps245, Dps500, Dps2000 }
+pub type Config(acceleration: AccelerationRange, angular_rate: AngularRateRange)
+pub type Axes(x: Int, y: Int, z: Int) derive Eq
+pub type Sample(acceleration: Axes, angular_rate: Axes) derive Eq
+pub enum Problem { WrongDevice, InvalidData }
+pub error Error(kind: Problem)
+
+fn byte(register: Int) -> Int fails Error | Registers.RegisterError use Registers.Registers {
+  (use Registers.Registers).read(register, 1) match {
+    [value] -> if value >= 0 && value <= 255 { value } else { fail Error(InvalidData) }
+    _       -> fail Error(InvalidData)
+  }
+}
+
+fn encoded_config(settings: Config) -> (Int, Int) use {} {
+  acceleration = settings.acceleration match {
+    Accel2g  -> 0
+    Accel4g  -> 16
+    Accel8g  -> 24
+    Accel16g -> 8
+  }
+  angular_rate = settings.angular_rate match {
+    Dps245  -> 0
+    Dps500  -> 8
+    Dps2000 -> 24
+  }
+  (acceleration, angular_rate)
+}
+
+## Verify WHO_AM_I, set the measurement ranges, and leave both sensors powered down.
+## CTRL_REG8 enables BDU and address increment, with little-endian output.
+## Use on a reset device; the default X/Y/Z output enables are retained.
+pub fn config(settings: Config) -> ()
+  fails Error | Registers.RegisterError
+  use Registers.Registers {
+  if byte(15) != 104 { fail Error(WrongDevice) }
+  (acceleration, angular_rate) = encoded_config(settings)
+  io = use Registers.Registers
+  io.write(16, angular_rate)
+  io.write(32, acceleration)
+  io.write(34, 68)
+}
+
+## On starts both sensors at 119 Hz; Down stops them. Range bits are preserved.
+## Call config first. Startup settling and read cadence belong to the caller.
+pub fn power(mode: Power) -> ()
+  fails Error | Registers.RegisterError
+  use Registers.Registers {
+  angular_rate = Int.bit_and(byte(16), 31)
+  acceleration = Int.bit_and(byte(32), 31)
+  rate = mode match {
+    Down -> 0
+    On   -> 96
+  }
+  io = use Registers.Registers
+  io.write(32, acceleration + rate)
+  io.write(16, angular_rate + rate)
+}
+
+fn signed_word(low: Int, high: Int) -> Int use {} {
+  value = low + high * 256
+  if value >= 32768 { value - 65536 } else { value }
+}
+
+fn decode_axes(bytes: List[Int]) -> Axes fails Error use {} {
+  valid = List.fold(bytes, True, fn(ok, value) { ok && value >= 0 && value <= 255 })
+  if !valid { fail Error(InvalidData) }
+  bytes match {
+    [xl, xh, yl, yh, zl, zh] -> Axes(signed_word(xl, xh), signed_word(yl, yh), signed_word(zl, zh))
+    _                        -> fail Error(InvalidData)
+  }
+}
+
+## Read the latest six signed 16-bit raw values (LSB units, not g or degrees/s).
+## Each sensor uses one register burst; the two bursts are not simultaneous.
+## This does not wait for data-ready, so successive calls can return the same sample.
+pub fn dataread() -> Sample fails Error | Registers.RegisterError use Registers.Registers {
+  io = use Registers.Registers
+  angular_rate = io.read(24, 6)
+  acceleration = io.read(40, 6)
+  decode(angular_rate, acceleration)
+}
+
+## Pure decoding, also usable with saved register bytes without any bus handler.
+pub fn decode(angular_rate: List[Int], acceleration: List[Int]) -> Sample fails Error use {} {
+  Sample(decode_axes(acceleration), decode_axes(angular_rate))
+}
