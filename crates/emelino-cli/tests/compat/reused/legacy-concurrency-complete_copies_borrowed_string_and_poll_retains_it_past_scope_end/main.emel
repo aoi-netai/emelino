@@ -13,8 +13,8 @@ fn peek(d: Deferred[String]) -> String {
     None -> ""
   }
 }
-pub fn text(n: Int) -> String use Async {
-  Fiber.scope(fn() {
+pub fn text(n: Int) -> String uses { Async } {
+  Fiber.scope(|| {
     d: Deferred[String] = (use Scope).deferred()
     save(d, n)
     Int.to_string(n + 1)

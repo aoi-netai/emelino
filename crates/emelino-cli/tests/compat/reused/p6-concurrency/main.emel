@@ -1,18 +1,19 @@
+import Std.Exit
 
 import Std.Fiber
 import Std.Deferred
 import Std.Cause
-pub fn answer()->Int{Fiber.scope(fn(){child=Fiber.fork(fn(){42})
+pub fn answer()->Int{Fiber.scope(|| {child=Fiber.fork(|| 42)
 Fiber.join(child)})}
-pub fn attempt()->Int{Fiber.attempt(fn(){42}) match{Fiber.Success(value)->value
-Fiber.Failure(cause)->0}}
-pub fn unit()->Int{Fiber.scope(fn(){child=Fiber.fork(fn(){()})
+pub fn attempt()->Int{Exit.attempt(|| 42) match{Exit.Success(value)->value
+Exit.Failure(cause)->0}}
+pub fn unit()->Int{Fiber.scope(|| {child=Fiber.fork(|| ())
 Fiber.join(child)
 42})}
-pub fn deferred()->Int{Fiber.scope(fn(){d=Fiber.deferred()
-Fiber.fork(fn(){Deferred.complete(d,42)})
+pub fn deferred()->Int{Fiber.scope(|| {d=Fiber.deferred()
+Fiber.fork(|| Deferred.complete(d,42))
 Deferred.await(d)})}
-pub fn deferred_unit()->Int {Fiber.scope(fn(){d=Fiber.deferred()
+pub fn deferred_unit()->Int {Fiber.scope(|| {d=Fiber.deferred()
 first=Deferred.complete(d,())
 second=Deferred.complete(d,())
 Deferred.await(d)
@@ -21,11 +22,11 @@ None->0}}else{0}
 })}
 error Oops(message:String) derive Show
 fn raise()->Int fails Oops {fail Oops(message:String.append("x","!"))}
-pub fn cause()->Bool {Fiber.attempt(raise) match {
-Fiber.Success(value)->False
-Fiber.Failure(cause)->Cause.kind(cause)==Cause.Fail && Cause.to_string(cause)=="error: Oops(message: \"x!\")"
+pub fn cause()->Bool {Exit.attempt(raise) match {
+Exit.Success(value)->False
+Exit.Failure(cause)->Cause.kind(cause)==Cause.Fail && Cause.to_string(cause)=="error: Oops(message: \"x!\")"
 }}
-pub fn recover()->Int {{Fiber.attempt(raise) match {
-Fiber.Success(value)->value
-Fiber.Failure(cause)->Cause.raise(cause)
+pub fn recover()->Int {{Exit.attempt(raise) match {
+Exit.Success(value)->value
+Exit.Failure(cause)->Cause.raise(cause)
 }} escape {Oops(message:)->42}}

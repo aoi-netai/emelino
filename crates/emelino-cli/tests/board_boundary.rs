@@ -31,7 +31,7 @@ fn isr_limits_apply_after_upstream_generation() {
             "heap-backed",
         ),
         (
-            "@external(c,\"board_seed\")\nfn seed()->Int use {}\nconst VALUE=seed()\npub fn entry()->Int {VALUE}",
+            "@external(c,\"board_seed\")\nfn seed()->Int uses {}\nconst VALUE=seed()\npub fn entry()->Int {VALUE}",
             "runtime const initialization",
         ),
     ];
@@ -84,7 +84,7 @@ fn public_entries_require_handled_effects_instead_of_exposing_evidence_pointers(
         r#"{"exports":[{"function":"entry","symbol":"entry"}],"heap_bytes":4096}"#,
     )
     .unwrap();
-    let source = "effect Counter { fn read() -> Int }\npub fn entry() -> Int use Counter { (use Counter).read() }";
+    let source = "effect Counter { fn read() -> Int }\npub fn entry() -> Int uses { Counter } { (use Counter).read() }";
     let error = emelino_cli::compile(source, &config).unwrap_err();
     assert!(error.contains("unresolved effect evidence"), "{error}");
 }
@@ -95,7 +95,7 @@ fn embedded_namespace_is_owned_and_std_embedded_is_not_supplied() {
     // bundles Std.Embedded, it must not supply a second copy of these contracts.
     for source in [
         "import Std.Embedded.Gpio.{Gpio}\nfn main() { 0 }",
-        "import Std.Embedded.Gpio.{Gpio}\npub fn answer()->Int use Gpio {42}",
+        "import Std.Embedded.Gpio.{Gpio}\npub fn answer()->Int uses { Gpio } {42}",
     ] {
         let error = emelino_cli::frontend::generate(source, std::path::Path::new("main.emel"))
             .err()
@@ -103,7 +103,7 @@ fn embedded_namespace_is_owned_and_std_embedded_is_not_supplied() {
         assert!(error.contains("Std.Embedded.Gpio"), "{error}");
     }
     emelino_cli::frontend::generate(
-        "import Embedded.Gpio.{Gpio}\npub fn answer()->Int use Gpio {42}",
+        "import Embedded.Gpio.{Gpio}\npub fn answer()->Int uses { Gpio } {42}",
         std::path::Path::new("main.emel"),
     )
     .unwrap();

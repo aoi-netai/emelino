@@ -7,13 +7,13 @@ import Lsm9ds1
 import Registers
 
 @external(c, "lsm9ds1_delay_ms")
-fn delay_ms(ms: Int) -> () use {}
+fn delay_ms(ms: Int) -> () uses {}
 
-fn say(text: String) -> () fails Uart.UartError use Uart.Uart {
+fn say(text: String) -> () fails Uart.UartError uses { Uart.Uart } {
   (use Uart.Uart).transmit(Uart.Uart2, String.code_points(text), 100)
 }
 
-fn report(name: String, axes: Lsm9ds1.Axes) -> () fails Uart.UartError use Uart.Uart {
+fn report(name: String, axes: Lsm9ds1.Axes) -> () fails Uart.UartError uses { Uart.Uart } {
   say(
     String.concat(
       [
@@ -54,7 +54,7 @@ pub fn main() -> Int {
         # Allow startup/filter settling before reading; no data-ready polling yet.
         delay_ms(150)
         say("LSM9DS1 raw 6-axis\r\n")
-        List.fold([1, 2, 3, 4, 5], (), fn(_, _) {
+        List.fold([1, 2, 3, 4, 5], (), |_, _| {
           sample = Lsm9ds1.dataread()
           report("accel", sample.acceleration)
           report("gyro", sample.angular_rate)

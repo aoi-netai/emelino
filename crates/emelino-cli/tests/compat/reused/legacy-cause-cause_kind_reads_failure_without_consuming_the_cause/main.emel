@@ -1,9 +1,10 @@
+import Std.Exit.{Success, Failure}
 
-import Std.Fiber.{Fiber, Success, Failure}
+import Std.Fiber.{Fiber}
 import Std.Cause.{Cause, CauseKind, Fail, Die, Interrupt}
 error Boom(n: Int) derive Show
 pub fn kind(n: Int) -> Int {
- Fiber.attempt(fn() { fail Boom(n: n) }) match {
+ Exit.attempt(|| fail Boom(n: n)) match {
   Success(_) -> 0
   Failure(c) -> {
    Cause.kind(c)

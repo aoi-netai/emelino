@@ -47,7 +47,7 @@ pub effect Gpio {
     pin: GpioPin,
     edge: Edge,
     priority: InterruptPriority,
-    on_event: fn(GpioEvent) -> () fails {} use {},
+    on_event: fn(GpioEvent) -> () fails {} uses {},
   ) -> () fails GpioError
   ## Disables this pin's interrupt and unregisters its callback in main context.
   ## The BSP synchronizes with ISR execution before the callback captures are released.

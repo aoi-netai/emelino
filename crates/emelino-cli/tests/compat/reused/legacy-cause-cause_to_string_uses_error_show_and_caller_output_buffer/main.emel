@@ -1,9 +1,10 @@
+import Std.Exit.{Success, Failure}
 
-import Std.Fiber.{Fiber, Success, Failure}
+import Std.Fiber.{Fiber}
 import Std.Cause.{Cause}
 error Boom(n: Int) derive Show
 pub fn make(n: Int) -> Cause[Boom] {
- Fiber.attempt(fn() { fail Boom(n: n) }) match { Success(_) -> panic("unexpected")
+ Exit.attempt(|| fail Boom(n: n)) match { Success(_) -> panic("unexpected")
   Failure(c) -> c
  }
 }

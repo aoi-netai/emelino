@@ -5,9 +5,9 @@ import Embedded.Spi
 import Embedded.I2c
 
 @external(c, "peripherals_test_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "peripherals_test_claim_rollback")
-fn claim_rollback() -> Int use {}
+fn claim_rollback() -> Int uses {}
 fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
 fn uart_config(direction: Uart.UartDirection) -> Uart.UartConfig {
   Uart.UartConfig(115200, Uart.Bits8, Uart.One, Uart.NoParity,

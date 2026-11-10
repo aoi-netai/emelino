@@ -1,8 +1,9 @@
+import Std.Exit.{Success, Failure}
 
-import Std.Fiber.{Fiber, Success, Failure}
-pub fn list(n: Int) -> List[Int] use Async {
-  Fiber.scope(fn() {
-    child = Fiber.fork(fn() { [n, n + 1] })
+import Std.Fiber.{Fiber}
+pub fn list(n: Int) -> List[Int] uses { Async } {
+  Fiber.scope(|| {
+    child = Fiber.fork(|| [n, n + 1])
     first = Fiber.await(child) match { Success(v) -> v
       Failure(_) -> [] }
     Fiber.await(child)
@@ -11,4 +12,4 @@ pub fn list(n: Int) -> List[Int] use Async {
     List.append(first, second)
   })
 }
-pub fn sum(xs: List[Int]) -> Int { List.fold(xs, 0, fn(a, b) { a + b }) }
+pub fn sum(xs: List[Int]) -> Int { List.fold(xs, 0, |a, b| a + b) }

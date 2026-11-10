@@ -1,6 +1,6 @@
 import Std.State.{State}
 pub fn main() -> Int {
-(value, final) = State.run(1, fn() {
+(value, final) = State.run(1, || {
 state = use State[Int]
 state.set(41)
 state.get()

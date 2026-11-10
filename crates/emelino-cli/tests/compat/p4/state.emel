@@ -22,10 +22,10 @@ fn mutate_input() -> () {
 }
 
 fn escaped(initial: Int) -> fn() -> Int {
-  (reader, _) = State.run(initial, fn() {
+  (reader, _) = State.run(initial, || {
     state = use State[Int]
-    fn() {
-      state.update(fn(value) { value + 1 })
+    || {
+      state.update(|value| value + 1)
       state.get()
     }
   })
@@ -35,20 +35,20 @@ fn escaped(initial: Int) -> fn() -> Int {
 @export(c, "state_counter")
 pub fn counter() -> Int {
   reader = escaped(40)
-  (value, _) = State.run(0, fn() { reader() + reader() })
+  (value, _) = State.run(0, || reader() + reader())
   value
 }
 
 @export(c, "state_owned")
 pub fn owned(text: String, expected: String) -> Bool {
-  ((saved, reader), final) = State.run(text, fn() {
+  ((saved, reader), final) = State.run(text, || {
     state = use State[String]
     saved = state.get()
-    state.update(fn(value) { String.append(value, "!") })
-    (saved, fn() { state.get() })
+    state.update(|value| String.append(value, "!"))
+    (saved, || state.get())
   })
   mutate_input()
-  (result, _) = State.run("", fn() {
+  (result, _) = State.run("", || {
     saved == expected && final == String.append(expected, "!") && reader() == final
   })
   result
@@ -57,7 +57,7 @@ pub fn owned(text: String, expected: String) -> Bool {
 error StateFailure(value: String)
 @export(c, "state_failure")
 pub fn failure(text: String) -> Bool {
-  value = State.run(text, fn() {
+  value = State.run(text, || {
     state = use State[String]
     state.set(String.append(state.get(), "!"))
     fail StateFailure(state.get())
@@ -66,11 +66,11 @@ pub fn failure(text: String) -> Bool {
   value == (42, String.append(text, "!"))
 }
 
-fn callback(marker: Int) -> fn() -> Int use State[Int] {
+fn callback(marker: Int) -> fn() -> Int uses { State[Int] } {
   mark(marker + 2)
-  fn() {
+  || {
     state = use State[Int]
-    state.update(fn(value) { value + 40 })
+    state.update(|value| value + 40)
     state.get()
   }
 }
@@ -82,11 +82,11 @@ pub fn order() -> Int {
 }
 
 @export(c, "state_nested")
-pub fn nested() -> Int use {} {
-  (result, final) = State.run(1, fn() {
-    (text, _) = State.run("x", fn() {
-      (use State[Int]).update(fn(value) { value + 40 })
-      (use State[String]).update(fn(value) { String.append(value, "!") })
+pub fn nested() -> Int uses {} {
+  (result, final) = State.run(1, || {
+    (text, _) = State.run("x", || {
+      (use State[Int]).update(|value| value + 40)
+      (use State[String]).update(|value| String.append(value, "!"))
       (use State[String]).get()
     })
     assert text == "x!"
@@ -94,7 +94,7 @@ pub fn nested() -> Int use {} {
   })
   assert result == 42 && final == 41
   runner = State.run
-  assert runner(0, fn() {
+  assert runner(0, || {
     (use State[Int]).set(42)
     42
   }) == (42, 42)
@@ -103,14 +103,14 @@ pub fn nested() -> Int use {} {
 
 @export(c, "state_bytes")
 pub fn bytes(text: String) -> Bool {
-  ((saved, read), final) = State.run(Bytes.encode_utf8(text), fn() {
+  ((saved, read), final) = State.run(Bytes.encode_utf8(text), || {
     state = use State[Bytes]
     saved = state.get()
-    state.update(fn(value) { Bytes.append(value, Bytes.encode_utf8("!")) })
-    (saved, fn() { state.get() })
+    state.update(|value| Bytes.append(value, Bytes.encode_utf8("!")))
+    (saved, || state.get())
   })
   mutate_input()
-  (result, _) = State.run(Bytes.encode_utf8(""), fn() {
+  (result, _) = State.run(Bytes.encode_utf8(""), || {
     Bytes.to_list(saved) == [97, 0, 98] && Bytes.to_list(final) == [97, 0, 98, 33] && read() == final
   })
   result
@@ -119,13 +119,13 @@ pub fn bytes(text: String) -> Bool {
 @export(c, "captured_bytes")
 pub fn captured_bytes(text: String) -> Bytes {
   value = Bytes.encode_utf8(text)
-  read = fn() { value }
+  read = || value
   read()
 }
 
 @export(c, "shared_bytes")
 pub fn shared_bytes(input: Bytes) -> Bytes {
-  (value, _) = State.run(input, fn() {
+  (value, _) = State.run(input, || {
     state = use State[Bytes]
     state.set(Bytes.append(state.get(), state.get()))
     state.get()

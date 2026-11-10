@@ -8,13 +8,13 @@ import Embedded.Gpio
 import Embedded.Interrupt.{Normal}
 
 @external(c, "observe")
-fn observe(value: Int) -> () use {}
+fn observe(value: Int) -> () uses {}
 @external(c, "untrusted")
-fn untrusted() -> () use {}
+fn untrusted() -> () uses {}
 
 fn safe(event: Gpio.GpioEvent) -> () { observe(1) }
 fn bad(event: Gpio.GpioEvent) -> () { untrusted() }
-fn install(callback: fn(Gpio.GpioEvent) -> () fails {} use {}) -> () {
+fn install(callback: fn(Gpio.GpioEvent) -> () fails {} uses {}) -> () {
   with BoardGpio {
     (use Gpio.Gpio).enable_interrupt(Gpio.GpioPin(0), Gpio.Rising, Normal, callback)
   } escape { Gpio.GpioError(_) -> () }
@@ -40,12 +40,12 @@ fn compile(body: &str) -> Result<emelino_compiler::Output, String> {
 fn gpio_isr_resolves_arguments_returns_branches_and_scalar_captures() {
     let output = compile(
         r#"
-fn choose(first: fn(Gpio.GpioEvent) -> () fails {} use {},
-          unused: fn(Gpio.GpioEvent) -> () fails {} use {})
-    -> fn(Gpio.GpioEvent) -> () fails {} use {} { first }
+fn choose(first: fn(Gpio.GpioEvent) -> () fails {} uses {},
+          unused: fn(Gpio.GpioEvent) -> () fails {} uses {})
+    -> fn(Gpio.GpioEvent) -> () fails {} uses {} { first }
 pub fn setup(selector: Bool, tag: Int) -> () {
   callback = if selector { safe } else {
-    fn(event: Gpio.GpioEvent) { observe(tag) }
+    |event: Gpio.GpioEvent| observe(tag)
   }
   install(choose(callback, bad))
 }
@@ -60,7 +60,7 @@ pub fn setup(selector: Bool, tag: Int) -> () {
 fn gpio_isr_rejects_an_unsafe_alternative_after_a_function_return() {
     let error = compile(
         r#"
-fn choose(selector: Bool) -> fn(Gpio.GpioEvent) -> () fails {} use {} {
+fn choose(selector: Bool) -> fn(Gpio.GpioEvent) -> () fails {} uses {} {
   if selector { safe } else { bad }
 }
 pub fn setup(selector: Bool) -> () { install(choose(selector)) }
@@ -77,7 +77,7 @@ pub fn setup(selector: Bool) -> () { install(choose(selector)) }
 fn gpio_isr_does_not_hide_an_unknown_alternative_behind_a_safe_one() {
     let error = compile(
         r#"
-pub fn setup(selector: Bool, supplied: fn(Gpio.GpioEvent) -> () fails {} use {}) -> () {
+pub fn setup(selector: Bool, supplied: fn(Gpio.GpioEvent) -> () fails {} uses {}) -> () {
   install(if selector { safe } else { supplied })
 }
 "#,
@@ -181,9 +181,9 @@ pub fn setup() -> () {
 fn gpio_isr_tracks_loop_carried_callback_alternatives() {
     let error = compile(
         r#"
-fn select(count: Int, first: fn(Gpio.GpioEvent) -> () fails {} use {},
-           second: fn(Gpio.GpioEvent) -> () fails {} use {})
-    -> fn(Gpio.GpioEvent) -> () fails {} use {} {
+fn select(count: Int, first: fn(Gpio.GpioEvent) -> () fails {} uses {},
+           second: fn(Gpio.GpioEvent) -> () fails {} uses {})
+    -> fn(Gpio.GpioEvent) -> () fails {} uses {} {
   if count == 0 { first } else { select(count - 1, second, first) }
 }
 pub fn setup(count: Int) -> () { install(select(count, safe, bad)) }
@@ -228,7 +228,7 @@ fn gpio_isr_rejects_capture_loads_that_would_retain_managed_values() {
     let error = compile(
         r#"
 pub fn setup(text: String) -> () {
-  install(fn(event: Gpio.GpioEvent) { observe(String.length(text)) })
+  install(|event: Gpio.GpioEvent| observe(String.length(text)))
 }
 "#,
     )
@@ -242,7 +242,7 @@ pub fn setup(text: String) -> () {
 #[test]
 fn gpio_isr_unknown_callers_cannot_supply_unchecked_callbacks_to_escaped_installers() {
     let error = compile(r#"
-pub fn setup(foreign: fn(fn(fn(Gpio.GpioEvent) -> () fails {} use {}) -> () fails {} use {}) -> () fails {} use {}) -> () {
+pub fn setup(foreign: fn(fn(fn(Gpio.GpioEvent) -> () fails {} uses {}) -> () fails {} uses {}) -> () fails {} uses {}) -> () {
   install(safe)
   foreign(install)
 }
@@ -256,10 +256,10 @@ pub fn setup(foreign: fn(fn(fn(Gpio.GpioEvent) -> () fails {} use {}) -> () fail
 #[test]
 fn gpio_isr_foreign_code_cannot_obtain_an_unchecked_installer_through_returned_functions() {
     let error = compile(r#"
-fn make_installer() -> fn(fn(Gpio.GpioEvent) -> () fails {} use {}) -> () fails {} use {} {
+fn make_installer() -> fn(fn(Gpio.GpioEvent) -> () fails {} uses {}) -> () fails {} uses {} {
   install
 }
-pub fn setup() -> fn() -> fn(fn(Gpio.GpioEvent) -> () fails {} use {}) -> () fails {} use {} fails {} use {} {
+pub fn setup() -> fn() -> fn(fn(Gpio.GpioEvent) -> () fails {} uses {}) -> () fails {} uses {} fails {} uses {} {
   install(safe)
   make_installer
 }

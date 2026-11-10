@@ -12,4 +12,4 @@ handler Finishing: Finish { suspend fn go(resume) {
 effect Marker { fn read() -> Int }
 handler Resource: Marker { fn read() { 1 }
   release { (use Finish).go() } }
-pub fn work() -> Int use Async { with Waiting, Finishing, Resource { 42 } }
+pub fn work() -> Int uses { Async } { with Waiting, Finishing, Resource { 42 } }

@@ -1,15 +1,16 @@
+import Std.Exit.{Exit, Success, Failure}
 
-import Std.Fiber.{Fiber, Exit, Success, Failure}
+import Std.Fiber.{Fiber}
 @external(c, "mark")
-fn mark(n: Int) -> () use {}
-pub fn work(n: Int) -> Int use Async {
-  Fiber.scope(fn() {
-    child = Fiber.fork(fn() { mark(2)
+fn mark(n: Int) -> () uses {}
+pub fn work(n: Int) -> Int uses { Async } {
+  Fiber.scope(|| {
+    child = Fiber.fork(|| { mark(2)
       n })
     mark(1)
     first = Fiber.await(child) match { Success(v) -> v
       Failure(_) -> -1 }
-    Fiber.fork(fn() { mark(99) })
+    Fiber.fork(|| mark(99))
     Fiber.await(child)
     next = Fiber.await(child) match { Success(v) -> v
       Failure(_) -> -2 }
@@ -17,16 +18,16 @@ pub fn work(n: Int) -> Int use Async {
     first + next + Fiber.join(child)
   })
 }
-pub fn unit() -> Bool use Async {
-  Fiber.scope(fn() {
-    child = Fiber.fork(fn() { () })
+pub fn unit() -> Bool uses { Async } {
+  Fiber.scope(|| {
+    child = Fiber.fork(|| ())
     Fiber.await(child) match { Success(_) -> True
       Failure(_) -> False }
   })
 }
-pub fn discard() -> () use Async {
-  Fiber.scope(fn() {
-    child = Fiber.fork(fn() { mark(1) })
+pub fn discard() -> () uses { Async } {
+  Fiber.scope(|| {
+    child = Fiber.fork(|| mark(1))
     Fiber.await(child)
     mark(2)
   })

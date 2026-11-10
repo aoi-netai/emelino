@@ -10,7 +10,7 @@ const SOURCE: &str = r#"
 import Std.Clock.{Clock, SystemClock, TestClock}
 import Std.Instant.{Instant}
 import Std.State.{State}
-fn read_now()->Int64 use Clock {
+fn read_now()->Int64 uses { Clock } {
   Instant.to_unix_milliseconds((use Clock).now())
 }
 @export(c,"clock_now")
@@ -25,10 +25,10 @@ pub fn system()->Int64 {
 }
 @export(c,"clock_test")
 pub fn virtual_time()->Int64 {
-  (_,end)=State.run(Instant.from_unix_milliseconds(100),fn(){
+  (_,end)=State.run(Instant.from_unix_milliseconds(100),|| {
     with TestClock {
       assert Instant.to_unix_milliseconds((use Clock).now())==100
-      times=List.map([-7,50],fn(ms){
+      times=List.map([-7,50],|ms| {
         (use Clock).sleep(ms)
         Instant.to_unix_milliseconds((use Clock).now())
       })

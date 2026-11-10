@@ -1,6 +1,8 @@
 //! Test-only migration of explicit old fixture exports into the new configuration.
 //! Parsing uses upstream AST; source bodies are not lowered by a local frontend.
 #![allow(dead_code)]
+#[path = "migrate.rs"]
+mod migrate;
 use emela_syntax::ast::{AstNode, FnDecl, HasAttrs};
 use emelino_compiler::{Error, ErrorKind};
 #[allow(unused_imports)]
@@ -33,7 +35,7 @@ pub fn compile_sources(
     let base = Path::new(entry).parent().unwrap_or(Path::new(""));
     for input in sources {
         // Standard-library imports pass unchanged to the pinned upstream.
-        let source = input.text.to_owned();
+        let source = migrate::source(input.text);
         let parsed = emela_syntax::parse(&source);
         if !parsed.diagnostics().is_empty() {
             return Err(error(format!(

@@ -1,8 +1,9 @@
+import Std.Exit.{Success, Failure}
 
-import Std.Fiber.{Fiber, Success, Failure}
+import Std.Fiber.{Fiber}
 error Boom(n: Int)
 pub fn attempt(n: Int) -> Int {
- a = Fiber.attempt(fn() { if n == 0 { 41 } else { fail Boom(n: n) } })
+ a = Exit.attempt(|| if n == 0 { 41 } else { fail Boom(n: n) })
  a match { Success(v) -> v + 1
   Failure(_) -> 42
  }

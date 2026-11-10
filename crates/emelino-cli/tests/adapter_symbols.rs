@@ -72,7 +72,7 @@ fn synchronous_adapters_share_reserved_name_checks_and_reject_failure_wrapper_na
         r#"
 error Missing
 @external(c, "value")
-fn value() -> Int use {}
+fn value() -> Int uses {}
 pub fn run(n: Int) -> Int fails Missing {
     if n == 0 { fail Missing } else { value() }
 }

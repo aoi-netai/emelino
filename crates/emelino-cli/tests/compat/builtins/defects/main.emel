@@ -1,6 +1,6 @@
 
 @external(c,"should_not_run")
-fn should_not_run() -> Int use {}
+fn should_not_run() -> Int uses {}
 pub fn placeholder() -> Int { todo()
   should_not_run() }
 pub fn dynamic_panic(n:Int) -> Int { panic("halt#{n}")

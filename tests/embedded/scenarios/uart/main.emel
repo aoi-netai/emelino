@@ -3,11 +3,11 @@ import Embedded.Uart
 import Embedded.Interrupt.{Normal}
 
 @external(c, "uart_test_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "uart_test_wait")
-fn wait_stage(stage: Int) -> () use {}
+fn wait_stage(stage: Int) -> () uses {}
 @external(c, "uart_test_now")
-fn now() -> Int use {}
+fn now() -> Int uses {}
 
 fn check(number: Int, success: Bool) -> () {
   raw_check(number, if success { 1 } else { 0 })
