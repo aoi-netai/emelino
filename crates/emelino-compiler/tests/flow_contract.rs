@@ -42,6 +42,7 @@ fn rejects_incompatible_envelopes() {
         ("/stage", serde_json::json!("ref_counted")),
         ("/producer/name", serde_json::json!("another-frontend")),
         ("/producer/revision", serde_json::json!("different")),
+        ("/producer/revision", serde_json::json!("6021115103dd830e0efd9bb96a56a0ca97859329")),
         (
             "/producer/revision",
             serde_json::json!("ec1031cb0b98386baf0e9b0ced67e8829bb2c529"),
