@@ -122,12 +122,44 @@ class SetupTests(unittest.TestCase):
         return result.stdout.splitlines()
 
     def test_dry_runs_do_not_install_or_write_files(self):
-        for script in ("common", "nucleo-f446re", "arduino-nano-33-ble"):
+        for script in ("common", "nucleo-f446re", "arduino-nano-33-ble", "pico-sdk", "rp2350js"):
             with self.subTest(script=script):
                 result = self.setup(script, "--dry-run")
                 self.assertIn("Dry run complete", result.stdout)
                 self.assertFalse(self.prefix.exists())
                 self.assertEqual(self.calls(), [])
+
+    def test_pico_dry_runs_do_not_execute_optional_tools(self):
+        # Installed, broken tools also must not be probed or run during --dry-run.
+        for name in ("node", "npm", "cmake", "arm-none-eabi-gcc"):
+            path = self.bin / name
+            path.write_text(STUB + "\nraise SystemExit(91)\n")
+            path.chmod(0o755)
+        for name in ("pico-sdk", "rp2350js"):
+            self.setup(name, "--dry-run")
+        self.assertEqual(self.calls(), [])
+        self.assertFalse(self.prefix.exists())
+
+    def test_pico_and_engine_environment_survive_other_board_setup_and_dry_run(self):
+        self.command("bash", "-c", '''source "$1"
+SETUP_PREFIX=$2
+SETUP_DRY_RUN=0
+write_environment pico-sdk PICO_SDK_PATH "$2/SDK with spaces" picotool_DIR "$2/picotool"
+write_environment rp2350js RP2350JS_DIR "$2/engine with spaces"
+''', "test", str(SCRIPTS / "lib.sh"), str(self.prefix))
+        self.board_repositories()
+        self.setup("arduino-nano-33-ble")
+        snapshot = {path: path.read_bytes() for path in (self.prefix / "env.d").glob("*.sh")}
+        snapshot[self.prefix / "env.sh"] = (self.prefix / "env.sh").read_bytes()
+        for name in ("pico-sdk", "rp2350js"):
+            self.setup(name, "--dry-run")
+        self.assertEqual(snapshot, {path: path.read_bytes() for path in snapshot})
+        result = self.command("bash", "-c", 'source "$1"; printf "%s\\n" '
+            '"$PICO_SDK_PATH" "$picotool_DIR" "$RP2350JS_DIR" "$NRFX_ROOT"',
+            "test", str(self.prefix / "env.sh"))
+        self.assertEqual(result.stdout.splitlines(), [str(self.prefix / "SDK with spaces"),
+            str(self.prefix / "picotool"), str(self.prefix / "engine with spaces"),
+            str(self.prefix / "embedded-sdk/nrfx-3.2.0")])
 
     def test_common_installs_rustup_once_and_checks_both_c_targets(self):
         self.setup("common")

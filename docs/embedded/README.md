@@ -1,7 +1,8 @@
 # ボード向けfirmware
 
-[STM32F4 / NUCLEO-F446RE](stm32f4/README.md) と
-[nRF52840 / Arduino Nano 33 BLE](nrf52/README.md) のGPIO・UART・SPI・I2Cに対応する。
+[STM32F4 / NUCLEO-F446RE](stm32f4/README.md)、
+[nRF52840 / Arduino Nano 33 BLE](nrf52/README.md)、
+[RP2040・RP2350 / Pico・Pico 2](pico/README.md) のGPIO・UART・SPI・I2Cに対応する。
 Emelaソースから生成したCを、SDKのデバイス定義・driver、BSP、startup、linker設定と
 組み合わせてELF/BINにする。
 
@@ -27,10 +28,15 @@ EXTI IRQ → HAL_GPIO_EXTI_IRQHandler → HAL_GPIO_EXTI_Callback
 firmware/
   boards/nucleo-f446re/board.json  # MCU・portの選択、配線、クロック方針
   boards/arduino-nano-33-ble/board.json
+  boards/raspberry-pi-pico/board.json
+  boards/raspberry-pi-pico-2/board.json
   chips/stm32f446re.json           # CPU、メモリ、package pin、IRQ vector
   chips/nrf52840.json
+  chips/rp2040.json
+  chips/rp2350a.json
   ports/stm32f4/                  # HAL/CMSIS接続、時刻・SDK別ビルド
   ports/nrf52/                    # Nordic MDK/CMSIS接続
+  ports/pico_sdk/                 # Pico SDKのCMake/startupと4driver接続
   common/                        # SDKに依存しないSPIの状態・複合操作
   common/cortex_m4f/              # 共通reset、linker、runtime入口
   build/                         # manifest検証、profile、ARM GCC・成果物管理
@@ -40,7 +46,9 @@ tests/
   embedded/support/              # 共通runner、build、Renode実行、観測
   embedded/ports/stm32f4/         # レジスタ検査・HALエラー注入・固有回帰試験
   embedded/ports/nrf52/           # Nordicのレジスタ観測と試験接続
+  embedded/ports/pico_sdk/        # rp2350js adapter
   renode/models/                 # 共通peerと試験用コントローラーモデル
+  rp2350js/                      # 固定engine、Node runnerと観測
 tools/build_firmware.py          # ボード名を指定する共通ビルド入口
 tools/test_embedded.py           # ボードとシナリオを指定する共通試験入口
 docs/embedded/                  # 接続仕様・手順・検証結果
@@ -62,9 +70,9 @@ portの時刻初期化後、生成アプリの起動前に呼ばれる。定義�
 
 共通ビルドはportを選んで実行し、SDKの選択はportへ委ねる。
 STM32F4とnRF52はCortex-M4F起動処理とARM GCCのcompile/link・成果物検証も共有する。
-Pico SDK・ESP-IDF・Arduino core向けのportは未実装。Nano 33 BLEはNordicのbare-metal接続を使う。
-Pico SDKとrp2350jsを使うPico / Pico 2対応の方針・実装順序は
-[Pico / Pico 2対応計画](pico/implementation-plan.md)を参照する。
+PicoはSDKのCMake・startup・linkerを使用し、core 0から同じ生成C ABIへ接続する。
+ESP-IDF・Arduino core向けのportは未実装。Nano 33 BLEはNordicのbare-metal接続を使う。
+Pico SDKとrp2350jsを使う2ボードの配線・ビルド・検証は[Pico / Pico 2の手順](pico/README.md)を参照する。
 共通C層のSPIはdevice管理、操作列、CSのsetup/hold・解除、複合エラーを扱い、
 実際の転送、時刻取得、排他、GPIO操作はportのhookを使う。GPIO callbackの登録表と寿命管理は
 生成C側が所有し、port側には複製しない。
@@ -76,6 +84,7 @@ WSL / Ubuntuで必要なツールとSDKを導入するには、[セットアッ�
 共通で必要なものはRust/Cargo、Python 3、ARM GNU Toolchain。
 以下はSTM32CubeF4を使用するSTM32の例で、環境変数は手元のインストール先に合わせる。
 Nano 33 BLEのSDK指定とサンプルは[nRF52の手順](nrf52/README.md#ビルド)を参照する。
+Pico / Pico 2は[専用手順](pico/README.md#セットアップとビルド)の同一サンプルを2ボードへビルドできる。
 
 ```sh
 export ARM_GCC=/path/to/bin/arm-none-eabi-gcc

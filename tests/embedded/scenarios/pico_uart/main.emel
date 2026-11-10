@@ -1,0 +1,63 @@
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+import Embedded.Interrupt.{Normal}
+@external(c, "pico_check")
+fn raw_check(number: Int, success: Int) -> () uses {}
+@external(c, "pico_wait")
+fn wait_stage(stage: Int) -> () uses {}
+@external(c, "pico_finish")
+fn finish() -> () uses {}
+@external(c, "pico_callback")
+fn callback() -> () uses {}
+@external(c, "pico_callback_count")
+fn callback_count() -> Int uses {}
+fn on_pin(event: Gpio.GpioEvent) -> () { callback() }
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn is_high(state: Gpio.PinState) -> Bool { state match {
+ Gpio.High -> True
+ Gpio.Low -> False
+} }
+fn spi_config(bits: Spi.SpiDataSize) -> Spi.SpiConfig {
+  Spi.SpiConfig(Spi.Master, Spi.TwoLine, bits, Spi.IdleLow,
+    Spi.FirstEdge, 1000000, Spi.MostSignificantFirst)
+}
+pub fn main() -> () {
+  with BoardGpio { with BoardUart { with BoardSpi { with BoardI2c {
+        uart = use Uart.Uart
+        uart.configure(Uart.Uart0, Uart.UartConfig(115200, Uart.Bits8, Uart.One,
+          Uart.NoParity, Uart.Both, Uart.NoFlowControl, Uart.Native))
+        uart.transmit(Uart.Uart0, [80, 73, 67, 79, 10], 20)
+        wait_stage(2)
+        check(10, uart.receive(Uart.Uart0, 1, 20) == [65])
+        uart.enable_interrupt(Uart.Uart0, Normal, True)
+        uart.set_receive_mode(Uart.Uart0, Uart.InterruptReceive)
+        wait_stage(3)
+        check(11, uart.receive_some(Uart.Uart0, 4, 20) == [67])
+        uart.transmit(Uart.Uart0, [73, 82, 81, 10], 20)
+        check(12, {
+          uart.receive(Uart.Uart0, 1, 1)
+          False
+        } escape { Uart.UartError(Uart.Timeout) -> True
+          Uart.UartError(_) -> False })
+        uart.disable_interrupt(Uart.Uart0)
+        uart.set_receive_mode(Uart.Uart0, Uart.Polling)
+        check(13, {
+          uart.configure(Uart.Uart1, Uart.UartConfig(115200, Uart.Bits8, Uart.One,
+            Uart.NoParity, Uart.Both, Uart.NoFlowControl, Uart.Native))
+          False
+        } escape { Uart.UartError(Uart.Unsupported) -> True
+          Uart.UartError(_) -> False })
+  } } } } escape {
+    Gpio.GpioError(_) -> raw_check(96, 0)
+    Uart.UartError(Uart.Overrun) -> raw_check(9701, 0)
+    Uart.UartError(_) -> raw_check(97, 0)
+    Spi.SpiError(_) -> raw_check(98, 0)
+    Spi.SpiTransactionError(_, _) -> raw_check(99, 0)
+    I2c.I2cError(I2c.Timeout) -> raw_check(10001, 0)
+    I2c.I2cError(_) -> raw_check(100, 0)
+  }
+  finish()
+}

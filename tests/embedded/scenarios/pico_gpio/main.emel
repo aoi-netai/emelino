@@ -1,0 +1,56 @@
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+import Embedded.Interrupt.{Normal}
+@external(c, "pico_check")
+fn raw_check(number: Int, success: Int) -> () uses {}
+@external(c, "pico_wait")
+fn wait_stage(stage: Int) -> () uses {}
+@external(c, "pico_finish")
+fn finish() -> () uses {}
+@external(c, "pico_callback")
+fn callback() -> () uses {}
+@external(c, "pico_callback_count")
+fn callback_count() -> Int uses {}
+fn on_pin(event: Gpio.GpioEvent) -> () { callback() }
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn is_high(state: Gpio.PinState) -> Bool { state match {
+ Gpio.High -> True
+ Gpio.Low -> False
+} }
+fn spi_config(bits: Spi.SpiDataSize) -> Spi.SpiConfig {
+  Spi.SpiConfig(Spi.Master, Spi.TwoLine, bits, Spi.IdleLow,
+    Spi.FirstEdge, 1000000, Spi.MostSignificantFirst)
+}
+pub fn main() -> () {
+  with BoardGpio { with BoardUart { with BoardSpi { with BoardI2c {
+        gpio = use Gpio.Gpio
+        gpio.configure(Gpio.GpioPin(25), Gpio.OutputPushPull(Gpio.NoPull, Gpio.Low))
+        gpio.write(Gpio.GpioPin(25), Gpio.High)
+        gpio.toggle(Gpio.GpioPin(25))
+        gpio.write(Gpio.GpioPin(25), Gpio.High)
+        gpio.configure(Gpio.GpioPin(2), Gpio.Input(Gpio.NoPull))
+        check(1, is_high(gpio.read(Gpio.GpioPin(2))))
+        gpio.configure(Gpio.GpioPin(3), Gpio.Input(Gpio.Down))
+        gpio.enable_interrupt(Gpio.GpioPin(3), Gpio.Rising, Normal, on_pin)
+        wait_stage(1)
+        check(2, callback_count() == 1)
+        gpio.disable_interrupt(Gpio.GpioPin(3))
+        check(3, {
+          gpio.configure(Gpio.GpioPin(23), Gpio.Input(Gpio.NoPull))
+          False
+        } escape { Gpio.GpioError(Gpio.InvalidArgument) -> True
+          Gpio.GpioError(_) -> False })
+  } } } } escape {
+    Gpio.GpioError(_) -> raw_check(96, 0)
+    Uart.UartError(Uart.Overrun) -> raw_check(9701, 0)
+    Uart.UartError(_) -> raw_check(97, 0)
+    Spi.SpiError(_) -> raw_check(98, 0)
+    Spi.SpiTransactionError(_, _) -> raw_check(99, 0)
+    I2c.I2cError(I2c.Timeout) -> raw_check(10001, 0)
+    I2c.I2cError(_) -> raw_check(100, 0)
+  }
+  finish()
+}

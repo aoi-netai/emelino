@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "engine_revision": "eefa1d62e82902c8f9986ab9293cf273bda30583",
+  "sdk_revision": "079c6f39023649b154152db30f1d781e884879bc",
+  "baseline_sources": {
+    "tests/rp2350js/baseline/CMakeLists.txt": "4fa5872f6c9c3b3d82d08965c526ec7abce2bc3e74c37c4294bb83e359ac0267",
+    "tests/rp2350js/baseline/main.c": "51c53b25a141aed5e53456fa6b0e1239ce441d59f65761ca0141253967e85cb5",
+    "tests/rp2350js/run.cjs": "ff61e10c8a3a4c4104969d3e238220dc5af86db32101160d9c3082106a6b1fc4"
+  },
+  "limitations": {
+    "uart_error_status": {
+      "source": "src/peripherals/uart.ts:RPUART.readUint32",
+      "reason": "UARTRSR (offset 0x04) is absent from the read switch; fallback returns 0xffffffff even after write-clear. Real UART sticky receive error status is therefore unreadable."
+    },
+    "i2c_disable_status": {
+      "source": "src/peripherals/i2c.ts:RPI2C.readUint32",
+      "reason": "IC_ENABLE_STATUS (offset 0x9c) is declared but absent from the read switch; fallback returns 0xffffffff after ENABLE=0. Correct bounded controller-disable waits time out before START."
+    },
+    "gpio_output": {
+      "source": "src/cortex-m33/coprocessor.ts:cp0Gpioc",
+      "reason": "SDK 2.3.1 gpio_put/gpio_set_dir emit MCRR p0 #4; the CP0 handler only handles MCR/MRC and also interprets opc1 as bank instead of operation. SDK GPIO output operations do not reach SIO."
+    },
+    "gpio_irq": {
+      "source": "src/peripherals/io_rp2350.ts:RP2350IO.readUint32/writeUint32",
+      "reason": "Register grouping uses (offset % 0x18) * 0x18. For PROC0_INTE0 0x248 this yields 0xc0, so it cannot select the 0x248 case; GPIO enable/status registers never update/read correctly."
+    }
+  },
+  "baselines": {
+    "raspberry-pi-pico": {
+      "cpu_model": "rp2040",
+      "compiler": "arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1 20210621 (release)",
+      "node": "v24.21.0",
+      "firmware_uf2_sha256": "69dd7b1a95361aed0930864a3eb13d22900e81c628843047785c7d6d75dc06b8",
+      "checks": {
+        "boot_uart_tx_timer": true,
+        "gpio_output": true,
+        "gpio_irq": true,
+        "uart_error_status": false,
+        "i2c_disable_status": false
+      },
+      "observations": {
+        "pico_baseline_done": 1,
+        "pico_baseline_stage": 3,
+        "pico_baseline_elapsed": 100,
+        "pico_baseline_callbacks": 1,
+        "pico_baseline_uart_rsr": 4294967295,
+        "pico_baseline_i2c_enable": 0,
+        "pico_baseline_i2c_enable_status": 4294967295
+      },
+      "gpio25": {
+        "output": true,
+        "enabled": true,
+        "function": 5
+      },
+      "uart": "SDK\n",
+      "instructions": 38912
+    },
+    "raspberry-pi-pico-2": {
+      "cpu_model": "rp2350-arm",
+      "compiler": "arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1 20210621 (release)",
+      "node": "v24.21.0",
+      "firmware_uf2_sha256": "9ebddc6ecb7b042e0aa217e3696b2de363d8d177d8e241952c542c98c31df016",
+      "checks": {
+        "boot_uart_tx_timer": true,
+        "gpio_output": false,
+        "gpio_irq": false,
+        "uart_error_status": false,
+        "i2c_disable_status": false
+      },
+      "observations": {
+        "pico_baseline_done": 1,
+        "pico_baseline_stage": 3,
+        "pico_baseline_elapsed": 100,
+        "pico_baseline_callbacks": 0,
+        "pico_baseline_uart_rsr": 4294967295,
+        "pico_baseline_i2c_enable": 0,
+        "pico_baseline_i2c_enable_status": 4294967295
+      },
+      "gpio25": {
+        "output": false,
+        "enabled": false,
+        "function": 5
+      },
+      "uart": "SDK\n",
+      "instructions": 88320
+    }
+  },
+  "engine_dist_sha256": "60679fa71d5a58e75552e345c60435cc6e3577089c73ca859e8e97ce92902fd9",
+  "diagnosed_sources": {
+    "firmware/ports/pico_sdk/bsp.h": "59de3708e8f213e5bc44298a8b39c6e1af71a85469cb38b6b1429951a075ee33",
+    "firmware/ports/pico_sdk/gpio.c": "67aa47b686ded5f6e9a42e2a57690c0418399bb509803a39abbe17caa3b7e95e",
+    "firmware/ports/pico_sdk/gpio_support.h": "1d49b9b4422d8cce33c369b0804e7d2312e0f483168a11419fe4e46bb96604d8",
+    "firmware/ports/pico_sdk/i2c.c": "68c88e91266c98fa00b7521a3c49373b8b734e9139afdf7e1875e71ecfe24f91",
+    "firmware/ports/pico_sdk/pins.c": "e7a930619ae1d9c36a3fb9c6b5052282b8dfae8e1a7b89a45a0cc88698ba9559",
+    "firmware/ports/pico_sdk/platform.c": "f6de6d7f3604c1ae9fa388eb2d1bc078bd34ac4faeaef15aa357d843d7578c81",
+    "firmware/ports/pico_sdk/spi.c": "40ec7829205803b96b0cb44e1c0d9c21b3d9f2d705c1f8e8648b9a4f1789886a",
+    "firmware/ports/pico_sdk/time.c": "f2c26e55c74b2d9212ee0e9fd128195a223fa0aa189c569e7e1d220c50c74d87",
+    "firmware/ports/pico_sdk/uart.c": "14a83467c82aca81047fc369954f2e3df366b55716012d3ffcd623c8d4f79b4f",
+    "tests/embedded/scenarios/pico_gpio/config.json": "6affec49d6a75fea9a9c71e461f2d681f5a44e0b74a508eb1d789ce42fefdc37",
+    "tests/embedded/scenarios/pico_gpio/main.emel": "91d35e26b0ee6ea908c1d6dd108381da2823e7fa45793a8e9b51788d373e5e26",
+    "tests/embedded/scenarios/pico_gpio/probe.c": "1ee8f7aa7ef2f0d5c711468fccda93ee37d771a01b7cf5f023927ba8fad98a00",
+    "tests/embedded/scenarios/pico_i2c/config.json": "6affec49d6a75fea9a9c71e461f2d681f5a44e0b74a508eb1d789ce42fefdc37",
+    "tests/embedded/scenarios/pico_i2c/main.emel": "b6b7dac91913ccc634e86db1d42b703eef2d8fbb5dff3a79d409a3a658ebfaff",
+    "tests/embedded/scenarios/pico_i2c/probe.c": "1ee8f7aa7ef2f0d5c711468fccda93ee37d771a01b7cf5f023927ba8fad98a00",
+    "tests/embedded/scenarios/pico_peripherals/config.json": "6affec49d6a75fea9a9c71e461f2d681f5a44e0b74a508eb1d789ce42fefdc37",
+    "tests/embedded/scenarios/pico_peripherals/main.emel": "faeff83dd6fe118bf13c9939469ae3073b06b09ffcca047923c1f7f834730e65",
+    "tests/embedded/scenarios/pico_peripherals/probe.c": "1ee8f7aa7ef2f0d5c711468fccda93ee37d771a01b7cf5f023927ba8fad98a00",
+    "tests/embedded/scenarios/pico_spi/config.json": "6affec49d6a75fea9a9c71e461f2d681f5a44e0b74a508eb1d789ce42fefdc37",
+    "tests/embedded/scenarios/pico_spi/main.emel": "6728d68a924c320affcfa6444e990d70b024b56dfa0eff5f29aac1af79f2bab1",
+    "tests/embedded/scenarios/pico_spi/probe.c": "1ee8f7aa7ef2f0d5c711468fccda93ee37d771a01b7cf5f023927ba8fad98a00",
+    "tests/embedded/scenarios/pico_uart/config.json": "6affec49d6a75fea9a9c71e461f2d681f5a44e0b74a508eb1d789ce42fefdc37",
+    "tests/embedded/scenarios/pico_uart/main.emel": "f04a3b0c9670fb808c6afb25b6604c994897df49fde7e71d48ff8161958245fd",
+    "tests/embedded/scenarios/pico_uart/probe.c": "1ee8f7aa7ef2f0d5c711468fccda93ee37d771a01b7cf5f023927ba8fad98a00"
+  }
+}

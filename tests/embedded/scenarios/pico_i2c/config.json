@@ -1,0 +1,14 @@
+{
+  "entry": "main",
+  "exports": [
+    {
+      "function": "main",
+      "symbol": "pico_main"
+    }
+  ],
+  "heap_bytes": 32768,
+  "peripheral_buffer_capacity": 32,
+  "isr_safe_externals": [
+    "pico_callback"
+  ]
+}

@@ -31,12 +31,13 @@ Rust/Cargoは[公式rustup](https://rust-lang.org/learn/get-started/)でstable t
 
 ## ボード別SDK
 
-使用するボードのスクリプトを実行する。両方を実行して共存させることもできる。
+使用するボードのスクリプトを実行する。複数のSDKを共存させることもできる。
 
 | ボード | コマンド | 取得するSDK |
 | --- | --- | --- |
 | NUCLEO-F446RE | `bash tools/setup/nucleo-f446re.sh` | STM32CubeF4 **1.28.3**、必要なHALとCMSIS device submodule |
 | Arduino Nano 33 BLE | `bash tools/setup/arduino-nano-33-ble.sh` | Nordic nrfx **3.2.0**、CMSIS **5.9.0** |
+| Raspberry Pi Pico / Pico 2 | `bash tools/setup/pico-sdk.sh` | Pico SDK **2.3.1**、picotool **2.3.1**、CMake/Ninja |
 
 SDKは公式リポジトリの指定tagから取得する。
 [STM32CubeF4](https://github.com/STMicroelectronics/STM32CubeF4/tree/v1.28.3)では
@@ -44,6 +45,9 @@ HALとCMSIS deviceを親リポジトリが指定するcommitへ揃え、使用�
 [nrfx](https://github.com/NordicSemiconductor/nrfx/tree/v3.2.0)と
 [CMSIS](https://github.com/ARM-software/CMSIS_5/tree/5.9.0)も固定したtagを使用する。
 SDKのライセンスは各取得先に含まれるものを参照する。
+
+Picoは両ボードに同じSDKを使う。SDKのstartup・CPU設定・linkerとpicotoolでELF/BIN/UF2を作る。
+USB・無線を使用しないためSDK submoduleは不要。通常のfirmwareビルド中には追加取得しない。
 
 ## 環境設定とビルド
 
@@ -56,10 +60,11 @@ cargo build --locked -p emelino-cli
 ```
 
 `env.sh`は`ARM_GCC`、`RUSTUP_TOOLCHAIN=stable`、Cargoの`PATH`と、導入したボードの
-`STM32CUBE_F4` / `NRFX_ROOT` / `CMSIS_ROOT`を設定する。
+`STM32CUBE_F4` / `NRFX_ROOT` / `CMSIS_ROOT` / `PICO_SDK_PATH` / `picotool_DIR`を設定する。
 Rustの依存関係と固定したEmela本体のライブラリは、初回のCargoビルド時に取得する。
 続きは[ファームウェアのビルド](embedded/README.md#ビルド)と
-[Nano 33 BLEのビルド](embedded/nrf52/README.md#ビルド)を参照する。
+[Nano 33 BLEのビルド](embedded/nrf52/README.md#ビルド)、
+[Pico / Pico 2のビルド](embedded/pico/README.md#セットアップとビルド)を参照する。
 そこで手動指定しているSDKの`export`は、この環境設定で済んでいる。
 
 ## 実行内容の確認・インストール先の変更
@@ -86,10 +91,16 @@ source "$HOME/.local/share/emelino/env.sh"
     common.sh
     nucleo-f446re.sh
     arduino-nano-33-ble.sh
+    pico-sdk.sh
+    rp2350js.sh                 # エミュレータを追加した場合
   embedded-sdk/
     STM32CubeF4-1.28.3/
     nrfx-3.2.0/
     cmsis-5.9.0/
+    pico-sdk-2.3.1/
+    picotool-2.3.1/
+  picotool-2.3.1/
+  rp2350js-eefa1d62/            # エミュレータを追加した場合
 ```
 
 同じコマンドは再実行できる。SDKのtag・取得元・変更状態を確認して再利用する。
@@ -99,6 +110,19 @@ source "$HOME/.local/share/emelino/env.sh"
 Renodeによるシミュレーションには、別途[Renode](https://renode.readthedocs.io/en/latest/introduction/installing.html)
 を導入し、必要に応じて`RENODE`へ実行ファイルを指定する。検証済み版は1.16.1。
 導入後は[Renode試験](embedded/README.md#renode試験)を参照する。
+
+Pico / Pico 2は無料OSSのrp2350jsをローカルで使う。
+Node.js 18以降とnpmを用意し、任意のsetupを実行する。Pico SDKビルドだけなら不要。
+
+```sh
+bash tools/setup/rp2350js.sh
+source .local/env.sh
+python3 tools/test_embedded.py --board raspberry-pi-pico --scenario all
+python3 tools/test_embedded.py --board raspberry-pi-pico-2 --scenario all --build-only
+```
+
+engineのsource revisionとnpm依存を固定し、`RP2350JS_DIR` を環境fragmentへ保存する。
+実行結果とモデル制約の扱いは[Picoの検証手順](embedded/pico/README.md#無料のローカル検証)を参照する。
 
 セットアップスクリプトの回帰試験は次で実行する。aptとrustupはテスト用コマンドへ置換し、
 SDKはローカルGitリポジトリから取得するため、システムの変更やネットワークアクセスは発生しない。

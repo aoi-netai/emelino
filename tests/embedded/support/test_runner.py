@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests/embedded"))
-from support.common import target_source
+from support.common import load_target, target_source
 
 
 class RunnerFailureTest(unittest.TestCase):
@@ -87,6 +87,33 @@ pub fn main() -> Int {
                         {"pins": {"uart": 1}}, {"pins": {"input": -1}}):
             with self.subTest(setting=setting), self.assertRaises(ValueError):
                 target_source(setting)
+
+    def test_pico_target_selects_distinct_cpu_models(self):
+        self.assertEqual(load_target("raspberry-pi-pico")["cpu_model"], "rp2040")
+        self.assertEqual(load_target("raspberry-pi-pico-2")["cpu_model"], "rp2350-arm")
+
+    def test_pico_target_rejects_wrong_cpu_and_simulator(self):
+        target = json.loads((ROOT / "tests/embedded/targets/raspberry-pi-pico-2.json").read_text())
+        for key, value in (("cpu_model", "rp2040"), ("simulator", "renode")):
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as directory:
+                broken = dict(target, **{key: value})
+                path = Path(directory) / "target.json"
+                path.write_text(json.dumps(broken))
+                with self.assertRaises(ValueError):
+                    load_target("raspberry-pi-pico-2", path)
+
+    def test_pico_build_does_not_require_renode_or_claim_runtime_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            result = self.invoke("--board", "raspberry-pi-pico", "--scenario", "pico_gpio",
+                                 "--build-only", "--emelino", output / "missing-emelino",
+                                 "--output-dir", output, "--renode", output / "missing-renode")
+            self.assertEqual(result.returncode, 1)
+            report = json.loads((output / "report.json").read_text())
+            self.assertEqual(report["build_status"], "failed")
+            self.assertEqual(report["runtime_status"], "not_run")
+            self.assertIn("missing-emelino", report["error"])
+            self.assertNotIn("missing-renode", report["error"])
 
 
 if __name__ == "__main__":

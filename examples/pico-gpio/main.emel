@@ -1,0 +1,19 @@
+import Embedded.Board.{BoardGpio}
+import Embedded.Gpio
+
+# Pico and Pico 2: GP25 is the active-high LED. Connect GP2 to GND for an edge.
+fn on_input(event: Gpio.GpioEvent) -> () {
+  with BoardGpio {
+    (use Gpio.Gpio).toggle(Gpio.GpioPin(25))
+  } escape { Gpio.GpioError(_) -> () }
+}
+
+pub fn main() -> Int {
+  with BoardGpio {
+    gpio = use Gpio.Gpio
+    gpio.configure(Gpio.GpioPin(25), Gpio.OutputPushPull())
+    gpio.configure(Gpio.GpioPin(2), Gpio.Input(Gpio.Up))
+    gpio.enable_interrupt(Gpio.GpioPin(2), Gpio.Falling, on_event: on_input)
+    0
+  } escape { Gpio.GpioError(_) -> 1 }
+}

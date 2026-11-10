@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "board": "raspberry-pi-pico",
+  "chip": "rp2040",
+  "physical_board": "Raspberry Pi Pico",
+  "port": "pico_sdk",
+  "pico_board": "pico",
+  "pico_platform": "rp2040",
+  "flash_bytes": 2097152,
+  "clock": {
+    "source": "sdk",
+    "frequency_hz": 125000000
+  },
+  "pins": {
+    "led": 25,
+    "spi_cs": 17
+  },
+  "gpio_pin_mask": 511705087,
+  "peripherals": {
+    "uart0": {
+      "tx_pin": 0,
+      "rx_pin": 1
+    },
+    "spi1": {
+      "sck_pin": 18,
+      "miso_pin": 16,
+      "mosi_pin": 19
+    },
+    "i2c1": {
+      "scl_pin": 5,
+      "sda_pin": 4
+    }
+  }
+}

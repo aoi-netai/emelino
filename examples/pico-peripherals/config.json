@@ -1,0 +1,6 @@
+{
+  "entry": "main",
+  "exports": [{"function": "main", "symbol": "pico_peripherals_example_main"}],
+  "heap_bytes": 8192,
+  "peripheral_buffer_capacity": 32
+}
