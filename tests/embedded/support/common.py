@@ -52,9 +52,17 @@ def load_target(board, path=None):
         raise ValueError("test target does not match the selected board")
     profile, chip, _ = load_profiles(board)
     port = profile["port"]
-    if target["renode_port"] != port:
+    simulator = target.get("simulator", "renode")
+    if simulator not in {"renode", "rp2350js"}:
+        raise ValueError("unsupported test simulator: " + str(simulator))
+    if target.get("firmware_port", target.get("renode_port")) != port:
         raise ValueError("test target and firmware port disagree")
-    target.update(profile=profile, chip=chip, port=port)
+    if (simulator == "rp2350js") != (port == "pico_sdk"):
+        raise ValueError("test simulator and firmware port disagree")
+    expected_cpu = {"raspberry-pi-pico": "rp2040", "raspberry-pi-pico-2": "rp2350-arm"}
+    if simulator == "rp2350js" and target.get("cpu_model") != expected_cpu.get(board):
+        raise ValueError("test CPU model does not match the selected board")
+    target.update(profile=profile, chip=chip, port=port, simulator=simulator)
     if not isinstance(target.get("scenarios"), dict) or not target["scenarios"]:
         raise ValueError("test target must select at least one scenario")
     for name, settings in target["scenarios"].items():
@@ -63,6 +71,17 @@ def load_target(board, path=None):
             raise ValueError("invalid scenario settings: " + name)
         if settings.get("port", port) != port:
             raise ValueError("scenario does not support this firmware port: " + name)
+        if simulator == "rp2350js":
+            # These fixtures and their Node peers use the initial fixed Pico
+            # wiring. Do not label a run with bindings the firmware ignores.
+            if settings.keys() - {"port", "bindings", "checks", "uart", "spi", "i2c"}:
+                raise ValueError("Pico scenarios do not support alternate wiring or probe settings")
+            if settings.get("bindings") is not True:
+                raise ValueError("Pico scenarios require their fixed fixture bindings")
+            for bus, fixed in (("uart", 0), ("spi", 1), ("i2c", 1)):
+                value_ = settings.get(bus, fixed)
+                if type(value_) is not int or value_ != fixed:
+                    raise ValueError("Pico scenarios require fixed uart0/spi1/i2c1 bindings")
     return target
 
 
@@ -104,15 +123,13 @@ def target_source(settings):
     return "\n".join(imports + lines) + "\n"
 
 
-def build_firmware(args, report, scenario):
+def build_artifacts(args, report, scenario):
+    """Build independently of the selected simulator and retain build evidence."""
+    report.update(build_status="failed", runtime_status="not_run")
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
     for name in ("model.log", "renode.log", "uart.log", "report.json"):
         (output / name).unlink(missing_ok=True)
-    found = shutil.which(str(Path(args.renode or os.environ.get("RENODE") or "renode").expanduser()))
-    if not found:
-        raise ValueError("Renode not found; pass --renode or set RENODE")
-    renode = Path(found).resolve()
     fixture = TESTS / "scenarios" / scenario
     settings = args.target["scenarios"][scenario]
     source, config = fixture / "main.emel", fixture / "config.json"
@@ -132,7 +149,10 @@ def build_firmware(args, report, scenario):
                  "--generated-dir", generated, "--output-dir", firmware,
                  "--optimization", args.optimization]]
     probe = fixture / "probe.c" if settings.get("bindings") else TESTS / "ports" / args.target["port"] / (scenario + "_probe.c")
-    commands[1] += ["--source", probe]
+    if probe.is_file():
+        commands[1] += ["--source", probe]
+    elif settings.get("probe", True):
+        raise ValueError("missing scenario probe: " + str(probe))
     for symbol in settings.get("wrap", []):
         commands[1].append("--link-arg=-Wl,--wrap=" + symbol)
     for flag, value_ in (("--cc", args.cc), ("--sdk-dir", args.sdk_dir)):
@@ -155,7 +175,17 @@ def build_firmware(args, report, scenario):
                    "resources": manifest["resources"], "firmware_sha256": manifest["sha256"]["firmware.bin"],
                    "compiler": manifest["compiler"], "sdk": manifest["sdk"],
                    "test_settings": settings})
-    return output, renode, manifest, symbols
+    report["build_status"] = "passed"
+    return output, manifest, symbols
+
+
+def build_firmware(args, report, scenario):
+    """Compatibility entry for existing Renode scenarios."""
+    output, manifest, symbols = build_artifacts(args, report, scenario)
+    found = shutil.which(str(Path(args.renode or os.environ.get("RENODE") or "renode").expanduser()))
+    if not found:
+        raise ValueError("Renode not found; pass --renode or set RENODE")
+    return output, Path(found).resolve(), manifest, symbols
 
 
 @contextmanager

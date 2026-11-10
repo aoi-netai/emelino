@@ -1,0 +1,53 @@
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+import Embedded.Interrupt.{Normal}
+@external(c, "pico_check")
+fn raw_check(number: Int, success: Int) -> () uses {}
+@external(c, "pico_wait")
+fn wait_stage(stage: Int) -> () uses {}
+@external(c, "pico_finish")
+fn finish() -> () uses {}
+@external(c, "pico_callback")
+fn callback() -> () uses {}
+@external(c, "pico_callback_count")
+fn callback_count() -> Int uses {}
+fn on_pin(event: Gpio.GpioEvent) -> () { callback() }
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn is_high(state: Gpio.PinState) -> Bool { state match {
+ Gpio.High -> True
+ Gpio.Low -> False
+} }
+fn spi_config(bits: Spi.SpiDataSize) -> Spi.SpiConfig {
+  Spi.SpiConfig(Spi.Master, Spi.TwoLine, bits, Spi.IdleLow,
+    Spi.FirstEdge, 1000000, Spi.MostSignificantFirst)
+}
+pub fn main() -> () {
+  with BoardGpio { with BoardUart { with BoardSpi { with BoardI2c {
+        spi = use Spi.Spi
+        spi.configure(Spi.Spi1, spi_config(Spi.Bits8))
+        check(20, spi.transfer(Spi.Spi1, [18, 52], 20) == [18, 52])
+        device = spi.create_device(Spi.SpiDeviceConfig(Spi.Spi1, spi_config(Spi.Bits8),
+          Gpio.GpioPin(17), Gpio.Low, 1, 1))
+        check(21, spi.transaction(device, [Spi.Transfer([86, 120])], 20) == [[86, 120]])
+        spi.configure(Spi.Spi1, spi_config(Spi.Bits16))
+        check(22, spi.transfer(Spi.Spi1, [4660], 20) == [4660])
+        spi.recover(Spi.Spi1)
+        check(23, {
+          spi.configure(Spi.Spi2, spi_config(Spi.Bits8))
+          False
+        } escape { Spi.SpiError(Spi.Unsupported) -> True
+          Spi.SpiError(_) -> False })
+  } } } } escape {
+    Gpio.GpioError(_) -> raw_check(96, 0)
+    Uart.UartError(Uart.Overrun) -> raw_check(9701, 0)
+    Uart.UartError(_) -> raw_check(97, 0)
+    Spi.SpiError(_) -> raw_check(98, 0)
+    Spi.SpiTransactionError(_, _) -> raw_check(99, 0)
+    I2c.I2cError(I2c.Timeout) -> raw_check(10001, 0)
+    I2c.I2cError(_) -> raw_check(100, 0)
+  }
+  finish()
+}

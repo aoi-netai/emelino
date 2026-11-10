@@ -1,0 +1,39 @@
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+
+# GP numbers are identical on Pico and Pico 2; they are not header pin numbers.
+fn on_input(event: Gpio.GpioEvent) -> () {
+  with BoardGpio {
+    (use Gpio.Gpio).toggle(Gpio.GpioPin(25))
+  } escape { Gpio.GpioError(_) -> () }
+}
+
+pub fn main() -> Int {
+  with BoardGpio {
+    with BoardUart {
+      with BoardSpi {
+        with BoardI2c {
+          gpio = use Gpio.Gpio
+          gpio.configure(Gpio.GpioPin(25), Gpio.OutputPushPull())
+          gpio.configure(Gpio.GpioPin(2), Gpio.Input(Gpio.Up))
+          gpio.enable_interrupt(Gpio.GpioPin(2), Gpio.Falling, on_event: on_input)
+          uart = use Uart.Uart
+          uart.configure(Uart.Uart0, Uart.UartConfig(115200))
+          (use Spi.Spi).create_device(Spi.SpiDeviceConfig(Spi.Spi1,
+            Spi.SpiConfig(max_frequency_hz: 1000000), cs: Gpio.GpioPin(17)))
+          (use I2c.I2c).configure(I2c.I2c1)
+          uart.transmit(Uart.Uart0, [82, 69, 65, 68, 89, 10], 20)
+          0
+        }
+      }
+    }
+  } escape {
+    Gpio.GpioError(_) -> 1
+    Uart.UartError(_) -> 2
+    Spi.SpiTransactionError(_, _) -> 3
+    I2c.I2cError(_) -> 4
+  }
+}

@@ -1,0 +1,61 @@
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+import Embedded.Interrupt.{Normal}
+@external(c, "pico_check")
+fn raw_check(number: Int, success: Int) -> () uses {}
+@external(c, "pico_wait")
+fn wait_stage(stage: Int) -> () uses {}
+@external(c, "pico_finish")
+fn finish() -> () uses {}
+@external(c, "pico_callback")
+fn callback() -> () uses {}
+@external(c, "pico_callback_count")
+fn callback_count() -> Int uses {}
+fn on_pin(event: Gpio.GpioEvent) -> () { callback() }
+fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
+fn is_high(state: Gpio.PinState) -> Bool { state match {
+ Gpio.High -> True
+ Gpio.Low -> False
+} }
+fn spi_config(bits: Spi.SpiDataSize) -> Spi.SpiConfig {
+  Spi.SpiConfig(Spi.Master, Spi.TwoLine, bits, Spi.IdleLow,
+    Spi.FirstEdge, 1000000, Spi.MostSignificantFirst)
+}
+pub fn main() -> () {
+  with BoardGpio { with BoardUart { with BoardSpi { with BoardI2c {
+        i2c = use I2c.I2c
+        i2c.configure(I2c.I2c1, I2c.I2cConfig(100000, I2c.Standard))
+        check(30, i2c.write_read(I2c.I2c1, 80, [208], 1, 20) == [85])
+        i2c.memory_write(I2c.I2c1, 80, 32, I2c.Bits8, [68, 85], 20)
+        check(31, i2c.write_read(I2c.I2c1, 80, [32], 2, 20) == [68, 85])
+        i2c.master_transmit(I2c.I2c1, 80, [32], 20)
+        check(32, i2c.write_read(I2c.I2c1, 80, [], 2, 20) == [68, 85])
+        check(33, {
+          i2c.is_device_ready(I2c.I2c1, 80, 1, 20)
+          False
+        } escape { I2c.I2cError(I2c.Unsupported) -> True
+          I2c.I2cError(_) -> False })
+        i2c.enable_interrupt(I2c.I2c1, Normal)
+        check(34, i2c.write_read(I2c.I2c1, 80, [208], 1, 20) == [85])
+        i2c.disable_interrupt(I2c.I2c1)
+        check(35, {
+          i2c.master_transmit(I2c.I2c1, 81, [1], 20)
+          False
+        } escape { I2c.I2cError(I2c.Nack) -> True
+          I2c.I2cError(_) -> False })
+        i2c.recover(I2c.I2c1, 20)
+        check(36, i2c.write_read(I2c.I2c1, 80, [208], 1, 20) == [85])
+  } } } } escape {
+    Gpio.GpioError(_) -> raw_check(96, 0)
+    Uart.UartError(Uart.Overrun) -> raw_check(9701, 0)
+    Uart.UartError(_) -> raw_check(97, 0)
+    Spi.SpiError(_) -> raw_check(98, 0)
+    Spi.SpiTransactionError(_, _) -> raw_check(99, 0)
+    I2c.I2cError(I2c.Timeout) -> raw_check(10001, 0)
+    I2c.I2cError(_) -> raw_check(100, 0)
+  }
+  finish()
+}

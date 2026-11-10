@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "board": "raspberry-pi-pico",
+  "firmware_port": "pico_sdk",
+  "simulator": "rp2350js",
+  "cpu_model": "rp2040",
+  "scenarios": {
+    "pico_gpio": {
+      "bindings": true,
+      "checks": 3,
+      "uart": 0,
+      "spi": 1,
+      "i2c": 1
+    },
+    "pico_uart": {
+      "bindings": true,
+      "checks": 4,
+      "uart": 0,
+      "spi": 1,
+      "i2c": 1
+    },
+    "pico_spi": {
+      "bindings": true,
+      "checks": 4,
+      "uart": 0,
+      "spi": 1,
+      "i2c": 1
+    },
+    "pico_i2c": {
+      "bindings": true,
+      "checks": 7,
+      "uart": 0,
+      "spi": 1,
+      "i2c": 1
+    },
+    "pico_peripherals": {
+      "bindings": true,
+      "checks": 18,
+      "uart": 0,
+      "spi": 1,
+      "i2c": 1
+    }
+  }
+}

@@ -34,6 +34,9 @@ bash tools/setup/nucleo-f446re.sh
 
 # Arduino Nano 33 BLE: Nordic nrfx 3.2.0 + CMSIS 5.9.0
 bash tools/setup/arduino-nano-33-ble.sh
+
+# Raspberry Pi Pico / Pico 2: Pico SDK 2.3.1 + picotool
+bash tools/setup/pico-sdk.sh
 ```
 
 共通・ボード別セットアップの完了後、環境設定を読み込んでCLIをビルドします。
@@ -45,6 +48,10 @@ cargo build --locked -p emelino-cli
 
 各スクリプトは`--dry-run`で実行内容を確認できます。
 インストール先の変更や再実行については[セットアップ手順](docs/setup.md)を参照してください。
+
+[Pico / Pico 2の手順](docs/embedded/pico/README.md)では、同じEmelaアプリから
+RP2040・RP2350向けのELF/BIN/UF2を作れます。任意の実行検証には無料のローカルOSSである
+rp2350jsを使用します。GPIO・4driver同時使用サンプルと、ビルドのみの検証入口も用意しています。
 
 センサーライブラリのサンプルとして、[LSM9DS1の6軸IMU読み出し](examples/lsm9ds1/README.md)を用意しています。
 NUCLEO-F446REでI²CまたはSPIを使い、加速度3軸と角速度3軸をUARTへ出力します。

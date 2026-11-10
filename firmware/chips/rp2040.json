@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "rp2040",
+  "port": "pico_sdk",
+  "mcu": "RP2040",
+  "cpu": "cortex-m0plus",
+  "flash_origin": 268435456,
+  "ram_origin": 536870912,
+  "ram_bytes": 270336,
+  "gpio_pin_mask": 1073741823,
+  "analog_pin_mask": 1006632960
+}

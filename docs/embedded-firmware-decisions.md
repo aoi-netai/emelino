@@ -1,6 +1,6 @@
 # 組み込みインターフェースとfirmware接続の決定メモ
 
-記録日：2026-11-03
+記録日：2026-11-03。Pico / Pico 2対応の追記：2026-11-10。
 
 GPIO・UART・SPI・I2Cの共通インターフェースと、生成Cを実機へ接続する方式についての決定を記録する。
 決定した仕様、検討中の構成案、実装状況を分ける。ここに記載した機能がすべて実装・実機検証済みという意味ではない。
@@ -8,12 +8,14 @@ GPIO・UART・SPI・I2Cの共通インターフェースと、生成Cを実機�
 ## 対象範囲と初期ボード
 
 用途はホビーと一般的な産業用途とし、特殊なケースの網羅は目指さない。
-次の4ボードを初期の対応・検証対象にする。
+次のボードを対応・検証対象にする。未実装の候補も含む。
 
 | 系統 | ボード | マイコン |
 | --- | --- | --- |
 | STM32 | NUCLEO-F446RE | STM32F446RE |
 | Raspberry Pi Pico | 公式 Raspberry Pi Pico | RP2040 |
+| Raspberry Pi Pico | 公式 Raspberry Pi Pico 2 | RP2350A、Arm Cortex-M33 |
+| Nordic | Arduino Nano 33 BLE | nRF52840 |
 | ESP32 | ESP32-S3-DevKitC-1 | ESP32-S3 |
 | Arduino | UNO R4 Minima | Renesas RA4M1 |
 
@@ -138,20 +140,22 @@ EmelaアプリのEmbedded.*操作
 ビルドは、アプリとランタイムを含む生成Cに、BSP・配線設定・SDKのドライバー・startup・リンカ設定を加えて行う。
 過去の実装を参考に、生成物一覧、ABI版、必要サービス、ビルド結果と入力の対応を管理する。
 
-STM32F4は以下の構成で実装した。残り3ボードのSDK・ビルド方式は検討案。
+STM32F4・nRF52・Pico SDKは以下の構成で実装する。ESP32とUNO R4は検討案。
 
 | ボード | SDK・ビルドの候補 | 接続案 |
 | --- | --- | --- |
 | NUCLEO-F446RE | STM32CubeF4 1.28.3 HAL GPIO/UART/SPI/I2C・CMSIS、Python build + ARM GCC | BSPの`main()`から生成側の入口を呼ぶ。startup/linkerはBSPが提供 |
-| Raspberry Pi Pico | Pico C/C++ SDK、CMake | `PICO_BOARD=pico`で生成CとBSPを組み込む |
+| Arduino Nano 33 BLE | Nordic nrfx 3.2.0 / CMSIS 5.9.0、Python build + ARM GCC | STM32と共通のM4F startup/linker、Nordic BSP |
+| Raspberry Pi Pico | Pico SDK 2.3.1、CMake、picotool 2.3.1 | `PICO_BOARD=pico` / `PICO_PLATFORM=rp2040`、SDK startup/linker |
+| Raspberry Pi Pico 2 | Pico SDK 2.3.1、CMake、picotool 2.3.1 | `PICO_BOARD=pico2` / `PICO_PLATFORM=rp2350-arm-s`、SDK startup/linker |
 | ESP32-S3-DevKitC-1 | ESP-IDF | 生成CとBSPをcomponentにし、`app_main()`から起動する |
 | UNO R4 Minima | ArduinoCore-renesas、arduino-cli | Cでコンパイルする生成物と、Arduino APIを呼ぶC++の接続層を組み合わせる |
 
 STM32F4では生成側が通常処理のスケジューラーを所有し、setupのreturn後もBSPはWFIで待機してGPIO割り込みを受ける。
-ほかのSDKの実行主体・起動・待機との接続は今後詰める。
+nRF52とPicoもsetupのreturn後にGPIO購読とIRQを維持する。Picoはcore 0のみで起動する。
 GPIOのISR直接呼び出しを理由に、常駐イベントループを必須にはしない。
 
-## 記録時点の実装状況と残作業
+## 2026-11-03時点の実装状況と残作業
 
 | 項目 | 状態 |
 | --- | --- |
@@ -173,6 +177,19 @@ UART・I2Cの割り込み設定は内部処理を切り替え、公開宣言に�
 SPI SlaveとUART RTS/CTSは初期board配線に含めず `Unsupported` を返す。
 実装・実行手順は [ボード向けfirmware](embedded/README.md) を参照する。
 UARTの送信完了条件など、候補として挙げただけの追加変更を決定済みとして扱わない。
+
+### 2026-11-10: Pico / Pico 2の受入条件
+
+Pico SDKによる通常のコンパイル・linkでELFを生成することを、今回のボード追加の主要な受入条件にする。
+GPIO・UART・SPI・I2Cと同時使用を2ボードの `-Os` / `-O0` でビルドし、無料OSSの
+rp2350jsで実行できる範囲を追加確認する。ELF生成と実行成功は別の結果として保存する。
+SDKの素のCでも再現するモデル制約は根拠を記録し、原因不明の実行失敗を制約へ自動分類しない。
+有料サービス・クラウド実行環境や、エミュレータ全周辺機器の完成は前提にしない。
+この受入条件は今回のPico対応に限定し、既存compiler・STM32・nRF52の検証方針は継続する。
+
+RP2350はArm版、両方ともcore 0のみ。公開ID `Spi1` / `I2c1` をhardware SPI0/I2C0へ接続し、
+I2Cのaddress-only `is_device_ready` は初期portでは `Unsupported` にする。
+詳細は[Pico / Pico 2の接続仕様と手順](embedded/pico/README.md)を参照する。
 
 2026-11-04追記：相手デバイスを含むRenode試験として、標準BMP180とMicron MT25Qを接続した。
 BMP180は旧STM32モデルのADDR/AF/受信FIFO動作を修正したモデルを使用し、HAL/BSPは変更していない。

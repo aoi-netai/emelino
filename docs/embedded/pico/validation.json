@@ -1,0 +1,1178 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-10",
+  "branch": "feat/pico-rp2040-rp2350",
+  "acceptance": "Official Pico SDK ELF build; emulator results kept separate",
+  "compiler": "arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1 20210621 (release)",
+  "sdk": {
+    "version": "2.3.1",
+    "revision": "079c6f39023649b154152db30f1d781e884879bc",
+    "source_tree_sha256": "fd2ebe31461090dfdf4f813f5584cb617f52c151f041d62b2f5d8106832c9f35"
+  },
+  "engine": {
+    "repository": "https://github.com/c1570/rp2350js.git",
+    "revision": "eefa1d62e82902c8f9986ab9293cf273bda30583",
+    "version": "2.0.1",
+    "node_minimum": 18,
+    "install": "npm ci --ignore-scripts --no-audit --no-fund",
+    "build": "npm run build",
+    "bootroms": {
+      "rp2040": "bundled RP2040 B1",
+      "rp2350-arm": "bundled RP2350 A2"
+    },
+    "dist_sha256": "60679fa71d5a58e75552e345c60435cc6e3577089c73ca859e8e97ce92902fd9",
+    "node": "v24.21.0"
+  },
+  "tools": {
+    "cmake": {
+      "version": "cmake version 3.22.1",
+      "sha256": "fd22547781b64bb2db04370970b93db1f3fada1e41e60873b015ee0747009fc0"
+    },
+    "picotool": {
+      "version": "picotool v2.3.1 (Linux, GNU-11.4.0, Release)",
+      "sha256": "2413a9ceb5f97004f95d69b34a3791c9ae589cc4d3ff11f89e1364138804941e"
+    }
+  },
+  "totals": {
+    "build_passed": 20,
+    "runtime_passed": 4,
+    "runtime_model_limited": 16,
+    "failed": 0
+  },
+  "matrix": [
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "Os",
+      "scenario": "pico_gpio",
+      "build_status": "passed",
+      "runtime_status": "passed",
+      "artifacts": {
+        "firmware.elf": "74b831844328c3ab0c3443b8efb78b57396c273a7ea081f4c5206b39ac65d2f2",
+        "firmware.bin": "1bb4718b4da80e7186d94a33f71c75a2a4947fbe81f1e766b9541f0c599fd0d8",
+        "firmware.uf2": "9bb9e1814999f6a037e24ade49a09e237b6256003c1bbdadae7d1f896f1a0f42"
+      },
+      "resources": {
+        "flash_bytes": 25996,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 35236,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 64000,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 3,
+          "pico_test_failed": 0,
+          "pico_test_last_failed": 0,
+          "pico_test_callbacks": 1,
+          "pico_test_isr": 1,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [],
+        "uart": "",
+        "gpio25": {
+          "output": true,
+          "enabled": true,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico/Os/pico_gpio/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "Os",
+      "scenario": "pico_uart",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "d93bdd47cbf23f6aaf5314cc3fbcbd189a63fb7d4b5e008e820fce00ca238f6d",
+        "firmware.bin": "d18f4b2d8157614e10c3a0fc8172beb4f1002e9d02da7fccd50544e63ef94d1c",
+        "firmware.uf2": "7e87913768f4cab8df503483005f6b9db026eccb65c9115675da4992ce75e5ac"
+      },
+      "resources": {
+        "flash_bytes": 23356,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 34728,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 66560,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 2,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 9701,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico/Os/pico_uart/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "Os",
+      "scenario": "pico_spi",
+      "build_status": "passed",
+      "runtime_status": "passed",
+      "artifacts": {
+        "firmware.elf": "dfc4875872afc9b8baa0cb10bd22e53f9a9e7b22e9156b3145b64210f84126ff",
+        "firmware.bin": "2c2e700c04b8d85d25849158578707de9136f2a8ba5c4387612f5aaa9648f5d9",
+        "firmware.uf2": "457600841c132dc6dede3fbd06dcb8ecd2c2f5594bc24b5b41387c6e493ceaa7"
+      },
+      "resources": {
+        "flash_bytes": 23756,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 34720,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 158976,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 4,
+          "pico_test_failed": 0,
+          "pico_test_last_failed": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": [
+          18,
+          52,
+          86,
+          120,
+          4660
+        ]
+      },
+      "limitations": [],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico/Os/pico_spi/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "Os",
+      "scenario": "pico_i2c",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "d538cd8ae691beda48d38d9e267bb6a5bd5803e94c4fea8addbc4361ef9a8a58",
+        "firmware.bin": "702d847d557bee665f34120b5799b680d028cfc55f3e8bf08bfc2d699b66082a",
+        "firmware.uf2": "5481edf8146d02ba7d67261f2e7a8e900f6b9f64e2d8385c79b976373caed4f6"
+      },
+      "resources": {
+        "flash_bytes": 23916,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 34720,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 1289728,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 1,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 10001,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          10001
+        ],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "i2c_disable_status"
+      ],
+      "not_exercised": [
+        "I2C transfers, Repeated START, IRQ, recovery (no bus transaction started)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico/Os/pico_i2c/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "Os",
+      "scenario": "pico_peripherals",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "659636487224472d181217a0786a01bb5edd7eef6566fee03c82cab648976c17",
+        "firmware.bin": "5f11ae0693543abcd26c67fe0478ada5978b7e6e911f39c5a7479f5016d8b5d1",
+        "firmware.uf2": "3935b8524cb5c16b82bbb2a3ccc6fb8a28c029a97cc42e8b1f2b65cec1bb21a1"
+      },
+      "resources": {
+        "flash_bytes": 31656,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 35236,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 71424,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 5,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 9701,
+          "pico_test_callbacks": 1,
+          "pico_test_isr": 1,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": true,
+          "enabled": true,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks",
+        "SPI and I2C in this combined scenario (tested separately)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico/Os/pico_peripherals/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "O0",
+      "scenario": "pico_gpio",
+      "build_status": "passed",
+      "runtime_status": "passed",
+      "artifacts": {
+        "firmware.elf": "b8caf8715b15f5945659ffbe57d2f321659a3d48b24e012edcf867d99b2bfdaf",
+        "firmware.bin": "f1b0ac7e6ce76ae084b0ec08d0d451fe5195b869d7ad05ee4a8b7f034a4fed02",
+        "firmware.uf2": "4ece9694b2312fad1868df2b462eaac2d8d4347cd63c4d3e466888bf52e9bd52"
+      },
+      "resources": {
+        "flash_bytes": 61508,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 35204,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 76800,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 3,
+          "pico_test_failed": 0,
+          "pico_test_last_failed": 0,
+          "pico_test_callbacks": 1,
+          "pico_test_isr": 1,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [],
+        "uart": "",
+        "gpio25": {
+          "output": true,
+          "enabled": true,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico/O0/pico_gpio/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "O0",
+      "scenario": "pico_uart",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "70671d964d082872c7eefa0b683ea6a0ac7653f906ef25685f8761067aadceff",
+        "firmware.bin": "91fffb88b984eeb16a96fe271149f79300eb8ed0070531e001e4d678c0994457",
+        "firmware.uf2": "9cd5b87a2ecf4dde0c12d19caba493941fe600a2458596a7e64228b78f3b7e35"
+      },
+      "resources": {
+        "flash_bytes": 58124,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 34712,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 83456,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 2,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 9701,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico/O0/pico_uart/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "O0",
+      "scenario": "pico_spi",
+      "build_status": "passed",
+      "runtime_status": "passed",
+      "artifacts": {
+        "firmware.elf": "4aba22ebd0ea8350a6b1241b98bdd4b1af8d11a4362ab9e7938a9bd01755ef8b",
+        "firmware.bin": "5769b31a5a30f78ca6016e8dd72766e92b95c3aa16321d4973edcf15d1d9bc35",
+        "firmware.uf2": "cd9308ba972d721d6d95d3ca4d01d396e88915ac56003053ec68d68b7e4d3eac"
+      },
+      "resources": {
+        "flash_bytes": 59124,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 34704,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 252928,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 4,
+          "pico_test_failed": 0,
+          "pico_test_last_failed": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": [
+          18,
+          52,
+          86,
+          120,
+          4660
+        ]
+      },
+      "limitations": [],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico/O0/pico_spi/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "O0",
+      "scenario": "pico_i2c",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "141989bef50969467e09e5ccf5675efd55e28604e13cc18fd8782aaabc664906",
+        "firmware.bin": "8e27f9721ae3250fb0907dad905e9f5a598f4acd034a8c3d48f10e88cbadc057",
+        "firmware.uf2": "a089a88f5b9d543c719550be7650f48486d84c45d724cb96f45d698f4dcedda1"
+      },
+      "resources": {
+        "flash_bytes": 59876,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 34704,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 1497856,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 1,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 10001,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          10001
+        ],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "i2c_disable_status"
+      ],
+      "not_exercised": [
+        "I2C transfers, Repeated START, IRQ, recovery (no bus transaction started)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico/O0/pico_i2c/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico",
+      "optimization": "O0",
+      "scenario": "pico_peripherals",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "c93533ad3b2f6bdc2a3fec12dc0f8a37213667ce3b34caeb9ca70ae965af3a81",
+        "firmware.bin": "e5182e598430719635e2a7e1e5a0b2edd0f8aaa64443f944bcf7f05d0945fa33",
+        "firmware.uf2": "5ce09bfe47a85c93fe9b9c7dfcee20f21ff0e11ad42d19e79cdb0490ca5ffc01"
+      },
+      "resources": {
+        "flash_bytes": 79488,
+        "flash_capacity": 2097152,
+        "static_ram_bytes": 35204,
+        "ram_capacity": 270336,
+        "application_ram_capacity": 253696,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 94208,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 5,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 9701,
+          "pico_test_callbacks": 1,
+          "pico_test_isr": 1,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": true,
+          "enabled": true,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks",
+        "SPI and I2C in this combined scenario (tested separately)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico/O0/pico_peripherals/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "Os",
+      "scenario": "pico_gpio",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "05cbc50d219aba12c378dc56f300cdce4627744887e3afeea22c8e1bbe5f35d2",
+        "firmware.bin": "0bd61c6ccd8aff4e4ed6d6c7b0da77b13cda138baacbd64bec42a2857cfd7d93",
+        "firmware.uf2": "69ec7d7736041ad607c7f56fb4ae028b01af80aca5e63f0d4b7ba4e3eb0492d5"
+      },
+      "resources": {
+        "flash_bytes": 24296,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35552,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 54528,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 3,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 2,
+          "pico_test_callbacks": 0,
+          "pico_test_isr": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          2
+        ],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "gpio_irq",
+        "gpio_output"
+      ],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/Os/pico_gpio/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "Os",
+      "scenario": "pico_uart",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "4529c29b0e2c43c3f5ff10b059ce65bde68c68e2b5f04513568b4761684f2ad5",
+        "firmware.bin": "ba8b036388a6bf319ffbf7984ca9040430a1c004793b58725903f134f24c5be9",
+        "firmware.uf2": "8d0674518bb46d6794426650bdd23a7fac0d5771914ba88c5bb5909d3eabe15a"
+      },
+      "resources": {
+        "flash_bytes": 21760,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35068,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 57088,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 2,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 9701,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/Os/pico_uart/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "Os",
+      "scenario": "pico_spi",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "e1de17b07404a240bd40d78bb7c2c523c3c905e0a3acff311f5a629d48877f03",
+        "firmware.bin": "a1716fee8e1ce57b37ae646696070f2e90a874888706a3ac6173d18a5dbf6624",
+        "firmware.uf2": "86f9ee01cc60beaae2d2b7b60a11c106bd148a40d92e1971e772398bc191e3d6"
+      },
+      "resources": {
+        "flash_bytes": 22192,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35060,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 143616,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 4,
+          "pico_test_failed": 0,
+          "pico_test_last_failed": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": [
+          18,
+          52,
+          86,
+          120,
+          4660
+        ]
+      },
+      "limitations": [
+        "gpio_output"
+      ],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/Os/pico_spi/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "Os",
+      "scenario": "pico_i2c",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "69e99b85edd8d4f940cb971599ee61070a0e5b077d770e0254bbf9952deba6e3",
+        "firmware.bin": "628d33e92da5106ee1f474470e25d8c722033891f80759f8c8212e4f5e5145db",
+        "firmware.uf2": "2eb32aa02ab1d539ea087bae99811e4e358713df20242e2675c7866df4ff9b77"
+      },
+      "resources": {
+        "flash_bytes": 22392,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35060,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 1204992,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 1,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 10001,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          10001
+        ],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "i2c_disable_status"
+      ],
+      "not_exercised": [
+        "I2C transfers, Repeated START, IRQ, recovery (no bus transaction started)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/Os/pico_i2c/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "Os",
+      "scenario": "pico_peripherals",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "9f74b5d9e448cb82b8bae5b597d272ff90b66eaa370b777aea3b094b87b51e31",
+        "firmware.bin": "1f866e49fb71872e011df1c0ce8f1b2e9e7bd45775bb7119c30acce34c475d52",
+        "firmware.uf2": "74350f38b40cc846bef6bd55c27a8021ca852ae1a122038e7971fae5b087d2aa"
+      },
+      "resources": {
+        "flash_bytes": 29972,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35552,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 61440,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 5,
+          "pico_test_failed": 2,
+          "pico_test_last_failed": 9701,
+          "pico_test_callbacks": 0,
+          "pico_test_isr": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          2,
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status",
+        "gpio_irq",
+        "gpio_output"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks",
+        "SPI and I2C in this combined scenario (tested separately)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/Os/pico_peripherals/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "O0",
+      "scenario": "pico_gpio",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "0faf2a666446fdf40a0b489886d529e168676becd115d9da6602dff1db5692d8",
+        "firmware.bin": "10745d6d5b2103effdc91e84a243c5eaa3c94db4b7c0d0f935c88af53a1f6e23",
+        "firmware.uf2": "f11689b8eb57200245e11922571b6385a4ac102e62b69e773f3d8452176b53fb"
+      },
+      "resources": {
+        "flash_bytes": 57228,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35552,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 64256,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 3,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 2,
+          "pico_test_callbacks": 0,
+          "pico_test_isr": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          2
+        ],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "gpio_irq",
+        "gpio_output"
+      ],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/O0/pico_gpio/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "O0",
+      "scenario": "pico_uart",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "d6f0ebe37e0ce8eda5195854a747414cda44faefac3d27b442452950d15b9909",
+        "firmware.bin": "f93126acd03557bb27a539e8e9c0d1dfa8482fa27633d90bb8ee1d03a58a94d5",
+        "firmware.uf2": "e32c42d22b17875830e399c759a48edcb83f2715e32d6229319e5117c1bc26ac"
+      },
+      "resources": {
+        "flash_bytes": 53588,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35068,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 71424,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 2,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 9701,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/O0/pico_uart/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "O0",
+      "scenario": "pico_spi",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "eba342fc2d5932d5408d098cded12f683d83a92cf21f8878753db6b2130d37d9",
+        "firmware.bin": "8d0de57a8ecdc1820280353dc6f8cb165c3a99fca18109c5c25cc329da8a4e55",
+        "firmware.uf2": "472b4066a3643aa41623861948a3cb4cb4f395f262ae5c0d129275a3a5e6c257"
+      },
+      "resources": {
+        "flash_bytes": 54900,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35060,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 217344,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 4,
+          "pico_test_failed": 0,
+          "pico_test_last_failed": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": [
+          18,
+          52,
+          86,
+          120,
+          4660
+        ]
+      },
+      "limitations": [
+        "gpio_output"
+      ],
+      "not_exercised": [],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/O0/pico_spi/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "O0",
+      "scenario": "pico_i2c",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "a2338a4e98e12d6b262d1dc3290a3f4af292d1066e7ac5884fefdac07ffbed5c",
+        "firmware.bin": "27e1ae22a540f7ee0b994854af925103b9a50d3f42fab657efaa1ef89f3fa38d",
+        "firmware.uf2": "eb2aeecb651c25b4e71c6531e104a7956d8079dbbd3a9a256a16a55d9b5b0610"
+      },
+      "resources": {
+        "flash_bytes": 55508,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35060,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 1377792,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 1,
+          "pico_test_failed": 1,
+          "pico_test_last_failed": 10001,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          10001
+        ],
+        "uart": "",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 31
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "i2c_disable_status"
+      ],
+      "not_exercised": [
+        "I2C transfers, Repeated START, IRQ, recovery (no bus transaction started)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/O0/pico_i2c/report.json"
+    },
+    {
+      "board": "raspberry-pi-pico-2",
+      "optimization": "O0",
+      "scenario": "pico_peripherals",
+      "build_status": "passed",
+      "runtime_status": "model_limited",
+      "artifacts": {
+        "firmware.elf": "b5e3963f3df2317559368fb5fcb709aac9a0aabe065ef3b7c0e3a833a6b9ddc1",
+        "firmware.bin": "c45a960d7354b0c2cbfe05fbecc616eb3703aa9c23ea045f4bcd76a7f0b0b0bd",
+        "firmware.uf2": "dcb7ed2997691a0ff35665d305a9c97e333021e7779ba7f3292d833ea8947e15"
+      },
+      "resources": {
+        "flash_bytes": 76280,
+        "flash_capacity": 4194304,
+        "static_ram_bytes": 35552,
+        "ram_capacity": 532480,
+        "application_ram_capacity": 515840,
+        "stack_reserved_bytes": 16384,
+        "stack_guard_bytes": 256,
+        "system_allocator": false
+      },
+      "runtime": {
+        "instructions": 78848,
+        "reason": "completed",
+        "observations": {
+          "pico_test_done": 1,
+          "pico_test_checks": 5,
+          "pico_test_failed": 2,
+          "pico_test_last_failed": 9701,
+          "pico_test_callbacks": 0,
+          "pico_test_isr": 0,
+          "emela_board_failures": 0,
+          "emela_board_last_defect": 0
+        },
+        "failed_checks": [
+          2,
+          9701
+        ],
+        "uart": "PICO\n",
+        "gpio25": {
+          "output": false,
+          "enabled": false,
+          "function": 5
+        },
+        "spi_words": []
+      },
+      "limitations": [
+        "uart_error_status",
+        "gpio_irq",
+        "gpio_output"
+      ],
+      "not_exercised": [
+        "UART IRQ RX/TX and timeout checks",
+        "SPI and I2C in this combined scenario (tested separately)"
+      ],
+      "report": "out/pico-pr-review/raspberry-pi-pico-2/O0/pico_peripherals/report.json"
+    }
+  ],
+  "other_checks": {
+    "cargo_test_offline": "passed",
+    "python_firmware_tests": 47,
+    "python_setup_tests": 13,
+    "python_runner_tests": 10,
+    "host_O0_Os_UBSan": [
+      "pico_gpio",
+      "pico_serial",
+      "spi_common"
+    ],
+    "isolated_services_both_boards": [
+      "UART",
+      "SPI",
+      "I2C"
+    ],
+    "examples_both_boards": [
+      "pico-gpio",
+      "pico-peripherals"
+    ]
+  },
+  "regression": [
+    {
+      "board": "nucleo-f446re",
+      "status": "passed",
+      "scenarios": [
+        "gpio",
+        "uart",
+        "spi",
+        "i2c",
+        "peripherals",
+        "bmp180",
+        "mt25q"
+      ],
+      "report": "out/pico-pr-review/regression/nucleo-f446re/report.json"
+    },
+    {
+      "board": "arduino-nano-33-ble",
+      "status": "passed",
+      "scenarios": [
+        "gpio_callbacks",
+        "peripheral_contract",
+        "bmp180",
+        "mt25q"
+      ],
+      "report": "out/pico-pr-review/regression/arduino-nano-33-ble/report.json"
+    }
+  ],
+  "review": {
+    "pull_request": "https://github.com/aoi-netai/emelino/pull/20",
+    "independent_agents": 3,
+    "changes": [
+      "SPI raw transfers preserve unchanged clock configuration under manual CS",
+      "baseline uses setup environment and fresh verified compiler configuration",
+      "baseline tolerates validated timer read overhead only",
+      "runtime aggregate preserves not_run after build failure",
+      "unsupported Pico target bindings are rejected before build",
+      "SDK build cleanup rejects overlapping caller inputs and tools, including symlinks and PATH entries, before writing or deleting files"
+    ],
+    "baseline_matrix": [
+      {
+        "board": "raspberry-pi-pico",
+        "optimization": "Os",
+        "build_status": "passed",
+        "runtime_status": "model_limited",
+        "elapsed_us": 100,
+        "report": "out/pico-pr-review/baseline/raspberry-pi-pico/Os/report.json"
+      },
+      {
+        "board": "raspberry-pi-pico",
+        "optimization": "O0",
+        "build_status": "passed",
+        "runtime_status": "model_limited",
+        "elapsed_us": 101,
+        "report": "out/pico-pr-review/baseline/raspberry-pi-pico/O0/report.json"
+      },
+      {
+        "board": "raspberry-pi-pico-2",
+        "optimization": "Os",
+        "build_status": "passed",
+        "runtime_status": "model_limited",
+        "elapsed_us": 100,
+        "report": "out/pico-pr-review/baseline/raspberry-pi-pico-2/Os/report.json"
+      },
+      {
+        "board": "raspberry-pi-pico-2",
+        "optimization": "O0",
+        "build_status": "passed",
+        "runtime_status": "model_limited",
+        "elapsed_us": 101,
+        "report": "out/pico-pr-review/baseline/raspberry-pi-pico-2/O0/report.json"
+      }
+    ],
+    "preflight_integration": [
+      "out/pico-pr-review/preflight-integration/raspberry-pi-pico/report.json",
+      "out/pico-pr-review/preflight-integration/raspberry-pi-pico-2/report.json"
+    ],
+    "baseline_preflight_integration": "out/pico-pr-review/baseline-guard/raspberry-pi-pico/O0/report.json"
+  }
+}

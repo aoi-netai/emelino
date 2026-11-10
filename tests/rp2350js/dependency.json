@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/c1570/rp2350js.git",
+  "revision": "eefa1d62e82902c8f9986ab9293cf273bda30583",
+  "version": "2.0.1",
+  "node_minimum": 18,
+  "directory": ".local/rp2350js-eefa1d62",
+  "install": "npm ci --ignore-scripts --no-audit --no-fund",
+  "build": "npm run build",
+  "bootroms": {"rp2040": "bundled RP2040 B1", "rp2350-arm": "bundled RP2350 A2"}
+}

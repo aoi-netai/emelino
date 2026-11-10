@@ -21,6 +21,10 @@ def main():
     parser.add_argument("--scenario", action="append", help="scenario name (repeatable), or all; defaults to all")
     parser.add_argument("--emelino", type=Path, default=ROOT / "target/debug/emelino")
     parser.add_argument("--renode")
+    parser.add_argument("--rp2350js-dir", type=Path, help="fixed rp2350js checkout (or RP2350JS_DIR)")
+    parser.add_argument("--node", default="node")
+    parser.add_argument("--build-only", action="store_true", help="Pico: build SDK artifacts without claiming a runtime result")
+    parser.add_argument("--max-instructions", type=int, default=10000000)
     parser.add_argument("--cc")
     parser.add_argument("--sdk-dir", type=Path)
     parser.add_argument("--output-dir", type=Path)
@@ -40,7 +44,12 @@ def main():
             names = list(args.target["scenarios"])
         if len(set(names)) != len(names) or any(name not in args.target["scenarios"] for name in names):
             raise ValueError("unknown or duplicate scenario; available: " + ", ".join(args.target["scenarios"]))
-        adapter = load_module(TESTS / "ports" / args.target["port"] / "renode.py", "embedded_renode_port")
+        if args.timeout <= 0 or args.max_instructions <= 0:
+            raise ValueError("timeout and instruction limit must be positive")
+        simulator = args.target["simulator"]
+        if args.build_only and simulator != "rp2350js":
+            raise ValueError("--build-only is currently supported for Pico targets")
+        adapter = load_module(TESTS / "ports" / args.target["port"] / (simulator + ".py"), "embedded_simulator_port")
         args.platform = adapter.Platform(args.target)
         base = (args.output_dir or ROOT / "out/embedded" / args.board / args.optimization).resolve()
         passed = True
@@ -53,27 +62,47 @@ def main():
                 model = settings.get("controller_model")
                 current.controller_model = ROOT / model if model else None
             report = {"schema_version": 1, "status": "running", "scenario": name,
+                      "board": args.board, "simulator": simulator,
+                      "build_status": "not_run", "runtime_status": "not_run",
                       "optimization": args.optimization, "boot": "raw-flash-reset",
                       "sets_pc_sp": False, "sets_vtor": False}
             try:
-                location = TESTS / "scenarios" / name / "test.py"
-                if settings.get("port"):
-                    location = TESTS / "ports" / settings["port"] / (name + ".py")
-                scenario = load_module(location, "embedded_scenario_" + name)
-                scenario.test(current, report)
-                if report["status"] != "passed":
+                if simulator == "rp2350js":
+                    adapter.test(current, report)
+                else:
+                    location = TESTS / "scenarios" / name / "test.py"
+                    if settings.get("port"):
+                        location = TESTS / "ports" / settings["port"] / (name + ".py")
+                    scenario = load_module(location, "embedded_scenario_" + name)
+                    scenario.test(current, report)
+                    if report["status"] == "passed":
+                        report["runtime_status"] = "passed"
+                if report["status"] not in {"passed", "model_limited", "built"}:
                     raise ValueError("scenario did not report success")
-                print(f"PASS: {args.board}/{name} ({args.optimization})")
+                print(f"{report['status'].upper()}: {args.board}/{name} ({args.optimization})")
             except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
                 report.update(status="failed", error=str(error))
+                if report["build_status"] == "passed":
+                    report["runtime_status"] = "failed"
                 print(f"FAIL: {args.board}/{name}: {error}", file=sys.stderr)
                 passed = False
             current.output_dir.mkdir(parents=True, exist_ok=True)
             (current.output_dir / "report.json").write_text(json.dumps(report, indent=2) + "\n")
-            summaries.append({"scenario": name, "status": report["status"], "report": str(current.output_dir / "report.json")})
+            summaries.append({"scenario": name, "status": report["status"],
+                              "build_status": report["build_status"], "runtime_status": report["runtime_status"],
+                              "report": str(current.output_dir / "report.json")})
         if len(names) > 1:
+            statuses = {case["status"] for case in summaries}
+            overall = ("failed" if not passed else "model_limited" if "model_limited" in statuses
+                       else "built" if statuses == {"built"} else "passed")
+            runtime_states = {case["runtime_status"] for case in summaries}
+            runtime_status = ("failed" if "failed" in runtime_states
+                              else "not_run" if "not_run" in runtime_states
+                              else "model_limited" if "model_limited" in runtime_states else "passed")
             (base / "report.json").write_text(json.dumps({"schema_version": 1, "board": args.board,
-                "optimization": args.optimization, "status": "passed" if passed else "failed", "scenarios": summaries}, indent=2) + "\n")
+                "optimization": args.optimization, "status": overall,
+                "build_status": "passed" if all(case["build_status"] == "passed" for case in summaries) else "failed",
+                "runtime_status": runtime_status, "scenarios": summaries}, indent=2) + "\n")
         return 0 if passed else 1
     except (OSError, ValueError, KeyError) as error:
         parser.error(str(error))
