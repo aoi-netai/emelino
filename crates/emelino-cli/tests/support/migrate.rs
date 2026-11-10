@@ -6,49 +6,92 @@ pub fn syntax(mut text: String) -> String {
         let mut edits = Vec::new();
         for node in parsed.syntax().descendants() {
             if let Some((range, replacement, _)) = emela_syntax::rewrite::old_lambda(&node) {
-                edits.push((usize::from(range.start())..usize::from(range.end()), replacement));
+                edits.push((
+                    usize::from(range.start())..usize::from(range.end()),
+                    replacement,
+                ));
             }
             if let Some((_, replacement)) = emela_syntax::rewrite::old_uses_clause(&node) {
                 let r = node.text_range();
                 edits.push((r.into(), replacement));
             }
         }
-        if edits.is_empty() { break }
+        if edits.is_empty() {
+            break;
+        }
         edits.sort_by_key(|(r, _)| (r.len(), r.start));
         let mut selected: Vec<_> = Vec::new();
         for edit in edits {
-            if !selected.iter().any(|(r, _): &(std::ops::Range<usize>, String)| r.start < edit.0.end && edit.0.start < r.end) {
+            if !selected
+                .iter()
+                .any(|(r, _): &(std::ops::Range<usize>, String)| {
+                    r.start < edit.0.end && edit.0.start < r.end
+                })
+            {
                 selected.push(edit);
             }
         }
         selected.sort_by_key(|(r, _)| std::cmp::Reverse(r.start));
-        for (r, s) in selected { text.replace_range(r, &s); }
+        for (r, s) in selected {
+            text.replace_range(r, &s);
+        }
     }
     text
 }
 
 pub fn source(text: &str) -> String {
+    use emela_syntax::SyntaxKind::{LOWER_NAME, TYPE_NAME, UPPER_NAME};
+    use emela_syntax::ast::{AstNode, Import};
     let mut text = syntax(text.to_owned());
-    let mut offset = 0;
+    let parsed = emela_syntax::parse(&text);
+    let mut edits: Vec<(std::ops::Range<usize>, String)> = Vec::new();
     let mut imports = Vec::new();
-    while let Some(start) = text[offset..].find("import Std.Fiber.{") {
-        let start = offset + start;
-        let content = start + "import Std.Fiber.{".len();
-        let end = content + text[content..].find('}').expect("frozen import closes");
-        let names: Vec<_> = text[content..end].split(',').map(str::trim).filter(|s| !s.is_empty()).collect();
-        let (moved, keep): (Vec<_>, Vec<_>) = names.into_iter().partition(|name| matches!(*name, "Exit" | "Success" | "Failure"));
-        if !moved.is_empty() {
-            imports.push(format!("import Std.Exit.{{{}}}\n", moved.join(", ")));
-            let replacement = if keep.is_empty() { String::new() } else { format!("import Std.Fiber.{{{}}}", keep.join(", ")) };
-            text.replace_range(start..=end, &replacement);
-            offset = start + replacement.len();
-        } else { offset = end + 1; }
+    for import in parsed.syntax().descendants().filter_map(Import::cast) {
+        if import
+            .path()
+            .is_none_or(|p| p.syntax().text() != "Std.Fiber")
+        {
+            continue;
+        }
+        let names: Vec<_> = import.names().map(|t| t.text().to_owned()).collect();
+        let (moved, keep): (Vec<_>, Vec<_>) = names
+            .into_iter()
+            .partition(|n| matches!(n.as_str(), "Exit" | "Success" | "Failure"));
+        if moved.is_empty() {
+            continue;
+        }
+        imports.push(format!("import Std.Exit.{{{}}}\n", moved.join(", ")));
+        let replacement = if keep.is_empty() {
+            String::new()
+        } else {
+            format!("import Std.Fiber.{{{}}}", keep.join(", "))
+        };
+        edits.push((import.syntax().text_range().into(), replacement));
     }
+    let tokens: Vec<_> = parsed
+        .syntax()
+        .descendants_with_tokens()
+        .filter_map(|n| n.into_token())
+        .filter(|t| !t.kind().is_trivia())
+        .collect();
     let mut qualified = false;
-    for name in ["attempt", "Exit", "Success", "Failure"] {
-        let old = format!("Fiber.{name}");
-        if text.contains(&old) { qualified = true; text = text.replace(&old, &format!("Exit.{name}")); }
+    for triple in tokens.windows(3) {
+        if matches!(triple[0].kind(), TYPE_NAME | UPPER_NAME)
+            && triple[0].text() == "Fiber"
+            && triple[1].text() == "."
+            && matches!(triple[2].kind(), LOWER_NAME | TYPE_NAME | UPPER_NAME)
+            && matches!(triple[2].text(), "attempt" | "Exit" | "Success" | "Failure")
+        {
+            qualified = true;
+            edits.push((triple[0].text_range().into(), "Exit".into()));
+        }
     }
-    if qualified && imports.is_empty() && !text.contains("import Std.Exit") { imports.push("import Std.Exit\n".into()); }
+    if qualified && imports.is_empty() {
+        imports.push("import Std.Exit\n".into());
+    }
+    edits.sort_by_key(|(r, _)| std::cmp::Reverse(r.start));
+    for (range, replacement) in edits {
+        text.replace_range(range, &replacement);
+    }
     format!("{}{text}", imports.concat())
 }

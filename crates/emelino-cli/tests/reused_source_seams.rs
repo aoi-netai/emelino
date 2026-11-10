@@ -1,5 +1,7 @@
 //! Original source/C observations with explicit, separately labelled IR test seams.
 //! The fixed test code and C harnesses are reused from emela-emb b0a367bc.
+#[path = "support/migrate.rs"]
+mod migrate;
 use emelino_compiler::{Options, Output, ir::*};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -19,11 +21,13 @@ mod integration;
 mod protect;
 
 fn adapted(source: &str, aliases: &[(String, String)]) -> Program {
-    let generated = emelino_cli::frontend::generate(source, Path::new("main.emel")).unwrap();
+    let generated =
+        emelino_cli::frontend::generate(&migrate::source(source), Path::new("main.emel")).unwrap();
     emelino_cli::upstream_adapter::adapt(&generated.module, aliases).unwrap()
 }
 fn adapted_public(source: &str, prefix: &str) -> Program {
-    let generated = emelino_cli::frontend::generate(source, Path::new("main.emel")).unwrap();
+    let generated =
+        emelino_cli::frontend::generate(&migrate::source(source), Path::new("main.emel")).unwrap();
     let aliases: Vec<_> = generated
         .module
         .functions

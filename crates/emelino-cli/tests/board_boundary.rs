@@ -1,3 +1,5 @@
+#[path = "support/migrate.rs"]
+mod migrate;
 #[path = "compat/reused/support.rs"]
 mod support;
 
@@ -140,10 +142,11 @@ fn fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations() {
     let main = include_str!(
         "compat/legacy-corpus/sources/a009a39326fe15f46d2ba09f8a64c849be3dd60e11ac363a3a67e008f2f39d0b.emel"
     );
+    let main = migrate::source(main);
     let flow = generate_sources(
         &[Source {
             name: "main.emel",
-            text: main,
+            text: &main,
         }],
         "main.emel",
         std::path::Path::new("app/src/main.emel"),
@@ -181,6 +184,12 @@ fn fixed_board_and_unrelated_embedded_sources_preserve_artifact_expectations() {
             ),
         },
     ];
+    let migrated: Vec<_> = sources.iter().map(|s| migrate::source(s.text)).collect();
+    let sources: Vec<_> = sources
+        .iter()
+        .zip(&migrated)
+        .map(|(s, text)| Source { name: s.name, text })
+        .collect();
     let flow = generate_sources(
         &sources,
         "main.emel",

@@ -1,8 +1,7 @@
 //! Test-only migration of explicit old fixture exports into the new configuration.
 //! Parsing uses upstream AST; source bodies are not lowered by a local frontend.
 #![allow(dead_code)]
-#[path = "migrate.rs"]
-mod migrate;
+use crate::support::migrate;
 use emela_syntax::ast::{AstNode, FnDecl, HasAttrs};
 use emelino_compiler::{Error, ErrorKind};
 #[allow(unused_imports)]

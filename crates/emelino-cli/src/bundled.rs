@@ -85,8 +85,10 @@ mod tests {
             let name = std::path::Path::new(path).file_name().unwrap();
             let source = std::fs::read_to_string(
                 std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                    .join("tests/compat/embedded-v0.26.1").join(name),
-            ).unwrap();
+                    .join("tests/compat/embedded-v0.26.1")
+                    .join(name),
+            )
+            .unwrap();
             assert_eq!(sha256(&source), module["source_sha256"], "upstream {path}");
             let imported = source.replace("Std.Embedded", "Embedded");
             assert_eq!(sha256(&imported), module["sha256"], "imported {path}");

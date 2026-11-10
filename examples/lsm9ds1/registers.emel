@@ -31,8 +31,8 @@ pub fn validate_write(register: Int, value: Int) -> () fails RegisterError uses 
 }
 
 pub fn checked(bytes: List[Int], count: Int) -> List[Int] fails RegisterError uses {} {
-  if List.length(bytes) != count
-    || !List.fold(bytes, True, |ok, value| ok && value >= 0 && value <= 255) {
+  if (List.length(bytes) != count
+    || !List.fold(bytes, True, |ok, value| ok && value >= 0 && value <= 255)) {
     fail RegisterError(InvalidResponse)
   }
   bytes
