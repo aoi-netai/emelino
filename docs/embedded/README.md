@@ -63,6 +63,8 @@ portの時刻初期化後、生成アプリの起動前に呼ばれる。定義�
 共通ビルドはportを選んで実行し、SDKの選択はportへ委ねる。
 STM32F4とnRF52はCortex-M4F起動処理とARM GCCのcompile/link・成果物検証も共有する。
 Pico SDK・ESP-IDF・Arduino core向けのportは未実装。Nano 33 BLEはNordicのbare-metal接続を使う。
+Pico SDKとrp2350jsを使うPico / Pico 2対応の方針・実装順序は
+[Pico / Pico 2対応計画](pico/implementation-plan.md)を参照する。
 共通C層のSPIはdevice管理、操作列、CSのsetup/hold・解除、複合エラーを扱い、
 実際の転送、時刻取得、排他、GPIO操作はportのhookを使う。GPIO callbackの登録表と寿命管理は
 生成C側が所有し、port側には複製しない。
