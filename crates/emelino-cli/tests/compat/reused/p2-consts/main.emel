@@ -1,7 +1,7 @@
 @external(c, "board_seed")
-fn seed(n: Int) -> Int use {}
+fn seed(n: Int) -> Int uses {}
 @external(c, "board_zero")
-fn zero() -> Int use {}
+fn zero() -> Int uses {}
 const FIRST = seed(1)
 const SECOND = FIRST + seed(2)
 const UNUSED = seed(3)

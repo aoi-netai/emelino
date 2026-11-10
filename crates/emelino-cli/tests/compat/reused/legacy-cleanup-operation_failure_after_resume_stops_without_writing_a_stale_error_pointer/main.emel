@@ -6,6 +6,6 @@ handler Ticking: Tick {
   fail Boom
  }
 }
-pub fn work() -> Int use Async {
+pub fn work() -> Int uses { Async } {
  with Ticking { (use Tick).tick() escape { Boom -> 0 } }
 }

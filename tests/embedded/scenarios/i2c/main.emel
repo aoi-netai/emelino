@@ -4,9 +4,9 @@ import Embedded.Gpio
 import Embedded.Interrupt.{Normal}
 
 @external(c, "i2c_test_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "i2c_test_wait")
-fn wait_stage(stage: Int) -> () use {}
+fn wait_stage(stage: Int) -> () uses {}
 fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
 
 pub fn main() -> () {

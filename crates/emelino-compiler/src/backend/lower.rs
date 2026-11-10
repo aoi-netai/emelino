@@ -218,6 +218,7 @@ pub(crate) fn lower_program(
                 term: Term::Unreachable,
             }));
         }
+        super::array_liveness::protect_calls(function, &program.core.types, &closures);
         let (statements, sequences) = positions(function);
         function.active_statements = statements.keys().copied().collect();
         function.statement_positions = statements;

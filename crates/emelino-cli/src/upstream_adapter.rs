@@ -177,6 +177,13 @@ fn adapt_builtin(source: &emela_core::Builtin) -> d::Builtin {
         emela_core::Builtin::BytesConcat => d::Builtin::BytesConcat,
         emela_core::Builtin::BytesEncodeUtf8 => d::Builtin::BytesEncodeUtf8,
         emela_core::Builtin::BytesDecodeValidUtf8 => d::Builtin::BytesDecodeValidUtf8,
+        emela_core::Builtin::ArrayFromList => d::Builtin::ArrayFromList,
+        emela_core::Builtin::ArrayToList => d::Builtin::ArrayToList,
+        emela_core::Builtin::ArraySize => d::Builtin::ArraySize,
+        emela_core::Builtin::ArrayGet => d::Builtin::ArrayGet,
+        emela_core::Builtin::ArraySet => d::Builtin::ArraySet,
+        emela_core::Builtin::ArraySlice => d::Builtin::ArraySlice,
+        emela_core::Builtin::ArrayConcat => d::Builtin::ArrayConcat,
     }
 }
 
@@ -345,6 +352,7 @@ fn adapt_type(source: &emela_core::Type) -> d::Type {
         emela_core::Type::Bool => d::Type::Bool,
         emela_core::Type::String => d::Type::String,
         emela_core::Type::Bytes => d::Type::Bytes,
+        emela_core::Type::Array(t) => d::Type::Array(type_id(*t)),
         emela_core::Type::Unit => d::Type::Unit,
         emela_core::Type::Never => d::Type::Never,
         emela_core::Type::Tuple(value0) => {

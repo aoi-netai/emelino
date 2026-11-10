@@ -1,6 +1,6 @@
 # 実装範囲と検証の終了条件
 
-emelinoはEmela v0.26.1の公開APIから受けたFlowを、組み込み向けCへ変換する。
+emelinoはEmela v0.27.0の公開APIから受けたFlowを、組み込み向けCへ変換する。
 機能ごとの意味と境界は[構成・機能契約](architecture.md)に定義する。
 本書は採用範囲、機能の組立順、検証方針の正本とし、過去のS段階の報告を現在の仕様の代わりにしない。
 
@@ -10,7 +10,7 @@ emelinoはEmela v0.26.1の公開APIから受けたFlowを、組み込み向けC�
 
 ## 責任と対象範囲
 
-対応目標は同梱する[固定Flow対応表](compiler-coverage.md)の対象機能を組み込み制約下で扱うことであり、固定本体v0.26.1のC targetで検証する。
+対応目標は同梱する[固定Flow対応表](compiler-coverage.md)の対象機能を組み込み制約下で扱うことであり、固定本体v0.27.0のC targetで検証する。
 全Emela機能や全targetへの保証ではない。固定台帳を対応範囲の正本とする。
 
 | 所有者 | 責任 |
@@ -21,7 +21,7 @@ emelinoはEmela v0.26.1の公開APIから受けたFlowを、組み込み向けC�
 | emelinoの組み込み層 | Embedded.*、board header、C adapter、生成物manifest |
 | 後続作業 | Pome/driver連携、物理BSP、startup/vector/linker、firmware build/flash、実機検証 |
 
-本体5 crateは`6021115103dd830e0efd9bb96a56a0ca97859329`へ固定し、Cargo.lockと揃える。
+本体5 crateは`e2f46917939ea5a3479807e04f89a16d04457868`へ固定し、Cargo.lockと揃える。
 兄弟repoへのpath依存、独自frontend、汎用core/stdの複製、本体の別codegenへの依存を追加しない。
 本体をpatchせず、raw Flowに対するclosure・handler・suspend変換はbackendで一度だけ行う。
 生成Cは最適化前に意味が成立することを要求する。
@@ -35,7 +35,7 @@ emelinoはEmela v0.26.1の公開APIから受けたFlowを、組み込み向けC�
 
 | PR | 機能 | 判定する観測 |
 | --- | --- | --- |
-| 1 | v0.26.1基盤、公開入口、保存入力、基本制御 | sourceからC実行、source削除後の再生成、引数/call/if、不正型・ID・集合・設定の拒否 |
+| 1 | v0.27.0基盤、公開入口、保存入力、基本制御 | sourceからC実行、source削除後の再生成、引数/call/if、不正型・ID・集合・設定の拒否 |
 | 2 | データ表現、固定heap、所有権 | record/enum/List/Any/再帰、更新順、寿命とdeep release、枯渇 |
 | 3 | 数値、String、Unicode、標準Bytes | 境界値・bit値、NUL/alias/容量、scalar/grapheme、UTF-8/u32長/unsigned値 |
 | 4 | closure、effect/State、failure/Cause、Unit/Any | capture、handler伝播、cleanup、所有error、defect停止、callback表現 |

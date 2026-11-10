@@ -13,7 +13,7 @@ import Embedded.Uart
 import Embedded.I2c
 
 @external(c, "select_mode")
-fn select_mode(value: Int) -> () use {}
+fn select_mode(value: Int) -> () uses {}
 
 pub fn transactions(mode: Int) -> Int {
   select_mode(mode)

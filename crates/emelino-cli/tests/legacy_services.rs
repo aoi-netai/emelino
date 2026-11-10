@@ -79,7 +79,7 @@ fn board_clock_sleep_clamps_boundaries_and_notifies_before_main_resumes() {
 import Std.Clock.{Clock}
 import Embedded.Board.{BoardClock}
 @export(c,"board_wait")
-pub fn wait_then_return(ms:Int)->Int use Async {
+pub fn wait_then_return(ms:Int)->Int uses { Async } {
   with BoardClock {(use Clock).sleep(ms)
     42}
 }

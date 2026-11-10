@@ -1,8 +1,8 @@
 
 @external(c,"host_tick")
-fn raw_tick(value:Int)->Int use {}
+fn raw_tick(value:Int)->Int uses {}
 @external(c,"host_float")
-fn raw_float(value:Float)->Float use {}
+fn raw_float(value:Float)->Float uses {}
 fn helper(value:Int)->Int {raw_tick(value)}
 pub fn on_timer(value:Int)->Int {helper(value)}
 pub fn on_float(value:Float)->Float {raw_float(value)}

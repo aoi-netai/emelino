@@ -82,6 +82,10 @@ fn incompatible_envelopes_unknown_fields_and_operations_are_rejected() {
         ("/producer_revision", json!("latest")),
         (
             "/producer_revision",
+            json!("6021115103dd830e0efd9bb96a56a0ca97859329"),
+        ),
+        (
+            "/producer_revision",
             json!("ec1031cb0b98386baf0e9b0ced67e8829bb2c529"),
         ),
         ("/stage", json!("ref_counted")),
@@ -189,13 +193,30 @@ fn invalid_references_and_cycles_are_rejected_before_lowering() {
             .message
             .contains("cyclic sequence")
     );
-    let mut p = program();
-    let next = TypeId::from_index(p.core.types.len());
-    p.core.types.types.push(Type::List(next));
+    for array in [false, true] {
+        let mut p = program();
+        let next = TypeId::from_index(p.core.types.len());
+        p.core.types.types.push(if array {
+            Type::Array(next)
+        } else {
+            Type::List(next)
+        });
+        assert!(
+            BackendInput::new(p).unwrap_err()[0]
+                .message
+                .contains("cyclic type")
+        );
+    }
+    let mut json: Json = serde_json::from_str(&saved).unwrap();
+    json.pointer_mut("/program/core/types/types")
+        .unwrap()
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"Array": u32::MAX}));
     assert!(
-        BackendInput::new(p).unwrap_err()[0]
+        BackendInput::from_json(&json.to_string()).unwrap_err()[0]
             .message
-            .contains("cyclic type")
+            .contains("type ID is out of bounds")
     );
 }
 

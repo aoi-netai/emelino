@@ -3,13 +3,13 @@ import Embedded.Gpio
 import Embedded.Interrupt.{Normal, High}
 
 @external(c, "gpio_test_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "gpio_test_record")
-fn record(tag: Int, pin: Int, level: Int) -> () use {}
+fn record(tag: Int, pin: Int, level: Int) -> () uses {}
 @external(c, "gpio_test_wait")
-fn wait_stage(stage: Int) -> () use {}
+fn wait_stage(stage: Int) -> () uses {}
 @external(c, "gpio_test_seed")
-fn seed() -> Int use {}
+fn seed() -> Int uses {}
 
 fn check(number: Int, success: Bool) -> () {
   raw_check(number, if success { 1 } else { 0 })
@@ -43,7 +43,7 @@ fn install_capture(pin: Gpio.GpioPin) -> () fails Gpio.GpioError {
   with BoardGpio {
     tag = seed()
     (use Gpio.Gpio).enable_interrupt(pin, Gpio.Rising, High,
-      fn(event: Gpio.GpioEvent) { received(tag, event) })
+      |event: Gpio.GpioEvent| received(tag, event))
   }
 }
 

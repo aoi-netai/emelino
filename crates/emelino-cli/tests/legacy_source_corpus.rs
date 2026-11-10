@@ -1,5 +1,7 @@
 //! Fixed legacy programs reach C generation or report an explicitly replaced API.
 //! Runtime observations are tracked separately in reused_* and legacy_runtime.
+#[path = "support/migrate.rs"]
+mod migrate;
 use emelino_cli::{frontend, upstream_adapter};
 use emelino_compiler::{ExternalAdapter, ExternalResult, Options, ir};
 use serde_json::Value;
@@ -36,7 +38,7 @@ fn compile_case(program: &Value, directory: &Path, concrete_entry: bool) -> Resu
             } else {
                 text
             };
-            (name, text)
+            (name, migrate::source(&text))
         })
         .collect();
     let sources: Vec<_> = owned

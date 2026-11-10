@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-10",
+  "status": "passed",
+  "upstream_release": "v0.27.0",
+  "upstream_revision": "e2f46917939ea5a3479807e04f89a16d04457868",
+  "implementation_and_test_revision": "9d0296d2dbc9d78a36f7be53a7dd475f01a602ef",
+  "implementation_and_test_trees": {
+    "crates/emelino-cli": "80eb1b30ce931302c9b9253874c3b48a083edc47",
+    "crates/emelino-compiler": "6e47719ee4400ce0116a55809b84b3af15d984f8"
+  },
+  "commands": {
+    "workspace": "CARGO_HOME=\"$PWD/.local/cargo-home\" cargo test --workspace --locked --offline",
+    "clippy": "CARGO_HOME=\"$PWD/.local/cargo-home\" cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+    "format": "cargo fmt --all -- --check",
+    "firmware": "python3 tools/test_embedded.py --board <board> --cc \"$ARM_GCC\" --renode \"$RENODE\" --output-dir out/v0270/<nucleo|nano> [--sdk-dir \"$STM32CUBE_F4\"]",
+    "lsm9ds1": "python3 examples/lsm9ds1/test_renode.py --renode \"$RENODE\"",
+    "array_firmware_generation": "target/debug/emelino build out/v0270/array/main.emel --config out/v0270/array/target.json --out-dir out/v0270/array/generated",
+    "array_firmware_build": "python3 tools/build_firmware.py --board <board> --generated-dir out/v0270/array/generated --output-dir out/v0270/array/<nucleo|nano>/firmware --cc \"$ARM_GCC\" [--sdk-dir \"$STM32CUBE_F4\"]",
+    "array_firmware_run": "REPOSITORY_ROOT=\"$PWD\" RENODE=\"$RENODE\" python3 <saved-array-runner.py> <board> <nucleo|nano>"
+  },
+  "workspace_counts": {
+    "passed": 419,
+    "failed": 0,
+    "ignored": 0,
+    "measured": 0,
+    "filtered": 0
+  },
+  "new_tests": {
+    "source_arrays": 8,
+    "source_v027": 3
+  },
+  "checks": {
+    "format": "passed",
+    "clippy": "passed",
+    "diff_check": "passed",
+    "frozen_corpus_unchanged_from": "af81d90",
+    "cargo_lock_updates": [
+      "emela-core",
+      "emela-lir",
+      "emela-resolve",
+      "emela-syntax",
+      "emela-types"
+    ]
+  },
+  "firmware_scenarios": {
+    "nucleo-f446re": {
+      "status": "passed",
+      "optimization": "Os",
+      "scenarios": [
+        "gpio",
+        "uart",
+        "spi",
+        "i2c",
+        "peripherals",
+        "bmp180",
+        "mt25q"
+      ],
+      "report": "out/v0270/nucleo/report.json"
+    },
+    "arduino-nano-33-ble": {
+      "status": "passed",
+      "optimization": "Os",
+      "scenarios": [
+        "gpio_callbacks",
+        "peripheral_contract",
+        "bmp180",
+        "mt25q"
+      ],
+      "report": "out/v0270/nano/report.json"
+    }
+  },
+  "array_firmware": {
+    "nucleo-f446re": {
+      "status": "passed",
+      "metrics": {
+        "emela_board_completed": 1,
+        "emela_board_failures": 0,
+        "emela_board_boot_initialized": 1
+      },
+      "firmware_sha256": "74a68f5c587cb0f65d567e84696442c46a502889921d10598719902b672b55eb",
+      "report": "out/v0270/array/nucleo/report.json"
+    },
+    "arduino-nano-33-ble": {
+      "status": "passed",
+      "metrics": {
+        "emela_board_completed": 1,
+        "emela_board_failures": 0,
+        "emela_board_boot_initialized": 1
+      },
+      "firmware_sha256": "9102f91dbdb82a30fd07d36f999f9b80da9015b42a8da73e31934f75d434aff4",
+      "report": "out/v0270/array/nano/report.json"
+    }
+  },
+  "array_firmware_source": "import Std.Array.{Array}\nfn fill(a: Array[Int], n: Int) -> Array[Int] {\n  if n == 100 { a } else { fill(Array.set(a, 0, n), n + 1) }\n}\nfn bump(a: Array[Int]) -> Array[Int] { Array.set(a, 0, 9) }\npub fn main() -> Int {\n  a = Array.from_list([1, 2, 3])\n  b = bump(a)\n  c = fill(Array.from_list([0, 0]), 0)\n  if Array.to_list(a) == [1, 2, 3] && Array.to_list(b) == [9, 2, 3]\n    && Array.get(c, 0) == Some(99) { 0 } else { 1 }\n}\n",
+  "array_firmware_config": {
+    "entry": "main",
+    "exports": [
+      {
+        "function": "main",
+        "symbol": "array_main"
+      }
+    ],
+    "heap_bytes": 16384
+  },
+  "array_firmware_renode_runner": "from pathlib import Path\nimport json,re,sys,os\nroot=Path(os.environ['REPOSITORY_ROOT'])\nsys.path[:0]=[str(root),str(root/'tests/embedded')]\nfrom support.common import load_module,load_target,renode_workspace,run_renode,value\nboard,label=sys.argv[1:]\noutput=root/'out/v0270/array'/label\nreport={'status':'failed','board':board}\nrenode=Path(os.environ['RENODE'])\ntarget=load_target(board)\nplatform=load_module(root/'tests/embedded/ports'/target['port']/'renode.py','array_port').Platform(target)\nplatform.prepare(renode,output,report)\nsymbols=json.loads((output/'firmware/symbols.json').read_text())\nwith renode_workspace(output) as (alias,temporary):\n (output/'machine.repl').write_text(platform.machine_header(alias)+('syscfg: Memory.MappedMemory @ sysbus 0x40013800\\n    size: 0x400\\n' if label=='nucleo' else ''))\n script=[f'logFile @{alias}/model.log','logLevel 1 file','logLevel 3 console','mach create',f'machine LoadPlatformDescription @{alias}/machine.repl',platform.load_binary(alias),'sysbus.cpu Reset','emulation RunFor \"0:00:01\"']\n names=['emela_board_completed','emela_board_failures','emela_board_boot_initialized']\n for name in names:script.extend([f'echo \"{name}\"',f'sysbus ReadDoubleWord {symbols[name]:#x}'])\n script.append('quit')\n status,log=run_renode(renode,output,alias,temporary,script,report,60)\n model=(output/'model.log').read_text(encoding='utf-8-sig')\n assert not status and not re.search(r'\\[ERROR\\]|There was an error executing command|Unhandled Exception|Errors during compilation',log+model),log\n metrics={name:value(log,name) for name in names}\n assert list(metrics.values())==[1,0,1],metrics\n report.update(status='passed',metrics=metrics)\n(output/'report.json').write_text(json.dumps(report,indent=2)+'\\n')\nprint(board,metrics)\n",
+  "lsm9ds1": {
+    "i2c_firmware": "passed",
+    "spi_firmware": "passed",
+    "i2c_renode": "passed",
+    "samples": 5,
+    "metrics": {
+      "emela_board_completed": 1,
+      "emela_board_failures": 0,
+      "emela_board_boot_initialized": 1
+    },
+    "firmware_sha256": "7d4ff46b089b4404948b8d8bc008c8a20ceff38e83bec7d6f7480ae7b64ddaf1"
+  },
+  "logs": {
+    "workspace": {
+      "path": "out/v0270/validation/workspace.log",
+      "sha256": "a996c76f373fe09a461bc60fe21438e10807bbc2b416f019fb40d3e9201eafa0"
+    },
+    "clippy": {
+      "path": "out/v0270/validation/clippy.log",
+      "sha256": "a8e1d81d0e924270acd11be01abbc8c5bb28d772e89d58c358b8bf3b627ebe35"
+    },
+    "nucleo": {
+      "path": "out/v0270/validation/nucleo.log",
+      "sha256": "c3dbf63d76ef88fc7440c5d61974ef162a5d65efe481923aed150905274175bd"
+    },
+    "nano": {
+      "path": "out/v0270/validation/nano.log",
+      "sha256": "fbe48bb97b679cf1d7798924e7baac1761e0a627797e5853ec838c283da7d978"
+    }
+  },
+  "limitations": [
+    "実機確認は未実施",
+    "SPI版LSM9DS1はfirmwareビルドまで確認",
+    "UPSTREAM-001の汎化const差分と影響する8観測を継続",
+    "新版JS/WASMと独立archiveでの全試験は今回未実施"
+  ],
+  "array_firmware_codegen_revalidated": {
+    "implementation_revision": "9d0296d2dbc9d78a36f7be53a7dd475f01a602ef",
+    "result": "byte-identical C and headers for the Renode-tested ARM firmware",
+    "sha256": {
+      "emela_embedded.h": "863849d843f102f5af73ca0f156aea0ca41f009d06debcfc99c671bbb918540f",
+      "emela_embedded_exports.h": "32a45b95b3c01b79a48c663e7b9f5c6cadc0856ec7fdf13483475ff568f390f3",
+      "emela_board.h": "3282370ddad0d87bd2b42df0147dde051a8d569ffa00bf3971d935af2f7709c8",
+      "emela_embedded.c": "e2f20fcf5001b26cd19dd94b1b35bfbc4d92611feda9dd5b72066dd8ed348361"
+    }
+  },
+  "firmware_validation_revision": "b585ea3d671a1448b441a37b63664f2be1d6cd0f",
+  "firmware_revalidation_note": "以後の製品変更は保存IRの重複destinationに対するArray更新の保守化のみ。Array専用firmwareのC/headerは最終compilerでbyte一致を再確認。",
+  "post_document_ledger_checks": {
+    "passed": 2,
+    "failed": 0,
+    "filtered": 8,
+    "command": "cargo test --locked --offline -p emelino-cli --test reused_pipeline coverage_",
+    "log": "out/v0270/validation/ledger.log",
+    "log_sha256": "563ff1e8b917647579cbf4c4eac355882f2446185b89aaf566bb60ac39bdbbd5"
+  }
+}

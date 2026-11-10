@@ -7,7 +7,7 @@
 | 前回のコンパイラーsource | emela-emb `b0a367bc0a29227fae62cee2def75ed925a5218f` | backend、contract、semantics、writer、artifactと必要な試験資産 |
 | 前回の最終対応表 | emela-emb `2258716bab2e9e4bbaa5a2fd135f6999636125e2` | `docs/reference/legacy-flow/`、台帳のID・関連情報 |
 | 比較する旧fork | `c34c0aeefdd966d854371b3110db00a47798751d` | 旧Flow定義・実装・関連試験の固定基準 |
-| 現在の本体frontend | 公式Emela v0.26.1 `6021115103dd830e0efd9bb96a56a0ca97859329` | 公開frontend API、標準単相化、Flow生成、汎用core/std |
+| 現在の本体frontend | 公式Emela v0.27.0 `e2f46917939ea5a3479807e04f89a16d04457868` | 公開frontend API、標準単相化、Flow生成、汎用core/std |
 
 コードと資料は固定したGit objectから取得し、元checkoutの未コミット変更を含めない。
 Apache-2.0のLICENSEと既存の出自・著作権表示を保持する。
@@ -102,9 +102,12 @@ frame_bytesを1024から2048へ変更し、短絡評価・引数順序のfixture
 名前空間、標準moduleからの独立、旧C harnessの確認は
 [管理移管の報告](embedded-library-ownership.md)に記録する。
 
-Bytesはv0.26.1の `Std.Bytes` から供給する。旧pin `ec1031c` 用に保持していた
+Bytesは現在の本体の `Std.Bytes` から供給する。旧pin `ec1031c` 用に保持していた
 `Emelino.Bytes` ソースとexternal識別adapterは削除した。旧fixtureの `Std.Bytes` importを
 書き換えずに、本体の型・intrinsicと既存のC runtimeを接続する。
 S1〜S6の実行記録は旧pinでの履歴として保持する。v0.26.1での検証は
 [依存更新報告](compiler-v0.26.1.md)、組み込みmoduleの管理移管後は
 [所有範囲の報告](embedded-library-ownership.md)に分けて記録する。
+
+現在の本体v0.27.0への更新と、原文を保持するテスト専用構文移行は
+[0.27.0更新報告](compiler-v0.27.0.md)を参照する。

@@ -23,6 +23,8 @@ pub(crate) trait LayoutRead: Sized {
     fn cell_content_can_cycle(&self, ty: TypeId, seen: &mut HashSet<TypeId>) -> bool;
     fn cell_content_c_type(&self, content: TypeId) -> String;
     fn cell_kind(&self, cell: TypeId) -> usize;
+    fn array_name(&self, ty: TypeId) -> String;
+    fn array_kind(&self, ty: TypeId) -> u32;
     fn list_node_name(&self, ty: TypeId) -> String;
     fn list_index(&self, ty: TypeId) -> u32;
     fn is_managed_list(&self, ty: TypeId) -> bool;
@@ -179,7 +181,9 @@ impl LayoutRead for LayoutBuilder<'_> {
             | Type::Handler(_)
             | Type::Evidence
             | Type::FiberScope => true,
-            Type::List(element) => self.cell_content_can_cycle(element, seen),
+            Type::List(element) | Type::Array(element) => {
+                self.cell_content_can_cycle(element, seen)
+            }
             _ => self.shapes.aggregate_ids.get(&ty).is_some_and(|&index| {
                 let fields = match &self.shapes.aggregates[index].kind {
                     AggregateKind::Tuple(fields) => vec![fields.as_slice()],
@@ -205,6 +209,24 @@ impl LayoutRead for LayoutBuilder<'_> {
         self.shapes.list_types.len()
             + self.shapes.recursive_box_types.len()
             + self.shapes.cell_ids[&cell]
+    }
+
+    fn array_name(&self, ty: TypeId) -> String {
+        format!("emela_array_{}", ty.index())
+    }
+    fn array_kind(&self, ty: TypeId) -> u32 {
+        u32::try_from(
+            self.shapes.list_types.len()
+                + self.shapes.recursive_box_types.len()
+                + self.shapes.cell_types.len()
+                + self
+                    .shapes
+                    .array_types
+                    .iter()
+                    .position(|&t| t == ty)
+                    .expect("Array layout"),
+        )
+        .expect("too many fixed-heap object kinds")
     }
 
     fn list_node_name(&self, ty: TypeId) -> String {
@@ -243,6 +265,7 @@ impl LayoutRead for LayoutBuilder<'_> {
             Type::String
                 | Type::Bytes
                 | Type::List(_)
+                | Type::Array(_)
                 | Type::Cell(_)
                 | Type::Handler(_)
                 | Type::Evidence
@@ -290,7 +313,12 @@ impl LayoutRead for LayoutBuilder<'_> {
         }
         if matches!(
             self.shapes.types[ty],
-            Type::List(_) | Type::Cell(_) | Type::Handler(_) | Type::Evidence | Type::FiberScope
+            Type::List(_)
+                | Type::Array(_)
+                | Type::Cell(_)
+                | Type::Handler(_)
+                | Type::Evidence
+                | Type::FiberScope
         ) {
             return true;
         }
@@ -334,6 +362,7 @@ impl LayoutRead for LayoutBuilder<'_> {
             Type::Tuple(_) => self.shapes.aggregate_ids.contains_key(&ty),
             Type::Fn(_) => self.shapes.function_types.contains(&ty),
             Type::List(_) => self.shapes.list_ids.contains_key(&ty),
+            Type::Array(_) => self.shapes.array_types.contains(&ty),
             Type::Cell(_) => self.shapes.cell_ids.contains_key(&ty),
             Type::Any => self.runtime.any_abi,
             _ => true,
@@ -349,7 +378,8 @@ impl LayoutRead for LayoutBuilder<'_> {
         u32::try_from(
             self.shapes.list_types.len()
                 + self.shapes.recursive_box_types.len()
-                + self.shapes.cell_types.len(),
+                + self.shapes.cell_types.len()
+                + self.shapes.array_types.len(),
         )
         .expect("too many fixed-heap object kinds")
     }

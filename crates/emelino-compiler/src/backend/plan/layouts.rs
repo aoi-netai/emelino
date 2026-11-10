@@ -46,6 +46,7 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
                 expanding_enums: flow.core.expanding_enums.clone(),
                 recursive_box_types: Vec::new(),
                 recursive_box_ids: HashMap::new(),
+                array_types: Vec::new(),
                 list_types: Vec::new(),
                 list_ids: HashMap::new(),
                 function_types: Vec::new(),
@@ -474,6 +475,7 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
         }
         let mut function_index = 0;
         let mut list_index = 0;
+        let mut array_index = 0;
         let mut cell_index = 0;
         loop {
             if let Some(&ty) = layouts.shapes.function_types.get(function_index) {
@@ -490,6 +492,12 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
                 };
                 list_index += 1;
                 layouts.collect(element, "List element", &mut states)?;
+            } else if let Some(&ty) = layouts.shapes.array_types.get(array_index) {
+                let Type::Array(element) = layouts.shapes.types[ty] else {
+                    unreachable!()
+                };
+                array_index += 1;
+                layouts.collect(element, "Array element", &mut states)?;
             } else if let Some(&ty) = layouts.shapes.cell_types.get(cell_index) {
                 let Type::Cell(content) = layouts.shapes.types[ty] else {
                     unreachable!()
@@ -569,7 +577,7 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
                     continue;
                 }
                 match layouts.shapes.types[ty].clone() {
-                    Type::List(_) => {}
+                    Type::List(_) | Type::Array(_) => {}
                     Type::Cell(_) => {}
                     Type::Handler(_) | Type::Evidence | Type::FiberScope => {}
                     Type::Fn(_) => {}
@@ -677,7 +685,7 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
         let dependencies = match self.shapes.types[ty].clone() {
             Type::Fn(ft) => ft.params.into_iter().chain([ft.ret]).collect(),
             Type::Tuple(fields) => fields,
-            Type::List(element) | Type::Cell(element) => vec![element],
+            Type::List(element) | Type::Array(element) | Type::Cell(element) => vec![element],
             Type::Enum(id, args) if self.enum_layout_required(id) => self.shapes.core.enums[id]
                 .variants
                 .iter()
@@ -706,7 +714,7 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
     ) -> Result<(), Vec<Error>> {
         match self.shapes.types[ty].clone() {
             Type::Enum(id, args)
-                if self.shapes.core.enums[id].name == "Std.Fiber.Exit"
+                if self.shapes.core.enums[id].name == "Std.Exit.Exit"
                     && args
                         .iter()
                         .any(|&arg| matches!(self.shapes.types[arg], Type::Set(_))) =>
@@ -729,6 +737,12 @@ impl<'a> LayoutPreparation<'a> for LayoutBuilder<'a> {
                 return Ok(());
             }
             _ => {}
+        }
+        if matches!(self.shapes.types[ty], Type::Array(_)) {
+            if !self.shapes.array_types.contains(&ty) {
+                self.shapes.array_types.push(ty);
+            }
+            return Ok(());
         }
         if matches!(self.shapes.types[ty], Type::Cell(_)) {
             if !self.shapes.cell_ids.contains_key(&ty) {

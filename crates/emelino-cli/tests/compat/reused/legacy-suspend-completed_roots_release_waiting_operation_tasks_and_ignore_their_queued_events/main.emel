@@ -2,7 +2,7 @@
 @external(c, "host_wait")
 suspend fn wait(n: Int) -> Int
 @external(c, "notify")
-fn notify() -> () use {}
+fn notify() -> () uses {}
 effect Wait { suspend fn get(n: Int) -> Int }
 handler Waiting: Wait {
   suspend fn get(n, resume) {

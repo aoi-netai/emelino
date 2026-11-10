@@ -101,7 +101,7 @@ fn validate_declared_type(
             }
             args.clone()
         }
-        Type::List(element) | Type::Cell(element) => vec![*element],
+        Type::List(element) | Type::Array(element) | Type::Cell(element) => vec![*element],
         Type::Fn(ft) => ft.params.iter().copied().chain([ft.ret]).collect(),
         Type::Set(summary) => summary.params.clone(),
         _ => vec![],
@@ -188,7 +188,9 @@ pub(super) fn normalize_catalog(program: &mut Program) -> Result<()> {
                     }
                 }
             }
-            Type::List(element) | Type::Cell(element) => pending.push(element),
+            Type::List(element) | Type::Array(element) | Type::Cell(element) => {
+                pending.push(element)
+            }
             Type::Fn(ft) => pending.extend(ft.params.into_iter().chain([ft.ret])),
             Type::Handler(effect) => {
                 let definition = program
@@ -279,7 +281,7 @@ pub(super) fn validate_type(program: &Program, function: &str, ty: TypeId) -> Re
                     }
                 }
             }
-            Type::List(element) | Type::Cell(element) => {
+            Type::List(element) | Type::Array(element) | Type::Cell(element) => {
                 visit(program, function, *element, seen, active, indirections + 1)?
             }
             Type::Handler(effect) => {
@@ -435,7 +437,7 @@ pub(super) fn project_concurrency_rows(core: &mut Definitions) {
         .iter()
         .find_map(|(id, definition)| (definition.name == "Std.Cause.Cause").then_some(id));
     let exit = core.enums.iter().find_map(|(id, definition)| {
-        (definition.name == "Std.Fiber.Exit" && definition.params == 2).then_some(id)
+        (definition.name == "Std.Exit.Exit" && definition.params == 2).then_some(id)
     });
     for node in &mut core.types.types {
         if let Type::Enum(id, arguments) = node {

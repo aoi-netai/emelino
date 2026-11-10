@@ -8,7 +8,7 @@ handler Delayed:Wait {
 
 pub fn run()->Int {
   with Delayed {
-    callback=fn(value){(use Wait).wait(value)}
+    callback=|value| (use Wait).wait(value)
     callback(40)+2
   }
 }

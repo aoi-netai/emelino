@@ -297,7 +297,7 @@ fn every_defaulted_operation_matches_explicit_arguments_and_c_abi() {
 #[test]
 fn supplied_arguments_are_evaluated_once_in_written_order() {
     let source = OPERATIONS
-        .replace("fn callback", "@external(c, \"record_argument\")\nfn record_argument(index: Int, value: Int) -> Int use {}\n\nfn callback")
+        .replace("fn callback", "@external(c, \"record_argument\")\nfn record_argument(index: Int, value: Int) -> Int uses {}\n\nfn callback")
         .replace("Uart.UartConfig(115200)", "Uart.UartConfig(baud_rate: record_argument(1, 115200), direction: if record_argument(2, 1) == 1 { Uart.Both } else { Uart.Receive })")
         .replace("uart.transmit(Uart.Uart2, [42])", "uart.transmit(data: [record_argument(3, 42)], id: if record_argument(4, 2) == 2 { Uart.Uart2 } else { Uart.Uart0 })")
         .replace("read_size: 1)", "read_size: record_argument(5, 1))");
@@ -376,7 +376,7 @@ fn unrelated_names_and_function_values_keep_their_full_arity() {
     for source in [
         "type UartConfig(baud_rate: Int, data_bits: Int)\npub fn entry() -> Int { UartConfig(115200).baud_rate }",
         "import Embedded.Uart\npub fn entry() -> Int { make = Uart.UartConfig\n make(115200).baud_rate }",
-        "effect Other { fn configure(id: Int, config: Int) -> () }\nfn setup() use Other { (use Other).configure(1) }\npub fn entry() -> Int {42}",
+        "effect Other { fn configure(id: Int, config: Int) -> () }\nfn setup() uses { Other } { (use Other).configure(1) }\npub fn entry() -> Int {42}",
     ] {
         let error = frontend::generate(source, Path::new("main.emel"))
             .err()
@@ -417,7 +417,7 @@ fn omitted_priority_keeps_gpio_callback_isr_validation() {
 import Embedded.Board.{BoardGpio}
 import Embedded.Gpio
 @external(c, "untrusted")
-fn untrusted() -> () use {}
+fn untrusted() -> () uses {}
 fn callback(event: Gpio.GpioEvent) -> () { untrusted() }
 pub fn entry() -> Int {
   with BoardGpio {

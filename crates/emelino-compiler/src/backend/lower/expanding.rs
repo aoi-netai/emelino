@@ -35,9 +35,9 @@ pub(super) fn classify(program: &Program) -> HashSet<EnumId> {
                                 Type::Tuple(fields) | Type::Enum(_, fields) => {
                                     parts.extend(fields.iter().map(|&ty| (ty, true)))
                                 }
-                                Type::List(element) | Type::Cell(element) => {
-                                    parts.push((*element, true))
-                                }
+                                Type::List(element)
+                                | Type::Array(element)
+                                | Type::Cell(element) => parts.push((*element, true)),
                                 Type::Fn(signature) => parts.extend(
                                     signature
                                         .params
@@ -53,7 +53,9 @@ pub(super) fn classify(program: &Program) -> HashSet<EnumId> {
                     pending.extend(args);
                 }
                 Type::Tuple(fields) => pending.extend(fields),
-                Type::List(element) | Type::Cell(element) => pending.push(*element),
+                Type::List(element) | Type::Array(element) | Type::Cell(element) => {
+                    pending.push(*element)
+                }
                 Type::Fn(signature) => {
                     pending.extend(signature.params.iter().copied().chain([signature.ret]))
                 }

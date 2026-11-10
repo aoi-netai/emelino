@@ -1,15 +1,16 @@
+import Std.Exit.{Success, Failure}
 
-import Std.Fiber.{Fiber, Success, Failure}
-pub fn work() -> Bool use Async {
-  Fiber.scope(fn() {
-    child = Fiber.fork(fn() { 42 })
+import Std.Fiber.{Fiber}
+pub fn work() -> Bool uses { Async } {
+  Fiber.scope(|| {
+    child = Fiber.fork(|| 42)
     Fiber.interrupt(child)
     first = Fiber.await(child) match { Failure(_) -> True
       Success(_) -> False }
     Fiber.await(child)
     second = Fiber.await(child) match { Failure(_) -> True
       Success(_) -> False }
-    unit = Fiber.fork(fn() { () })
+    unit = Fiber.fork(|| ())
     Fiber.interrupt(unit)
     third = Fiber.await(unit) match { Failure(_) -> True
       Success(_) -> False }

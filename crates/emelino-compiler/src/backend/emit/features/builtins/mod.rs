@@ -1,5 +1,6 @@
 // Keep analysis dispatch exhaustive: every new variant needs an explicit planning decision.
 use super::*;
+pub(in crate::backend::emit) mod arrays;
 pub(in crate::backend::emit) mod bytes;
 pub(in crate::backend::emit) mod cells;
 pub(in crate::backend::emit) mod float;
@@ -31,6 +32,13 @@ pub(in crate::backend::emit) fn emit(
     args: &[Operand],
 ) -> Result<(), Vec<Error>> {
     match op {
+        Builtin::ArrayFromList
+        | Builtin::ArrayToList
+        | Builtin::ArraySize
+        | Builtin::ArrayGet
+        | Builtin::ArraySet
+        | Builtin::ArraySlice
+        | Builtin::ArrayConcat => arrays::emit(context, dst, op, args),
         Builtin::StringLength => string_length::string_length(context, dst, args),
         Builtin::StringByteSize => string_byte_size::string_byte_size(context, dst, args),
         Builtin::StringAppend => string_append::string_append(context, dst, args),

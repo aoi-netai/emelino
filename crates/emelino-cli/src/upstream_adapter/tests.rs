@@ -113,7 +113,7 @@ fn upstream_calls_branches_and_composite_type_ids_execute() {
 fn upstream_closure_error_and_handler_execute() {
     for (source, invocation) in [
         (
-            "pub fn answer(n: Int) -> Int { f = fn(x: Int) { x + n }\nf(37) }",
+            "pub fn answer(n: Int) -> Int { f = |x: Int| x + n\nf(37) }",
             "answer(5)",
         ),
         (
@@ -258,7 +258,7 @@ fn user_bytes_name_keeps_its_nominal_type() {
 #[test]
 fn erased_unit_callback_uses_a_unit_box_without_changing_empty_strings() {
     let program = source_program(
-        "import Std.Fiber\npub fn answer() -> Int { Fiber.scope(fn() { child = Fiber.fork(fn() { () })\nFiber.join(child)\n42 }) }",
+        "import Std.Fiber\npub fn answer() -> Int { Fiber.scope(|| { child = Fiber.fork(|| ())\nFiber.join(child)\n42 }) }",
     );
     assert!(program.functions.iter().any(|(_, function)| function.stmts.iter().any(|(_, statement)| {
         matches!(statement, d::Stmt::Let { dst: Some(dst), value: d::Value::Coerce(source), .. }

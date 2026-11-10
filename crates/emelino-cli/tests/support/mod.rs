@@ -3,6 +3,7 @@
 //!
 //! A host C11 compiler is a required test dependency. Both optimization modes
 //! always compile, link and execute; missing tools and nonzero exits fail tests.
+pub mod migrate;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -97,7 +98,8 @@ pub fn compile(
     exports: &[(&str, &str)],
     options: &emelino_compiler::Options,
 ) -> Output {
-    let generated = emelino_cli::frontend::generate(source, Path::new("main.emel"))
+    let source = migrate::source(source);
+    let generated = emelino_cli::frontend::generate(&source, Path::new("main.emel"))
         .unwrap_or_else(|error| panic!("{error}"));
     let pairs: Vec<_> = exports
         .iter()

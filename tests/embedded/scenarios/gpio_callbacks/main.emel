@@ -4,13 +4,13 @@ import Embedded.Gpio
 import Embedded.Interrupt.{Normal, High}
 
 @external(c, "callbacks_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "callbacks_record")
-fn record(tag: Int, pin: Int, level: Int) -> () use {}
+fn record(tag: Int, pin: Int, level: Int) -> () uses {}
 @external(c, "callbacks_wait")
-fn wait_stage(stage: Int) -> () use {}
+fn wait_stage(stage: Int) -> () uses {}
 @external(c, "callbacks_seed")
-fn seed() -> Int use {}
+fn seed() -> Int uses {}
 
 fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
 fn is_high(state: Gpio.PinState) -> Bool {
@@ -33,13 +33,13 @@ fn install_capture(pin: Gpio.GpioPin) -> () fails Gpio.GpioError {
   with BoardGpio {
     tag = seed()
     (use Gpio.Gpio).enable_interrupt(pin, Gpio.Rising, Normal,
-      fn(event: Gpio.GpioEvent) { received(tag, event) })
+      |event: Gpio.GpioEvent| received(tag, event))
   }
 }
-fn configure_input(pin: Gpio.GpioPin) -> () fails Gpio.GpioError use Gpio.Gpio {
+fn configure_input(pin: Gpio.GpioPin) -> () fails Gpio.GpioError uses { Gpio.Gpio } {
   (use Gpio.Gpio).configure(pin, Gpio.Input(Gpio.Down))
 }
-fn install(pin: Gpio.GpioPin) -> () fails Gpio.GpioError use Gpio.Gpio {
+fn install(pin: Gpio.GpioPin) -> () fails Gpio.GpioError uses { Gpio.Gpio } {
   configure_input(pin)
   (use Gpio.Gpio).enable_interrupt(pin, Gpio.Rising, Normal, original)
 }

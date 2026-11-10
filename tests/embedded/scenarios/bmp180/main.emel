@@ -4,18 +4,18 @@ import Embedded.I2c
 import Embedded.Interrupt.{Normal}
 
 @external(c, "bmp180_test_mark")
-fn mark(number: Int) -> () use {}
+fn mark(number: Int) -> () uses {}
 @external(c, "bmp180_test_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "bmp180_test_error_record")
-fn record_error(kind: Int) -> () use {}
+fn record_error(kind: Int) -> () uses {}
 @external(c, "bmp180_test_temperature_record")
-fn record_temperature(slot: Int, value: Int) -> () use {}
+fn record_temperature(slot: Int, value: Int) -> () uses {}
 @external(c, "bmp180_test_wait")
-fn wait_stage(stage: Int) -> () use {}
+fn wait_stage(stage: Int) -> () uses {}
 
 fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
-fn read(register: Int, count: Int) -> List[Int] fails I2c.I2cError use I2c.I2c {
+fn read(register: Int, count: Int) -> List[Int] fails I2c.I2cError uses { I2c.I2c } {
   (use I2c.I2c).write_read(Target.i2c(), Target.address(), [register], count, 20)
 }
 fn word(bytes: List[Int]) -> Int {

@@ -1,6 +1,6 @@
 pub fn apply(x: Int) -> Int {
-  outer = fn(y: Int) {
-    inner = fn(z: Int) { x + y + z }
+  outer = |y: Int| {
+    inner = |z: Int| x + y + z
     inner(1)
   }
   outer(1)

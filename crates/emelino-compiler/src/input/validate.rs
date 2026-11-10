@@ -21,7 +21,7 @@ fn ty(p: &Program, id: TypeId) -> Result {
 fn type_children(t: &Type) -> Vec<TypeId> {
     match t {
         Type::Tuple(ts) | Type::Enum(_, ts) => ts.clone(),
-        Type::List(t) | Type::Cell(t) => vec![*t],
+        Type::List(t) | Type::Array(t) | Type::Cell(t) => vec![*t],
         Type::Fn(f) => f
             .params
             .iter()

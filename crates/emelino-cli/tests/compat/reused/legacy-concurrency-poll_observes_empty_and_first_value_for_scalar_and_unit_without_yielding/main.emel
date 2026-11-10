@@ -2,10 +2,10 @@
 import Std.Fiber.{Fiber, Scope}
 import Std.Deferred.{Deferred}
 @external(c, "mark")
-fn mark(n: Int) -> () use {}
-pub fn poll(n: Int) -> Int use Async {
-  Fiber.scope(fn() {
-    Fiber.fork(fn() { mark(99) })
+fn mark(n: Int) -> () uses {}
+pub fn poll(n: Int) -> Int uses { Async } {
+  Fiber.scope(|| {
+    Fiber.fork(|| mark(99))
     d: Deferred[Int] = (use Scope).deferred()
     empty = Deferred.poll(d) match {
       None -> True

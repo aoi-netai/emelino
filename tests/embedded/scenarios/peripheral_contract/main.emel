@@ -7,13 +7,13 @@ import Embedded.I2c
 import Embedded.Interrupt.{Normal}
 
 @external(c, "contract_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "contract_wait")
-fn wait_stage(stage: Int) -> () use {}
+fn wait_stage(stage: Int) -> () uses {}
 @external(c, "contract_masked_check")
-fn masked_check() -> Int use {}
+fn masked_check() -> Int uses {}
 @external(c, "contract_in_isr")
-fn in_isr() -> () use {}
+fn in_isr() -> () uses {}
 fn on_pin(event: Gpio.GpioEvent) -> () { in_isr() }
 fn check(number: Int, success: Bool) -> () { raw_check(number, if success { 1 } else { 0 }) }
 fn uart_config(direction: Uart.UartDirection) -> Uart.UartConfig {

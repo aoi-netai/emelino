@@ -4,9 +4,16 @@
 [実装計画](implementation-plan.md)、行単位の実装・試験参照は[JSON台帳](compiler-coverage.json)を正本とする。
 機能契約とrepo内の試験から現在の挙動を確認できるようにし、旧版のソース閲覧を必須条件にしない。
 
+## Emela v0.27.0への追従
+
+現在の依存更新は[0.27.0更新報告](reports/compiler-v0.27.0.md)に記録する。
+新しいArrayは[Array契約](architecture.md#arrays)と`source_arrays`、新構文・Std.Exit・
+wildcard escapeは`source_v027`が担当する。固定旧台帳のID・件数・過去の実績は維持する。
+
 ## 現在の検証を読む
 
-JSONの`completion`は再編後の現在の完了判定であり、`finalized: false`は検証未確定を表す。
+JSONの`completion`は履歴再編時点の完了判定であり、`finalized: false`は検証未確定を表す。
+現在の依存版の検証は`current_release_migration.validation_report`を参照する。
 再編後の実行は[再現検証記録](reports/reconstruction-validation.json)へ、実際に実行したSHA・tree・
 コマンド・件数・log hashとともに記録する。空欄や`pending`を成功と解釈しない。
 `pre_reconstruction_completion`、`baseline_completion`、`release_completion`、

@@ -9,7 +9,7 @@ handler Waiting: Wait {
     if n == 0 { resume(value) } else { fail Boom(message: Int.to_string(value)) }
   }
 }
-pub fn caught(n: Int) -> Int use Async {
+pub fn caught(n: Int) -> Int uses { Async } {
   with Waiting {
     (use Wait).get(n) escape { Boom(message) -> String.byte_size(message) }
   }

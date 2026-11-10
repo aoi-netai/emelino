@@ -9,6 +9,6 @@ handler Waiting: Wait {
   if n == 0 { resume(x) } else { fail Boom(n: x) }
  }
 }
-pub fn caught(n: Int) -> Int use Async {
+pub fn caught(n: Int) -> Int uses { Async } {
  with Waiting { (use Wait).get(n) escape { Boom(n) -> n } }
 }

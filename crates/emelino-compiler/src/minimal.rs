@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 
 pub const FORMAT: &str = "emelino.flow.minimal";
 pub const SCHEMA_VERSION: u32 = 1;
-/// The immutable commit of the Emela v0.26.1 release.
-pub const UPSTREAM_REVISION: &str = "6021115103dd830e0efd9bb96a56a0ca97859329";
+/// The immutable commit of the Emela v0.27.0 release.
+pub const UPSTREAM_REVISION: &str = "e2f46917939ea5a3479807e04f89a16d04457868";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

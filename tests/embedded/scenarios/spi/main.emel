@@ -3,15 +3,15 @@ import Embedded.Spi
 import Embedded.Gpio
 
 @external(c, "spi_test_check")
-fn raw_check(number: Int, success: Int) -> () use {}
+fn raw_check(number: Int, success: Int) -> () uses {}
 @external(c, "spi_test_control")
-fn control() -> Int use {}
+fn control() -> Int uses {}
 @external(c, "spi_test_wait")
-fn wait_stage(stage: Int) -> () use {}
+fn wait_stage(stage: Int) -> () uses {}
 @external(c, "spi_test_inject")
-fn inject(mode: Int) -> () use {}
+fn inject(mode: Int) -> () uses {}
 @external(c, "spi_test_time")
-fn time_us() -> Int64 use {}
+fn time_us() -> Int64 uses {}
 
 fn check(number: Int, success: Bool) -> () {
   raw_check(number, if success { 1 } else { 0 })

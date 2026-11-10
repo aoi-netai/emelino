@@ -82,12 +82,14 @@ mod tests {
             // Check the pinned provenance without resetting the current sources
             // or rewriting the historical record when an interface changes.
             assert!(sources().iter().any(|(name, _)| *name == path));
-            let upstream_name = module["upstream_module"].as_str().unwrap();
-            let (_, source) = emela_core::core_sources()
-                .iter()
-                .find(|(name, _)| *name == upstream_name)
-                .unwrap();
-            assert_eq!(sha256(source), module["source_sha256"], "upstream {path}");
+            let name = std::path::Path::new(path).file_name().unwrap();
+            let source = std::fs::read_to_string(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("tests/compat/embedded-v0.26.1")
+                    .join(name),
+            )
+            .unwrap();
+            assert_eq!(sha256(&source), module["source_sha256"], "upstream {path}");
             let imported = source.replace("Std.Embedded", "Embedded");
             assert_eq!(sha256(&imported), module["sha256"], "imported {path}");
             checked += 1;

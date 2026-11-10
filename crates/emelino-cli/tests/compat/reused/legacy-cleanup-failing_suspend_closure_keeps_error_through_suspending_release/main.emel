@@ -2,7 +2,7 @@
 @external(c, "host_wait")
 suspend fn wait(n: Int) -> Int
 @external(c, "mark")
-fn mark(n: Int) -> () use {}
+fn mark(n: Int) -> () uses {}
 error Boom(n: Int) derive Show
 effect Wait { suspend fn get(n: Int) -> Int }
 handler Waiting: Wait { suspend fn get(n, resume) { resume(wait(n)) } }
@@ -14,10 +14,10 @@ handler Res: Resource {
     mark(3)
   }
 }
-fn invoke(f: fn() -> Int fails Boom use Wait) -> Int fails Boom use Wait { f() }
-pub fn caught(n: Int) -> Int use Async {
+fn invoke(f: fn() -> Int fails Boom uses { Wait }) -> Int fails Boom uses { Wait } { f() }
+pub fn caught(n: Int) -> Int uses { Async } {
   with Waiting {
-    invoke(fn() {
+    invoke(|| {
       with Res {
         (use Wait).get(1)
         mark(1)

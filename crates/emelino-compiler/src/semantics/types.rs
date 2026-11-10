@@ -62,7 +62,7 @@ impl TypeTable {
         let has_param = match &ty {
             Type::Param(_) => true,
             Type::Tuple(ts) | Type::Enum(_, ts) => ts.iter().any(|&t| self.has_param(t)),
-            Type::List(t) | Type::Cell(t) => self.has_param(*t),
+            Type::List(t) | Type::Array(t) | Type::Cell(t) => self.has_param(*t),
             Type::Fn(f) => {
                 f.params.iter().any(|&t| self.has_param(t))
                     || self.has_param(f.ret)
@@ -90,6 +90,7 @@ impl TypeTable {
             Type::Set(_) => return TypeId::UNIT,
             Type::Tuple(ts) => Type::Tuple(ts.iter().map(|&t| self.erase_sets(t)).collect()),
             Type::List(t) => Type::List(self.erase_sets(t)),
+            Type::Array(t) => Type::Array(self.erase_sets(t)),
             Type::Enum(id, ts) => Type::Enum(id, ts.iter().map(|&t| self.erase_sets(t)).collect()),
             Type::Cell(t) => Type::Cell(self.erase_sets(t)),
             Type::Fn(f) => Type::Fn(FnType {
@@ -161,6 +162,7 @@ pub fn subst_type<S: TypeStore + ?Sized>(s: &mut S, ty: TypeId, args: &[TypeId])
         Type::Param(i) => return args.get(i).copied().unwrap_or(ty),
         Type::Tuple(ts) => Type::Tuple(subst_all(s, &ts, args)),
         Type::List(t) => Type::List(subst_type(s, t, args)),
+        Type::Array(t) => Type::Array(subst_type(s, t, args)),
         Type::Enum(id, ts) => Type::Enum(id, subst_all(s, &ts, args)),
         Type::Cell(t) => Type::Cell(subst_type(s, t, args)),
         Type::Handler(e) => Type::Handler(s.map_effect(e)),

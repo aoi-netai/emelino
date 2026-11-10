@@ -2,7 +2,7 @@
 import Std.Fiber.{Fiber, Scope}
 import Std.Deferred.{Deferred}
 @external(c, "mark")
-fn mark(n: Int) -> () use {}
+fn mark(n: Int) -> () uses {}
 effect Gate { suspend fn go(d: Deferred[Int]) -> Int }
 handler Gated: Gate {
   suspend fn go(d, resume) {
@@ -12,10 +12,10 @@ handler Gated: Gate {
     mark(99)
   }
 }
-pub fn boundary() -> Int use Async {
-  Fiber.scope(fn() {
+pub fn boundary() -> Int uses { Async } {
+  Fiber.scope(|| {
     d: Deferred[Int] = (use Scope).deferred()
-    Fiber.fork(fn() { mark(2) })
+    Fiber.fork(|| mark(2))
     result = with Gated { (use Gate).go(d) }
     mark(3)
     result

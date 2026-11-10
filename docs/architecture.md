@@ -18,8 +18,8 @@ emelinoはEmelaの公開frontend APIが生成するFlowを受け取り、固定�
   → C実装・公開header・board hook・生成物manifest
 ```
 
-本体のsyntax/resolve/types/core/lirはすべて公式v0.26.1のcommit
-`6021115103dd830e0efd9bb96a56a0ca97859329`に固定する。
+本体のsyntax/resolve/types/core/lirはすべて公式v0.27.0のcommit
+`e2f46917939ea5a3479807e04f89a16d04457868`に固定する。
 名前解決、型検査、標準単相化、汎用core/stdは本体の責任とし、本体へのpatch、
 独自frontend、兄弟checkoutへのpath依存を設けない。
 CLIは[組み込みAPIの省略引数](embedded/default-arguments.md)に限り、名前解決済みHIRへ
@@ -135,7 +135,7 @@ scalar変換・grapheme分割・Unicodeを含むList変換は各演算の意味�
 不正UTF-8のStringをgrapheme走査へ渡した場合はdefectとする。
 Unicode graphemeの期待値はrepo内の公式test vectorでも検査する。
 
-Bytesのソース・型・8個のbuiltinはv0.26.1の`Std.Bytes`を使う。
+Bytesのソース・型・8個のbuiltinはv0.27.0の`Std.Bytes`を使う。
 独自の`Emelino.Bytes`やexternal名によるmarker、Bytes専用の型ID振り直しは設けない。
 本体のcanonical型IDと同名のユーザー型を区別し、8 builtinを所有IRへ直接投影する。
 要素はunsigned byte、viewの長さはu32で保持し、Stringへ変換する前に長さとUTF-8を検証する。
@@ -151,6 +151,31 @@ source観測は`crates/emelino-cli/tests/source_semantics.rs`、`legacy_strings.
 `legacy_string_alias::append_handles_both_inputs_overlapping_the_output_and_the_capacity_limits`はaliasと容量境界を確認する。
 Unicode vectorは`crates/emelino-compiler/tests/data/GraphemeBreakTest-18.0.0.txt`に保持する。
 
+<a id="arrays"></a>
+## Array（Emela v0.27.0）
+
+`Std.Array.Array[A]`と7個のbuiltinを本体Flowから所有IRへ投影する。
+`from_list`、`to_list`、`size`、`get`、`set`、`slice`、`concat`はCで実装し、
+map・fold・sort・検索・Eq/Ord/Showは本体のEmela実装を使う。
+長さと要素の連続領域は既存の固定heapへ確保し、空ArrayはNULLで表す。
+要素の格納では所有権を取得し、解放と循環参照の走査では全要素を辿る。
+String、List、関数値、入れ子Array、再帰型も同じ所有権規則に従う。
+
+`set`は生存解析と実行時参照数で更新先の共有を判定する。
+後で読む値や生きたclosure・aggregateから参照される値はコピーする。
+内部関数のborrowed引数には、呼び出し元の値が生きている場合と、
+同じArrayを複数引数へ渡す場合に保護参照を置く。
+同期loopがborrowed引数から取得した参照は元のpointerとの一致も確認する。
+公開C入口のborrowed引数を破壊的に変更しない。
+保存IRで同じdestinationに複数定義がある場合は、更新の最適化を適用しない。
+負数・範囲外の`get`はNone、範囲外の`set`は規定のメッセージによるdefectであり、
+結果を捨てても検査・確保を省略しない。長さ・確保量のoverflowもdefectとする。
+
+実装は`backend/array_liveness.rs`、`backend/emit/features/builtins/arrays.rs`、
+型・layout・固定heapの既存処理が担当する。
+`source_arrays`は保存再生成、C11のO0/O2、共有元の不変性、要素の寿命、
+最終使用時の1000回更新におけるコピー0回、非同期結果と取消後のheap回収を確認する。
+
 <a id="functions-effects-failure"></a>
 ## 関数値・effect・State・failure（PR4）
 
@@ -161,13 +186,16 @@ State/Cellは逃げたclosureと共有する値を保持し、最終参照の解
 sourceから受信したclosureをbackendで一度だけlowerし、既に変換済みの`MakeClosure`を
 raw Flow入力として受理して変換を重ねることはしない。
 
+`Std.Exit.attempt`と`Std.Exit.Exit`を用いる。旧`Std.Fiber`の同名APIは受理しない。
+`escape { _ -> ... }`の通常error捕捉は本体Flowを使い、defectや中断は捕捉しない。
+
 recover可能なfailure、escape、取消に関わるCauseと、即時停止するdefectを区別する。
 failureはerror payloadの所有を保ってcall・handler境界を伝播し、`protect`等のcleanupを実行する。
-defectは設定されたboard停止hookへ直行し、`Cause.attempt`でもrecover可能な値に変えない。
+defectは設定されたboard停止hookへ直行し、`Std.Exit.attempt`でもrecover可能な値に変えない。
 公開C境界まで届いた未処理failureも停止方針に従う。
 Causeのkind参照は値を消費せず、表示はerrorのShowとcallerの出力bufferを使う。
 
-本体v0.26.1の標準Flowにはbackendが必要とするCause.raiseの失敗伝播と、
+本体v0.27.0の標準Flowにはbackendが必要とするCause.raiseの失敗伝播と、
 Unit→Any callbackのUnit box補完が含まれないため、
 `crates/emelino-cli/src/upstream_adapter/{cause.rs,unit_any.rs}`で補う。
 空String placeholderをUnit値として扱う箇所を区別し、一般の空Stringを書き換えない。

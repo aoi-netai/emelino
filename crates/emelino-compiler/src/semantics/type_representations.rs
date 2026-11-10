@@ -79,7 +79,7 @@ pub(crate) fn repr(layouts: &TypeLayouts<'_>, ty: &Type) -> Repr {
         Type::Unit => unit_repr(layouts, ty),
         Type::Never => never_repr(layouts, ty),
         Type::Tuple(..) => tuple_repr(layouts, ty),
-        Type::List(..) => list_repr(layouts, ty),
+        Type::List(..) | Type::Array(..) => list_repr(layouts, ty),
         Type::Enum(..) => enum_repr(layouts, ty),
         Type::Param(..) => param_repr(layouts, ty),
         Type::Fn(..) => fn_repr(layouts, ty),

@@ -21,7 +21,14 @@ pub(in crate::backend::plan) fn string_behavior(op: Builtin, args: &[Operand]) -
         Builtin::Int64ToString => int64_to_string::string_behavior(args),
         Builtin::FloatToString => float_to_string::string_behavior(args),
         Builtin::StringFromCodePoint => string_from_code_point::string_behavior(args),
-        Builtin::StringLength
+        Builtin::ArrayFromList
+        | Builtin::ArrayToList
+        | Builtin::ArraySize
+        | Builtin::ArrayGet
+        | Builtin::ArraySet
+        | Builtin::ArraySlice
+        | Builtin::ArrayConcat
+        | Builtin::StringLength
         | Builtin::StringSplit
         | Builtin::StringChars
         | Builtin::StringTrim
@@ -78,7 +85,14 @@ pub(in crate::backend::plan) fn string_bound(
         Builtin::Int64ToString => int64_to_string::string_bound(args, bounds),
         Builtin::FloatToString => float_to_string::string_bound(args, bounds),
         Builtin::StringFromCodePoint => string_from_code_point::string_bound(args, bounds),
-        Builtin::StringLength
+        Builtin::ArrayFromList
+        | Builtin::ArrayToList
+        | Builtin::ArraySize
+        | Builtin::ArrayGet
+        | Builtin::ArraySet
+        | Builtin::ArraySlice
+        | Builtin::ArrayConcat
+        | Builtin::StringLength
         | Builtin::StringByteSize
         | Builtin::StringContains
         | Builtin::StringStartsWith
@@ -135,7 +149,14 @@ pub(in crate::backend::plan) fn result_ownership(op: Builtin, args: &[Operand]) 
     match op {
         Builtin::StringTrim => string_trim::result_ownership(),
         Builtin::StringAppend => string_append::result_ownership(args),
-        Builtin::StringLength
+        Builtin::ArrayFromList
+        | Builtin::ArrayToList
+        | Builtin::ArraySize
+        | Builtin::ArrayGet
+        | Builtin::ArraySet
+        | Builtin::ArraySlice
+        | Builtin::ArrayConcat
+        | Builtin::StringLength
         | Builtin::StringByteSize
         | Builtin::StringContains
         | Builtin::StringStartsWith
@@ -200,6 +221,15 @@ pub(in crate::backend::plan) fn require_runtime(
     requirements: &mut crate::contract::runtime::RuntimeRequirements,
 ) {
     match op {
+        Builtin::ArrayFromList
+        | Builtin::ArrayToList
+        | Builtin::ArraySize
+        | Builtin::ArrayGet
+        | Builtin::ArraySet
+        | Builtin::ArraySlice
+        | Builtin::ArrayConcat => {
+            requirements.defects = true;
+        }
         Builtin::BytesFromList
         | Builtin::BytesToList
         | Builtin::BytesSize
@@ -270,6 +300,13 @@ pub(in crate::backend::plan) fn needs_heap(op: Builtin) -> bool {
         | Builtin::BytesConcat
         | Builtin::BytesEncodeUtf8
         | Builtin::BytesDecodeValidUtf8 => bytes::needs_heap(op),
+        Builtin::ArrayFromList
+        | Builtin::ArrayToList
+        | Builtin::ArraySize
+        | Builtin::ArrayGet
+        | Builtin::ArraySet
+        | Builtin::ArraySlice
+        | Builtin::ArrayConcat => op != Builtin::ArraySize,
         Builtin::CellNew => cells::needs_heap(op),
         Builtin::StringLength
         | Builtin::StringByteSize

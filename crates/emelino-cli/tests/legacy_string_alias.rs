@@ -11,7 +11,7 @@ fn output() -> Output {
     // calls at O0/O2. Keep the original heapless resource requirement.
     let source = r##"
 @external(c,"stack_mark")
-fn stack_mark()->() use {}
+fn stack_mark()->() uses {}
 fn pad(s:String,width:Int)->String {
   if String.length(s)>=width {s} else {pad("0#{s}",width)}
 }
