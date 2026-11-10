@@ -1079,7 +1079,7 @@
   ],
   "other_checks": {
     "cargo_test_offline": "passed",
-    "python_firmware_tests": 46,
+    "python_firmware_tests": 47,
     "python_setup_tests": 13,
     "python_runner_tests": 10,
     "host_O0_Os_UBSan": [
@@ -1133,7 +1133,7 @@
       "baseline tolerates validated timer read overhead only",
       "runtime aggregate preserves not_run after build failure",
       "unsupported Pico target bindings are rejected before build",
-      "SDK build cleanup rejects overlapping caller inputs and tools before writing or deleting files"
+      "SDK build cleanup rejects overlapping caller inputs and tools, including symlinks and PATH entries, before writing or deleting files"
     ],
     "baseline_matrix": [
       {
@@ -1169,6 +1169,10 @@
         "report": "out/pico-pr-review/baseline/raspberry-pi-pico-2/O0/report.json"
       }
     ],
-    "preflight_integration": "out/pico-pr-review/preflight-integration/raspberry-pi-pico/report.json"
+    "preflight_integration": [
+      "out/pico-pr-review/preflight-integration/raspberry-pi-pico/report.json",
+      "out/pico-pr-review/preflight-integration/raspberry-pi-pico-2/report.json"
+    ],
+    "baseline_preflight_integration": "out/pico-pr-review/baseline-guard/raspberry-pi-pico/O0/report.json"
   }
 }

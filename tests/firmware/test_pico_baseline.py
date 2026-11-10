@@ -139,6 +139,28 @@ class BaselineBuildTests(unittest.TestCase):
         self.assertIn("SDK selected", report["error"])
         self.assertEqual(self.build_calls, 0)
 
+    def test_build_tree_cleanup_preserves_input_symlinks(self):
+        tree = self.output / "sdk-build"
+        tree.mkdir()
+        sdk, picotool = self.sdk, self.picotool
+        self.compiler = self.root / "arm-none-eabi-gcc"
+        self.compiler.write_text("#!/bin/sh\nexit 1\n")
+        self.compiler.chmod(0o755)
+        for kind, target in (("sdk", sdk), ("picotool", picotool), ("compiler", self.compiler)):
+            with self.subTest(input=kind):
+                link = tree / (kind + "-link")
+                link.symlink_to(target, target_is_directory=target.is_dir())
+                self.sdk = link if kind == "sdk" else sdk
+                self.picotool = link if kind == "picotool" else picotool
+                arguments = ("--cc", str(link)) if kind == "compiler" else ()
+                status, report = self.execute(*arguments)
+                self.assertEqual(status, 1)
+                self.assertIn("overlaps SDK build directory", report["error"])
+                self.assertTrue(link.is_symlink())
+                self.assertTrue(target.exists())
+                self.assertEqual(self.build_calls, 0)
+                self.assertEqual(self.runner_calls, 0)
+
     def test_omitted_new_uf2_cannot_reuse_old_image(self):
         self.assertEqual(self.execute()[0], 0)
         self.omit_uf2 = True

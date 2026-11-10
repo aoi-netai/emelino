@@ -13,6 +13,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests/embedded"))
 from firmware.build.arm_gcc import compiler_path
+from firmware.ports.pico_sdk.build import reject_build_tree_input
 from support.common import load_module, run
 
 
@@ -51,8 +52,16 @@ def main():
         platform = "rp2040" if target == "pico" else "rp2350-arm-s"
         cpu = "rp2040" if target == "pico" else "rp2350-arm"
         tree = output / "sdk-build"
-        if tree.is_symlink() or sdk == tree or tree in sdk.parents:
+        if tree.is_symlink():
             raise ValueError("baseline SDK build directory must not alias SDK inputs")
+        compiler_input = Path(args.cc or os.environ.get("ARM_GCC") or "arm-none-eabi-gcc").expanduser()
+        for path in (args.sdk_dir, args.picotool_dir, compiler_input, sdk, cc):
+            reject_build_tree_input(tree, path)
+        if compiler_input.is_dir():
+            compiler_input /= "arm-none-eabi-gcc"
+        found_compiler = shutil.which(str(compiler_input))
+        if found_compiler:
+            reject_build_tree_input(tree, found_compiler)
         if tree.exists():
             shutil.rmtree(tree)
         commands = [["cmake", "-S", ROOT / "tests/rp2350js/baseline", "-B", tree,

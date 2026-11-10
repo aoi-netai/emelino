@@ -103,15 +103,15 @@ def cmake_value(value):
 
 
 def sdk_directories(args):
-    """Resolve configured paths without reading the SDK or invoking Git."""
+    """Locate configured inputs without dereferencing their symlinks."""
     sdk = Path(args.sdk_dir or os.environ.get("PICO_SDK_PATH")
-               or ROOT / f".local/embedded-sdk/pico-sdk-{SDK_VERSION}").expanduser().resolve()
-    picotool = Path(os.environ.get("picotool_DIR") or ROOT / f".local/picotool-{SDK_VERSION}/picotool").expanduser().resolve()
+               or ROOT / f".local/embedded-sdk/pico-sdk-{SDK_VERSION}").expanduser().absolute()
+    picotool = Path(os.environ.get("picotool_DIR") or ROOT / f".local/picotool-{SDK_VERSION}/picotool").expanduser().absolute()
     return sdk, picotool
 
 
 def sdk_paths(args):
-    sdk, picotool = sdk_directories(args)
+    sdk, picotool = (path.resolve() for path in sdk_directories(args))
     if not (sdk / "pico_sdk_init.cmake").is_file():
         raise ValueError("Pico SDK required; run tools/setup/pico-sdk.sh or set PICO_SDK_PATH")
     version_text = (sdk / "pico_sdk_version.cmake").read_text()
@@ -281,6 +281,13 @@ def build(args, profile, chip, board_dir, inputs, metadata, run):
     for path in (args.generated_dir, sdk, picotool, board_dir, *sources, *args.source,
                  *(path for paths in inputs.values() for path in paths)):
         reject_build_tree_input(tree, path)
+    compiler_input = Path(args.cc or os.environ.get("ARM_GCC") or "arm-none-eabi-gcc").expanduser()
+    reject_build_tree_input(tree, compiler_input)
+    if compiler_input.is_dir():
+        compiler_input /= "arm-none-eabi-gcc"
+    found_compiler = shutil.which(str(compiler_input))
+    if found_compiler:
+        reject_build_tree_input(tree, found_compiler)
     cc = compiler_path(args.cc)
     reject_build_tree_input(tree, cc)
     sdk, picotool = sdk_paths(args)

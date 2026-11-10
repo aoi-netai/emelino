@@ -164,7 +164,8 @@ class PicoBuildTests(unittest.TestCase):
 
     def test_sdk_build_cleanup_cannot_remove_inputs_or_tools(self):
         board, chip, board_dir = load_profiles("raspberry-pi-pico")
-        for kind in ("generated", "sdk", "source", "header", "compiler", "picotool"):
+        for kind in ("generated", "sdk", "source", "header", "compiler", "picotool",
+                     "sdk-link", "picotool-link", "compiler-link", "compiler-path-link"):
             with self.subTest(input=kind):
                 root = self.output / kind
                 output = root / "out"
@@ -187,6 +188,15 @@ class PicoBuildTests(unittest.TestCase):
                     compiler = tree / "arm-none-eabi-gcc"
                     compiler.write_text("#!/bin/sh\nexit 1\n")
                     compiler.chmod(0o755)
+                link = None
+                if kind in ("sdk-link", "picotool-link", "compiler-link", "compiler-path-link"):
+                    target = sdk if kind == "sdk-link" else picotool if kind == "picotool-link" else compiler
+                    link = tree / ("arm-none-eabi-gcc" if kind.startswith("compiler") else "input-link")
+                    link.symlink_to(target, target_is_directory=target.is_dir())
+                    if kind == "sdk-link": sdk = link
+                    elif kind == "picotool-link": picotool = link
+                    elif kind == "compiler-link": compiler = link
+                    else: compiler = Path("arm-none-eabi-gcc")
                 args = cli.parser().parse_args(["--generated-dir", str(generated),
                     "--output-dir", str(output), "--sdk-dir", str(sdk), "--cc", str(compiler)])
                 inputs = {"source": [source]}
@@ -201,13 +211,17 @@ class PicoBuildTests(unittest.TestCase):
                 (output / "board_config.h").write_text("previous configuration\n")
                 before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
                 run = Mock(side_effect=AssertionError("invoked external tool"))
-                with patch.dict("os.environ", {"picotool_DIR": str(picotool)}), \
+                environment = {"picotool_DIR": str(picotool)}
+                if kind == "compiler-path-link": environment["PATH"] = str(tree)
+                with patch.dict("os.environ", environment), \
                      patch.object(build, "sdk_paths", return_value=(sdk, picotool)) as sdk_paths, \
                      self.assertRaisesRegex(ValueError, "overlaps SDK build directory"):
                     build.build(args, board, chip, board_dir, inputs, {"services": []}, run)
                 sdk_paths.assert_not_called()
                 run.assert_not_called()
                 self.assertEqual(before, {path: path.read_bytes() for path in root.rglob("*") if path.is_file()})
+                if link is not None:
+                    self.assertTrue(link.is_symlink())
 
     def test_wrong_or_truncated_elf_is_rejected(self):
         path = self.output / "firmware.elf"
