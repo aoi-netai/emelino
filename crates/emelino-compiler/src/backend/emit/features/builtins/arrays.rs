@@ -206,7 +206,13 @@ pub(in crate::backend::emit) fn emit(
             writer.line("uint32_t length = input == NULL ? 0 : input->length;");
             writer.line("if (index < 0 || (uint32_t)index >= length) emela_array_set_bounds(index, length);");
             let reusable = if let Operand::Var(source) = args[0] {
-                crate::backend::array_liveness::can_update(function, dst, source)
+                crate::backend::array_liveness::can_update(
+                    function,
+                    dst,
+                    source,
+                    &layouts.functions.closure_functions,
+                    &layouts.functions.closure_environments,
+                )
             } else {
                 false
             };

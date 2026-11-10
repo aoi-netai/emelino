@@ -1,6 +1,7 @@
 //! Backward liveness on structured Flow, including loop backedges and failure exits.
 //! This is backend analysis; source hints and statement numbering are not ownership proofs.
 use crate::contract::ir::*;
+use crate::contract::lowered::{ClosureEnvironment, ClosureMetadata};
 use std::collections::{HashMap, HashSet};
 #[derive(Default)]
 struct Node {
@@ -11,6 +12,8 @@ struct Node {
 }
 struct Graph<'a> {
     f: &'a Function,
+    closure_functions: &'a HashMap<FnId, usize>,
+    closure_environments: &'a [ClosureEnvironment],
     nodes: Vec<Node>,
     protected: HashSet<VarId>,
 }
@@ -80,6 +83,18 @@ impl Graph<'_> {
                     value.for_each_var(|v| {
                         node.uses.insert(v);
                     });
+                    // Closure conversion replaces capture operands with FnRef.
+                    // Building its environment still reads the parent's values.
+                    if let Value::FnRef(target) = value
+                        && let Some(&environment) = self.closure_functions.get(target)
+                    {
+                        node.uses.extend(
+                            self.closure_environments[environment]
+                                .captures
+                                .iter()
+                                .map(|capture| capture.source),
+                        );
+                    }
                     node.next.push(cursor);
                     if let Value::Call {
                         on_fail: Some(OnFail::Break(label)),
@@ -167,9 +182,15 @@ impl Graph<'_> {
         cursor
     }
 }
-pub(super) fn live_after(f: &Function) -> HashMap<StmtId, HashSet<VarId>> {
+fn live_after(
+    f: &Function,
+    closure_functions: &HashMap<FnId, usize>,
+    closure_environments: &[ClosureEnvironment],
+) -> HashMap<StmtId, HashSet<VarId>> {
     let mut g = Graph {
         f,
+        closure_functions,
+        closure_environments,
         nodes: vec![Node::default()],
         protected: HashSet::new(),
     };
@@ -207,11 +228,17 @@ pub(super) fn live_after(f: &Function) -> HashMap<StmtId, HashSet<VarId>> {
     }
     result
 }
-pub(super) fn can_update(f: &Function, dst: VarId, source: VarId) -> bool {
+pub(super) fn can_update(
+    f: &Function,
+    dst: VarId,
+    source: VarId,
+    closure_functions: &HashMap<FnId, usize>,
+    closure_environments: &[ClosureEnvironment],
+) -> bool {
     if f.exported && (f.params.contains(&source) || loop_loan(f, source).is_some()) {
         return false;
     }
-    let live = live_after(f);
+    let live = live_after(f, closure_functions, closure_environments);
     let mut definitions = f.stmts.iter().filter(|(_, s)| s.dst() == Some(dst));
     let Some((id, _)) = definitions.next() else {
         return false;
@@ -226,7 +253,7 @@ pub(super) fn can_update(f: &Function, dst: VarId, source: VarId) -> bool {
 
 /// A live caller value must contribute an extra reference while a borrowed callee runs.
 /// Guard locals participate in ordinary failure/interrupt cleanup, including suspend frames.
-pub(super) fn protect_calls(f: &mut Function, types: &TypeTable) {
+pub(super) fn protect_calls(f: &mut Function, types: &TypeTable, closures: &ClosureMetadata) {
     if !f
         .vars
         .iter()
@@ -234,7 +261,7 @@ pub(super) fn protect_calls(f: &mut Function, types: &TypeTable) {
     {
         return;
     }
-    let live = live_after(f);
+    let live = live_after(f, &closures.functions, &closures.environments);
     let mut defined = HashSet::new();
     for id in live.keys() {
         if let Some(dst) = f.stmts[*id].dst() {
@@ -294,7 +321,12 @@ pub(super) fn protect_calls(f: &mut Function, types: &TypeTable) {
             let mut guarded = HashSet::new();
             for a in args {
                 if let Operand::Var(v) = a
-                    && (out.contains(&v) || repeated.contains(&v))
+                    && (out.contains(&v)
+                        || repeated.contains(&v)
+                        // C callers retain ownership after this function returns,
+                        // even when its body has no later use of the parameter.
+                        || (f.exported
+                            && (f.params.contains(&v) || loop_loan(f, v).is_some())))
                     && matches!(types[f.vars[v].ty], Type::Array(_))
                     && guarded.insert(v)
                 {

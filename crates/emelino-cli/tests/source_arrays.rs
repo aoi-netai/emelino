@@ -174,6 +174,70 @@ int main(void){for(int i=0;i<100;i++){if(!answer())return 1;if(!test_heap_empty(
 }
 
 #[test]
+fn arrays_captured_after_updates_keep_their_original_values() {
+    for update in ["Array.set(a, 0, 99)", "bump(a)"] {
+        let source = format!(
+            r#"
+import Std.Array.{{Array}}
+fn bump(a: Array[Int]) -> Array[Int] {{ Array.set(a, 0, 99) }}
+pub fn answer() -> Bool {{
+  a = Array.from_list([1, 2])
+  b = {update}
+  reader = || Array.get(a, 0)
+  reader() == Some(1) && Array.get(b, 0) == Some(99)
+}}
+"#
+        );
+        let output = heap::with_heap_audit(support::compile(
+            &source,
+            &[("answer", "answer")],
+            &Options::default().with_heap_bytes(4096),
+        ));
+        support::compile_and_run(
+            &output,
+            r#"
+#include <stdlib.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+int test_heap_empty(void);
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}
+int main(void){for(int i=0;i<100;i++){if(!answer())return 1;if(!test_heap_empty())return 2;}return 0;}
+"#,
+        );
+    }
+}
+
+#[test]
+fn arrays_captured_after_calls_remain_alive() {
+    let source = r#"
+import Std.Array
+fn id(x: Int) -> Int { x }
+pub fn answer() -> Bool {
+  a = Array.from_list([1, 2])
+  n = id(1)
+  reader = || Array.get(a, 0)
+  n == 1 && reader() == Some(1)
+}
+"#;
+    let output = heap::with_heap_audit(support::compile(
+        source,
+        &[("answer", "answer")],
+        &Options::default().with_heap_bytes(4096),
+    ));
+    support::compile_and_run(
+        &output,
+        r#"
+#include <stdlib.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+int test_heap_empty(void);
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}
+int main(void){for(int i=0;i<100;i++){if(!answer())return 1;if(!test_heap_empty())return 2;}return 0;}
+"#,
+    );
+}
+
+#[test]
 fn array_bounds_defects_survive_discarding_and_exit_attempt() {
     for index in [-1, i32::MIN, 1] {
         let literal = if index == i32::MIN {
@@ -287,6 +351,53 @@ pub fn read(a: Array[Int]) -> Int { Array.get(a, 0) |> Option.or(-1) }
 int test_heap_empty(void);
 _Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}
 int main(void){for(int i=0;i<100;i++){void*a=make();void*b=change(a);if(a==b||read(a)!=1||read(b)!=9)return 1;emela_embedded_release(a);emela_embedded_release(b);if(!test_heap_empty())return 2;}return 0;}
+"#,
+    );
+}
+
+#[test]
+fn public_c_array_arguments_remain_borrowed_through_internal_calls() {
+    let source = r#"
+import Std.Array.{Array}
+fn bump(a: Array[Int]) -> Array[Int] { Array.set(a, 0, 99) }
+fn apply(a: Array[Int], f: fn(Array[Int]) -> Array[Int]) -> Array[Int] { f(a) }
+pub fn make() -> Array[Int] { Array.from_list([1, 2]) }
+pub fn forwarded(a: Array[Int]) -> Array[Int] { bump(a) }
+pub fn callback(a: Array[Int]) -> Array[Int] { apply(a, bump) }
+pub fn looped(a: Array[Int], n: Int) -> Array[Int] {
+  if n == 0 { bump(a) } else { looped(a, n - 1) }
+}
+pub fn read(a: Array[Int]) -> Int { Array.get(a, 0) |> Option.or(-1) }
+"#;
+    let output = heap::with_heap_audit(support::compile(
+        source,
+        &[
+            ("make", "make"),
+            ("forwarded", "forwarded"),
+            ("callback", "callback"),
+            ("looped", "looped"),
+            ("read", "read"),
+        ],
+        &Options::default().with_heap_bytes(4096),
+    ));
+    support::compile_and_run(
+        &output,
+        r#"
+#include <stdlib.h>
+#include "emela_embedded.h"
+#include "emela_board.h"
+int test_heap_empty(void);
+_Noreturn void emela_board_defect(EmelaDefectKind k,const char*m,uint16_t n){(void)k;(void)m;(void)n;abort();}
+int main(void){
+  for(int i=0;i<100;i++){
+    void*a=make();
+    void*b=forwarded(a);void*c=callback(a);void*d=looped(a,3);
+    if(a==b||a==c||a==d||read(a)!=1||read(b)!=99||read(c)!=99||read(d)!=99)return 1;
+    emela_embedded_release(a);emela_embedded_release(b);emela_embedded_release(c);emela_embedded_release(d);
+    if(!test_heap_empty())return 2;
+  }
+  return 0;
+}
 "#,
     );
 }
