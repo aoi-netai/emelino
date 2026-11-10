@@ -50,7 +50,7 @@ SPIでは`Spi.create_device`で作ったデバイスを渡し、同じブロッ�
 8 bit、MSB first、mode 3、active-low CSのデバイスを使います。
 `main_spi.emel`に具体的な作成コードがあります。
 
-共通関数は`use Registers.Registers`を宣言し、必要な操作を要求します。
+共通関数は`uses { Registers.Registers }`を宣言し、必要な操作を要求します。
 I²CとSPIで`config`や`dataread`を複製する必要はありません。
 I²C handlerは1回の`write_read`、SPI handlerは1回の`transaction`で各burstを処理します。
 SPIではコマンドとデータの両方を同じCS区間に収めます。
@@ -78,7 +78,7 @@ ID不一致は`Lsm9ds1.Error(WrongDevice)`です。
 
 ## 純粋なデコード
 
-`Lsm9ds1.decode(angular_rate_bytes, acceleration_bytes)`は`use {}`の純粋関数です。
+`Lsm9ds1.decode(angular_rate_bytes, acceleration_bytes)`は`uses {}`の純粋関数です。
 6 byteずつの保存データから、通信なしで`Sample`を作れます。
 長さやbyte値が不正なら`Lsm9ds1.Error(InvalidData)`になります。
 

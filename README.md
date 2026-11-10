@@ -4,7 +4,7 @@ emelinoは、マイコン向けのemela実装です。
 
 emela本体が持つEffectシステムや関数型言語としての機能を可能な限り残したまま、マイコン上で動作するように設計されています。
 
-現在はemela v0.26.1に対応しています。emelaのバージョンアップの少し後にemelinoも更新される予定です。
+現在はemela v0.27.0に対応しています。emelaのバージョンアップの少し後にemelinoも更新される予定です。
 
 [emela](https://github.com/emela-lang/emela)
 

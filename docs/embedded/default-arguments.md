@@ -104,7 +104,7 @@ changed = Uart.UartConfig(parity: Uart.Even, ..config)
 
 ## 実装境界
 
-Emela v0.26.1への依存は変更しない。名前解決済みHIRのコンストラクターIDと、
+現在の本体依存はEmela v0.27.0である。名前解決済みHIRのコンストラクターIDと、
 本体の型検査が解決したeffect操作IDに基づき、CLIが省略分だけを追加する。
 操作引数を追加したときは型検査を再実行し、その結果だけをCore/Flowへlowerする。
 一般のデフォルト引数宣言構文、本体crateのpatch、Core関数本体の書換えは追加しない。

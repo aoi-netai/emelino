@@ -161,7 +161,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -238,7 +238,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -315,7 +315,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -392,7 +392,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -469,7 +469,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -546,7 +546,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -623,7 +623,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -700,7 +700,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P3",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -7555,7 +7555,7 @@
           "symbol": "bytes_standard_library"
         }
       ],
-      "reason": "Emela v0.26.1 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
+      "reason": "Emela v0.27.0 supplies Std.Bytes, its canonical Type::Bytes and eight Builtin::Bytes operations. The adapter projects these directly to the existing backend contract and byte runtime. Pure Emela methods come from upstream core_sources(); no local Bytes source, external-marker substitution or special type-ID remapping remains. Existing owned/wide-length/UTF8/traits/external/task observations are retained.",
       "legacy_phase": "P7",
       "contract_group": "numeric-text-bytes",
       "delivery_pr": 3
@@ -34720,7 +34720,7 @@
           "path": "crates/emelino-cli/src/bundled.rs"
         }
       ],
-      "reason": "汎用core/stdとStd.Bytesはv0.26.1本体へ委譲する。組み込み6moduleはemelinoのlib/embeddedが所有し、本体のStd.Embedded供給を登録対象から除く。通常sourceとしての供給、取り込み基準hash、予約名上書き拒否を検証する。旧Std namespaceの欠落診断はユーザー指定の管理移管により原期待へ戻す。",
+      "reason": "汎用core/stdとStd.Bytesはv0.27.0本体へ委譲する。組み込み6moduleはemelinoのlib/embeddedが所有し、本体のStd.Embedded供給を登録対象から除く。通常sourceとしての供給、取り込み基準hash、予約名上書き拒否を検証する。旧Std namespaceの欠落診断はユーザー指定の管理移管により原期待へ戻す。",
       "previous_ownership_reason": "本体と同一revisionのcore/stdを利用する。6個のEmbedded互換moduleは本体のStd.Embedded sourceからimport namespaceだけを変更して導出し、固定旧hash一致と予約名上書き拒否を確認した。6ソースの別コピーは削除した。v0.26.1ではStd.Bytesも本体から供給し、独自Bytesソースとexternal置換は削除した。Std.Embedded namespaceの不在という旧拒否期待は本体std委譲へ置き換える。",
       "contract_group": "foundation",
       "delivery_pr": 1
@@ -34988,7 +34988,7 @@
     }
   ],
   "reuse_revision": "b0a367bc0a29227fae62cee2def75ed925a5218f",
-  "upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+  "upstream_revision": "e2f46917939ea5a3479807e04f89a16d04457868",
   "known_upstream_issues": [
     {
       "id": "UPSTREAM-001",
@@ -35071,7 +35071,7 @@
     "implementation_and_test_revision": "fce69bbb87e7c18ca556e099ae16c8ae828a550d",
     "classification_decision": "Existing observation classifications are retained after all 377 workspace tests passed on v0.26.1 with no failures, ignored or filtered tests; UPSTREAM-001 retains its eight affected source observations. Full command and environment evidence is in validation_report."
   },
-  "upstream_release": "v0.26.1",
+  "upstream_release": "v0.27.0",
   "baseline_completion": {
     "finalized": true,
     "date": "2026-11-03",
@@ -35294,5 +35294,12 @@
     },
     "literal_boundary": "emela_lir::Const/Operand::Constはliteral表現。Value::Const/Function.constantはconst評価・cacheの契約として分ける。",
     "cross_cutting": "各行は最初に読む契約を一つ選ぶ。所有権、数値、failure、C境界などにまたがる観測の全根拠は既存new_implementation/new_tests/evidence/reasonを参照する。"
+  },
+  "current_release_migration": {
+    "from_upstream_revision": "6021115103dd830e0efd9bb96a56a0ca97859329",
+    "to_release": "v0.27.0",
+    "to_upstream_revision": "e2f46917939ea5a3479807e04f89a16d04457868",
+    "validation_report": "docs/reports/compiler-v0.27.0.json",
+    "interpretation": "v0.27.0の新規Arrayと構文・Std.Exitの検証は追加報告へ記録する。固定旧台帳のID・件数・completionと既存release_migration等の実行履歴は保持する。"
   }
 }
