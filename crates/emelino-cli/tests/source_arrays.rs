@@ -129,6 +129,10 @@ fn borrowed_calls_and_live_captures_keep_the_original_array() {
     let source = r#"
 import Std.Array.{Array}
 fn bump(a: Array[Int]) -> Array[Int] { Array.set(a, 0, 99) }
+fn repeated(a: Array[Int], b: Array[Int]) -> Bool {
+  changed = Array.set(a, 0, 88)
+  Array.get(b, 0) == Some(1) && Array.get(changed, 0) == Some(88)
+}
 fn cycle(a: Array[Int], i: Int) -> Array[Int] {
   if i == 0 { cycle(Array.from_list([7, 8]), 1) } else {
     reader = || Array.get(a, 0)
@@ -137,13 +141,15 @@ fn cycle(a: Array[Int], i: Int) -> Array[Int] {
   }
 }
 pub fn answer() -> Bool {
+  once = Array.from_list([1, 2])
+  duplicate_ok = repeated(once, once)
   a = Array.from_list([1, 2])
   b = bump(a)
   c = if Array.size(a) > 0 { bump(a) } else { a }
   reader = || Array.get(a, 0)
   t = (a, "kept")
   d = Array.set(a, 0, 42)
-  Array.get(a, 0) == Some(1) && Array.get(b, 0) == Some(99)
+  duplicate_ok && Array.get(a, 0) == Some(1) && Array.get(b, 0) == Some(99)
   && Array.get(c, 0) == Some(99) && reader() == Some(1)
   && (t match { (original, _) -> Array.get(original, 0) == Some(1) })
   && Array.get(d, 0) == Some(42) && Array.get(cycle(a, 0), 0) == Some(99)

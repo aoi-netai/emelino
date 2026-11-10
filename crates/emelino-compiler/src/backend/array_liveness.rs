@@ -275,10 +275,20 @@ pub(super) fn protect_calls(f: &mut Function, types: &TypeTable) {
             }
         }
         if let Value::Call { args, .. } = value.clone() {
+            // Repeating one borrowed operand creates aliases in the callee even
+            // when the caller itself never reads that variable again.
+            let mut seen = HashSet::new();
+            let repeated: HashSet<_> = args
+                .iter()
+                .filter_map(|arg| match arg {
+                    Operand::Var(v) if !seen.insert(*v) => Some(*v),
+                    _ => None,
+                })
+                .collect();
             let mut guarded = HashSet::new();
             for a in args {
                 if let Operand::Var(v) = a
-                    && out.contains(&v)
+                    && (out.contains(&v) || repeated.contains(&v))
                     && matches!(types[f.vars[v].ty], Type::Array(_))
                     && guarded.insert(v)
                 {
