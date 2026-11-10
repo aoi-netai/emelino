@@ -71,6 +71,17 @@ def load_target(board, path=None):
             raise ValueError("invalid scenario settings: " + name)
         if settings.get("port", port) != port:
             raise ValueError("scenario does not support this firmware port: " + name)
+        if simulator == "rp2350js":
+            # These fixtures and their Node peers use the initial fixed Pico
+            # wiring. Do not label a run with bindings the firmware ignores.
+            if settings.keys() - {"port", "bindings", "checks", "uart", "spi", "i2c"}:
+                raise ValueError("Pico scenarios do not support alternate wiring or probe settings")
+            if settings.get("bindings") is not True:
+                raise ValueError("Pico scenarios require their fixed fixture bindings")
+            for bus, fixed in (("uart", 0), ("spi", 1), ("i2c", 1)):
+                value_ = settings.get(bus, fixed)
+                if type(value_) is not int or value_ != fixed:
+                    raise ValueError("Pico scenarios require fixed uart0/spi1/i2c1 bindings")
     return target
 
 

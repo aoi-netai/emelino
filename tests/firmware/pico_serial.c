@@ -22,6 +22,7 @@ static bool uart_readable, spi_readable = true, irq_enabled[32];
 static bool output[32], latch[32], held_low[32];
 static void (*handlers[32])(void);
 static uint uart_resets, i2c_resets, scl_low_edges;
+static uint spi_resets, spi_selected_clock_edges;
 static uint functions[32];
 static uint32_t inject_i2c_abort;
 static uint64_t uart_read_resume_delay, pending_resume_delay;
@@ -71,7 +72,16 @@ bool uart_is_readable(uart_inst_t *p) {
     return value;
 }
 bool uart_is_writable(uart_inst_t *p) { (void)p; return true; }
-uint spi_init(spi_inst_t *p, uint baud) { (void)p; memset(&mock_spi, 0, sizeof(mock_spi)); return baud; }
+uint spi_init(spi_inst_t *p, uint baud) {
+    (void)p;
+    /* SDK spi_init enables mode 0 before returning. A previously high SCK
+       consequently falls while a caller-owned active-low CS is asserted. */
+    if (functions[18] == GPIO_FUNC_SPI && output[17] && !latch[17]
+        && (mock_spi.cr0 & SPI_SSPCR0_SPO_BITS)) ++spi_selected_clock_edges;
+    ++spi_resets;
+    memset(&mock_spi, 0, sizeof(mock_spi));
+    return baud;
+}
 bool spi_is_writable(spi_inst_t *p) { (void)p; return true; }
 bool spi_is_readable(spi_inst_t *p) { (void)p; return spi_readable; }
 uint i2c_init(i2c_inst_t *p, uint baud) {
@@ -177,6 +187,38 @@ static void spi_case(void) {
     spi_readable = true;
     assert(emela_spi_transmit(0, &word, 1, 1) == 0);
 }
+static void spi_manual_cs_case(void) {
+    const uint16_t words[] = {0x12, 0x34};
+    gpio_set_function(17, GPIO_FUNC_SIO);
+    gpio_put(17, true);
+    gpio_set_dir(17, GPIO_OUT);
+    for (unsigned phase = 0; phase < 2; ++phase) {
+        EmelaSpiConfig config = spi_config(1000000);
+        config.polarity = EMELA_SPI_CLOCK_POLARITY_IDLE_HIGH;
+        config.phase = phase ? EMELA_SPI_CLOCK_PHASE_SECOND_EDGE : EMELA_SPI_CLOCK_PHASE_FIRST_EDGE;
+        assert(emela_spi_configure(0, config) == 0);
+        uint before = spi_resets;
+        gpio_put(17, false);
+        assert(emela_spi_transmit(0, words, 1, 1) == 0);
+        assert(emela_spi_transmit(0, words + 1, 1, 1) == 0);
+        assert(spi_resets == before && spi_selected_clock_edges == 0);
+        gpio_put(17, true);
+
+        /* Different requested limits may yield the same safe hardware rate. */
+        config.max_frequency_hz++;
+        assert(emela_spi_configure(0, config) == 0 && spi_resets == before);
+        mock_clock = 150000000;
+        assert(emela_spi_transmit(0, words, 1, 1) == 0);
+        uint32_t divider = mock_spi.cpsr * ((mock_spi.cr0 >> 8) + 1);
+        assert(divider == 150 && spi_resets == before + 1);
+        before = spi_resets;
+        EmelaSpiTransactionStatus recovered = emela_spi_recover(0);
+        assert(!recovered.primary_spi && !recovered.primary_gpio && !recovered.cleanup_gpio);
+        assert(spi_resets == before + 1);
+        mock_clock = 125000000;
+    }
+}
+
 static void i2c_case(void) {
     assert(emela_i2c_enable_interrupt(0, 1) == 3);
     assert(emela_i2c_configure(0, i2c_config()) == 0);
@@ -235,6 +277,7 @@ int main(int argc, char **argv) {
     if (!strcmp(argv[1], "uart")) uart_case();
     else if (!strcmp(argv[1], "uart_irq")) uart_irq_case();
     else if (!strcmp(argv[1], "spi")) spi_case();
+    else if (!strcmp(argv[1], "spi_manual_cs")) spi_manual_cs_case();
     else if (!strcmp(argv[1], "i2c")) i2c_case();
     else if (!strcmp(argv[1], "context")) context_case();
     else assert(false);

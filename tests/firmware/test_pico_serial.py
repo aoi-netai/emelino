@@ -192,7 +192,7 @@ def main():
                 str(port / "uart.c"), str(port / "spi.c"), str(port / "i2c.c"),
                 str(ROOT / "firmware/common/spi.c"),
                 str(Path(__file__).with_name("pico_serial.c")), "-o", str(binary)], check=True)
-            for case in ("uart", "uart_irq", "spi", "i2c", "context"):
+            for case in ("uart", "uart_irq", "spi", "spi_manual_cs", "i2c", "context"):
                 subprocess.run([str(binary), case], check=True)
     return 0
 

@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -20,7 +21,8 @@ def main():
     parser.add_argument("--board", required=True, choices=["raspberry-pi-pico", "raspberry-pi-pico-2"])
     parser.add_argument("--sdk-dir", type=Path, default=os.environ.get("PICO_SDK_PATH"))
     parser.add_argument("--cc")
-    parser.add_argument("--picotool-dir", type=Path, default=os.environ.get("PICOTOOL_DIR", ROOT / ".local/picotool-2.3.1/picotool"))
+    parser.add_argument("--picotool-dir", type=Path, default=os.environ.get("picotool_DIR")
+                        or os.environ.get("PICOTOOL_DIR") or ROOT / ".local/picotool-2.3.1/picotool")
     parser.add_argument("--rp2350js-dir", type=Path)
     parser.add_argument("--node", default="node")
     parser.add_argument("--optimization", choices=["Os", "O0"], default="Os")
@@ -29,8 +31,14 @@ def main():
     output = (args.output_dir or ROOT / "out/pico-baseline" / args.board / args.optimization).resolve()
     output.mkdir(parents=True, exist_ok=True)
     report = {"schema_version": 1, "board": args.board, "build_status": "failed", "runtime_status": "not_run"}
-    (output / "runtime.json").unlink(missing_ok=True)
     try:
+        # Only these published files and our dedicated build tree belong to this
+        # runner. Do not reuse an earlier image if configure/build fails.
+        for name in ("pico_sdk_baseline.elf", "pico_sdk_baseline.uf2", "pico_sdk_baseline.bin",
+                     "pico_sdk_baseline.elf.map", "pico_sdk_baseline.hex", "pico_sdk_baseline.dis",
+                     "runtime.json", "report.json", "runner.json", "rp2350js.log",
+                     "build-0.log", "build-1.log"):
+            (output / name).unlink(missing_ok=True)
         if not args.sdk_dir:
             raise ValueError("set PICO_SDK_PATH or pass --sdk-dir")
         sdk = args.sdk_dir.resolve()
@@ -42,18 +50,37 @@ def main():
         target = "pico" if args.board == "raspberry-pi-pico" else "pico2"
         platform = "rp2040" if target == "pico" else "rp2350-arm-s"
         cpu = "rp2040" if target == "pico" else "rp2350-arm"
-        commands = [["cmake", "-S", ROOT / "tests/rp2350js/baseline", "-B", output,
+        tree = output / "sdk-build"
+        if tree.is_symlink() or sdk == tree or tree in sdk.parents:
+            raise ValueError("baseline SDK build directory must not alias SDK inputs")
+        if tree.exists():
+            shutil.rmtree(tree)
+        commands = [["cmake", "-S", ROOT / "tests/rp2350js/baseline", "-B", tree,
                      "-DPICO_SDK_PATH=" + str(sdk), "-DPICO_BOARD=" + target, "-DPICO_PLATFORM=" + platform,
                      "-DPICO_TOOLCHAIN_PATH=" + str(cc.parent.parent),
                      "-Dpicotool_DIR=" + str(args.picotool_dir.resolve()), "-DCMAKE_BUILD_TYPE=MinSizeRel",
                      "-DCMAKE_C_FLAGS_MINSIZEREL=-" + args.optimization + " -DNDEBUG",
                      "-DCMAKE_CXX_FLAGS_MINSIZEREL=-" + args.optimization + " -DNDEBUG"],
-                    ["cmake", "--build", output, "--parallel", "4"]]
+                    ["cmake", "--build", tree, "--parallel", "4"]]
         for index, command in enumerate(commands):
             status, log = run(command, timeout=180)
             (output / f"build-{index}.log").write_text(log)
             if status:
                 raise ValueError("baseline build failed:\n" + log)
+            if index == 0:
+                # The SDK caches its compiler independently of TOOLCHAIN_PATH.
+                # Validate the actual choice as well as using a fresh cache.
+                cache = (tree / "CMakeCache.txt").read_text().splitlines()
+                selected = next((line.partition("=")[2] for line in cache
+                                 if line.startswith("CMAKE_C_COMPILER:") and "=" in line), None)
+                if selected is None or Path(selected).resolve() != cc:
+                    raise ValueError(f"baseline SDK selected {selected}, but --cc/ARM_GCC requested {cc}")
+        for name in ("pico_sdk_baseline.elf", "pico_sdk_baseline.uf2"):
+            shutil.copyfile(tree / name, output / name)
+        for name in ("pico_sdk_baseline.bin", "pico_sdk_baseline.elf.map",
+                     "pico_sdk_baseline.hex", "pico_sdk_baseline.dis"):
+            if (tree / name).is_file():
+                shutil.copyfile(tree / name, output / name)
         status, nm = run([str(cc).removesuffix("gcc") + "nm", "--defined-only", output / "pico_sdk_baseline.elf"])
         if status:
             raise ValueError("baseline symbols unavailable")
@@ -82,7 +109,9 @@ def main():
         result = json.loads((output / "runtime.json").read_text())
         report["runtime"] = result
         report["firmware_uf2_sha256"] = hashlib.sha256(firmware.read_bytes()).hexdigest()
-        if status or result["reason"] != "completed" or result["uart"] != "SDK\n" or result["observations"]["pico_baseline_elapsed"] < 100:
+        elapsed = result["observations"]["pico_baseline_elapsed"]
+        if (status or result["reason"] != "completed" or result["uart"] != "SDK\n"
+                or type(elapsed) is not int or elapsed < 100):
             raise ValueError("plain SDK control image did not pass")
         report["checks"] = {
             "boot_uart_tx_timer": True,
@@ -97,7 +126,14 @@ def main():
             evidence = limitations.evidence_for(args.board, dependency["revision"], report["sdk_revision"], dependency["dist_sha256"])
             if evidence:
                 baseline = evidence["baselines"][args.board]
-                if (report["checks"] == baseline["checks"] and result["observations"] == baseline["observations"]
+                # O0 may observe the 100-us wait one tick later than Os. Its
+                # minimum duration was checked above; all other observations
+                # must still exactly match the diagnosed failure signature.
+                actual = {key: value for key, value in result["observations"].items()
+                          if key != "pico_baseline_elapsed"}
+                expected = {key: value for key, value in baseline["observations"].items()
+                            if key != "pico_baseline_elapsed"}
+                if (report["checks"] == baseline["checks"] and actual == expected
                         and result["gpio25"] == baseline["gpio25"]):
                     report.update(runtime_status="model_limited", model_limitations={key: evidence["limitations"][key]
                         for key, passed in report["checks"].items() if not passed})

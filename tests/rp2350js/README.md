@@ -28,6 +28,8 @@ GUI 用 canvas の native addon、MCP server、背景 daemon は使用しない�
 
 `--scenario pico_gpio` / `pico_uart` / `pico_spi` / `pico_i2c` / `pico_peripherals`
 で個別選択する。省略時は 5 シナリオを実行する。
+Picoのfixtureとpeerは初期ボードの配線に固定しており、`--target`によるcontrollerや
+pin/addressの変更は拒否する。別配線を検証するときはfixtureとpeerも合わせて実装する。
 `--build-only` は SDK ELF/BIN/UF2 の生成だけを行い、`runtime_status: not_run` とする。
 `--timeout`（秒、既定 60）と `--max-instructions`（既定 10,000,000）が実行上限。
 

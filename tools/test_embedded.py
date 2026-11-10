@@ -95,8 +95,10 @@ def main():
             statuses = {case["status"] for case in summaries}
             overall = ("failed" if not passed else "model_limited" if "model_limited" in statuses
                        else "built" if statuses == {"built"} else "passed")
-            runtime_status = ("failed" if not passed else "model_limited" if overall == "model_limited"
-                              else "not_run" if overall == "built" else "passed")
+            runtime_states = {case["runtime_status"] for case in summaries}
+            runtime_status = ("failed" if "failed" in runtime_states
+                              else "not_run" if "not_run" in runtime_states
+                              else "model_limited" if "model_limited" in runtime_states else "passed")
             (base / "report.json").write_text(json.dumps({"schema_version": 1, "board": args.board,
                 "optimization": args.optimization, "status": overall,
                 "build_status": "passed" if all(case["build_status"] == "passed" for case in summaries) else "failed",

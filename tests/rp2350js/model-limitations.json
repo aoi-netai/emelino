@@ -93,7 +93,7 @@
     "firmware/ports/pico_sdk/i2c.c": "68c88e91266c98fa00b7521a3c49373b8b734e9139afdf7e1875e71ecfe24f91",
     "firmware/ports/pico_sdk/pins.c": "e7a930619ae1d9c36a3fb9c6b5052282b8dfae8e1a7b89a45a0cc88698ba9559",
     "firmware/ports/pico_sdk/platform.c": "f6de6d7f3604c1ae9fa388eb2d1bc078bd34ac4faeaef15aa357d843d7578c81",
-    "firmware/ports/pico_sdk/spi.c": "40ec7829205803b96b0cb44e1c0d9c21b3d9f2d705c1f8e8648b9a4f1789886a",
+    "firmware/ports/pico_sdk/spi.c": "4bd824c78b4377f8fed682a97a066cc58fac61f121b53b9d157e7771aaf90b3c",
     "firmware/ports/pico_sdk/time.c": "f2c26e55c74b2d9212ee0e9fd128195a223fa0aa189c569e7e1d220c50c74d87",
     "firmware/ports/pico_sdk/uart.c": "14a83467c82aca81047fc369954f2e3df366b55716012d3ffcd623c8d4f79b4f",
     "tests/embedded/scenarios/pico_gpio/config.json": "6affec49d6a75fea9a9c71e461f2d681f5a44e0b74a508eb1d789ce42fefdc37",

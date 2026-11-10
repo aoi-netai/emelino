@@ -4,6 +4,8 @@
 今回の受入条件である公式Pico SDKによるELF生成を、両ボードで満たした。
 実行結果は、成功した観測とエミュレータの未実装部分を分けて記録した。
 実機での検証は行っていない。
+[PR #20](https://github.com/aoi-netai/emelino/pull/20)の独立レビュー後も20構成と既存11シナリオを再実行し、
+本書とJSONの測定値を修正後の結果へ更新した。
 
 ## 使用した環境
 
@@ -72,6 +74,14 @@ engine未導入・古い実行reportは通常の失敗として扱う。
 host契約試験はピン所有権、ISR文脈、IRQ bufferのoverflow、周波数上限、
 operation全体のdeadlineと復旧を検査する。実CPUでの周辺機器試験とは区別する。
 
+追加の回帰試験では、SPI mode 2/3で手動CSを保持した連続raw転送がSDK再初期化による余分なclockを
+発生させないこと、clock変更時の分周再計算、recover時の強制resetを確認した。
+SDK単独検証はコンパイラを変更して再実行するとbuild treeを作り直し、実際に選ばれたコンパイラを照合する。
+両ボードのOs/O0で素SDKの既知制約も再確認し、100 μs以上の待機で生じる読取遅延は正常な差として扱う。
+実行前のビルド失敗はmatrixでも `not_run` を維持し、固定fixtureが処理しないcontroller・配線の変更は拒否する。
+ビルドの作業領域 `sdk-build` に入力コード・SDK・ツールが含まれる指定も事前拒否し、
+再ビルドのcleanupで入力を削除しないことを確認した。
+
 [セットアップ](README.md#セットアップとビルド)後に実行する。
 
 ```sh
@@ -84,7 +94,7 @@ done
 python3 tests/firmware/test_pico_gpio.py
 python3 tests/firmware/test_pico_serial.py
 python3 tests/firmware/test_spi_common.py
-python3 -m unittest discover -s tests/firmware -p 'test_*build.py'
+python3 -m unittest discover -s tests/firmware -p 'test_*.py'
 python3 -m unittest discover -s tests/setup -p 'test_*.py'
 python3 -m unittest discover -s tests/embedded/support -p 'test_*.py'
 ```

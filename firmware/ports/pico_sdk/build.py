@@ -102,9 +102,16 @@ def cmake_value(value):
     return "[" + equals + "[" + value + "]" + equals + "]"
 
 
-def sdk_paths(args):
+def sdk_directories(args):
+    """Resolve configured paths without reading the SDK or invoking Git."""
     sdk = Path(args.sdk_dir or os.environ.get("PICO_SDK_PATH")
                or ROOT / f".local/embedded-sdk/pico-sdk-{SDK_VERSION}").expanduser().resolve()
+    picotool = Path(os.environ.get("picotool_DIR") or ROOT / f".local/picotool-{SDK_VERSION}/picotool").expanduser().resolve()
+    return sdk, picotool
+
+
+def sdk_paths(args):
+    sdk, picotool = sdk_directories(args)
     if not (sdk / "pico_sdk_init.cmake").is_file():
         raise ValueError("Pico SDK required; run tools/setup/pico-sdk.sh or set PICO_SDK_PATH")
     version_text = (sdk / "pico_sdk_version.cmake").read_text()
@@ -116,10 +123,16 @@ def sdk_paths(args):
     if version != SDK_VERSION:
         raise ValueError(f"Pico SDK {SDK_VERSION} required (found {version})")
     sdk_identity(sdk)
-    picotool = Path(os.environ.get("picotool_DIR") or ROOT / f".local/picotool-{SDK_VERSION}/picotool").expanduser().resolve()
     if not (picotool / "picotoolConfig.cmake").is_file():
         raise ValueError("installed picotool required; run tools/setup/pico-sdk.sh or set picotool_DIR")
     return sdk, picotool
+
+
+def reject_build_tree_input(tree, path):
+    # Check the link location as well as its target: cleanup must preserve both.
+    path = Path(path).expanduser().absolute()
+    if any(candidate == tree or tree in candidate.parents for candidate in (path, path.resolve())):
+        raise ValueError(f"build input overlaps SDK build directory: {path}")
 
 
 def sdk_identity(sdk):
@@ -250,20 +263,31 @@ def build(args, profile, chip, board_dir, inputs, metadata, run):
     if "spi" in drivers:
         drivers.add("gpio")
     timed = bool(drivers & {"uart", "spi", "i2c"})
-    configure(output, profile, chip, args.stack_bytes, args.guard_bytes, timed)
+    validate(profile, chip, args.stack_bytes, args.guard_bytes)
     for driver, mapping in (("uart", "uart0"), ("spi", "spi1"), ("i2c", "i2c1")):
         if driver in drivers and mapping not in profile.get("peripherals", {}):
             raise ValueError("board has no mapping for required service: " + driver)
-    sdk, picotool = sdk_paths(args)
-    cc = compiler_path(args.cc)
     sources = [HERE / "platform.c", HERE / "pins.c",
                *([board_dir / "init.c"] if (board_dir / "init.c").is_file() else []),
                *([HERE / "time.c"] if timed else []), *([COMMON / "spi.c"] if "spi" in drivers else []),
                *[HERE / (name + ".c") for name in sorted(drivers)], *inputs["source"],
                *[path.resolve() for path in args.source]]
+    # The disposable SDK tree must never contain caller-owned inputs or tools.
+    # Do this before writing configuration, removing artifacts, or inspecting Git.
+    tree = output / "sdk-build"
+    if tree.is_symlink():
+        raise ValueError("SDK build directory cannot be a symlink")
+    sdk, picotool = sdk_directories(args)
+    for path in (args.generated_dir, sdk, picotool, board_dir, *sources, *args.source,
+                 *(path for paths in inputs.values() for path in paths)):
+        reject_build_tree_input(tree, path)
+    cc = compiler_path(args.cc)
+    reject_build_tree_input(tree, cc)
+    sdk, picotool = sdk_paths(args)
     for source in sources:
         if not source.is_file():
             raise ValueError(f"missing build input: {source}")
+    configure(output, profile, chip, args.stack_bytes, args.guard_bytes, timed)
     includes = {output, HERE, COMMON, board_dir, args.generated_dir.resolve(), *include_directories(inputs)}
     values = {"EMELINO_SOURCES": sources, "EMELINO_INCLUDES": sorted(includes),
               "EMELINO_OUTPUT": [output], "EMELINO_OPTIMIZATION": [args.optimization],
@@ -274,9 +298,6 @@ def build(args, profile, chip, board_dir, inputs, metadata, run):
     config.write_text("\n".join("set(" + key + " " + " ".join(cmake_value(v) for v in value) + ")"
                                 for key, value in values.items()) + "\n")
     # A new SDK build tree prevents cross-board/toolchain/config cache reuse.
-    tree = output / "sdk-build"
-    if tree.is_symlink():
-        raise ValueError("SDK build directory cannot be a symlink")
     if tree.exists():
         shutil.rmtree(tree)
     # A successful SDK command must not accidentally certify an earlier binary.

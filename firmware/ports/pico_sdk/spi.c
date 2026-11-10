@@ -11,6 +11,9 @@
 /* The public first bus, Spi1, is the board's hardware SPI0. Device ownership,
    composite operations and all CS cleanup remain in firmware/common/spi.c. */
 static bool pins_claimed, occupied;
+static bool hardware_configured;
+static uint32_t configured_prescale, configured_format;
+static EmelaSpiDirection configured_direction;
 static const int32_t bus_pins[] = {
     EMELA_SPI1_SCK_PIN, EMELA_SPI1_MISO_PIN, EMELA_SPI1_MOSI_PIN,
 };
@@ -47,6 +50,17 @@ static int32_t apply_config(EmelinoSpiBus *bus, EmelaSpiConfig config) {
     uint32_t prescale = 0, postdiv = 0;
     int32_t status = valid_config(config, &prescale, &postdiv);
     if (status) return status;
+    uint32_t format = ((postdiv - 1) << SPI_SSPCR0_SCR_LSB)
+        | (config.data_size == EMELA_SPI_DATA_SIZE_BITS16 ? 15u : 7u)
+        | (config.polarity == EMELA_SPI_CLOCK_POLARITY_IDLE_HIGH ? SPI_SSPCR0_SPO_BITS : 0)
+        | (config.phase == EMELA_SPI_CLOCK_PHASE_SECOND_EDGE ? SPI_SSPCR0_SPH_BITS : 0);
+    /* The common layer reapplies the raw configuration for every operation.
+       spi_init temporarily enables CPOL=0, so repeating it on an unchanged
+       CPOL=1 bus would clock a device whose GPIO CS the caller keeps asserted.
+       Recompute divisors above on every call, including after a clock change. */
+    if (hardware_configured && configured_prescale == prescale
+        && configured_format == format && configured_direction == config.direction)
+        return SPI_OK;
     if (!pins_claimed) {
         int32_t claim = emelino_pico_pins_claim(EMELINO_PICO_OWNER_SPI0, bus_pins, 3);
         if (claim) return claim == 5 ? SPI_RESOURCE_CONFLICT : SPI_INVALID_ARGUMENT;
@@ -58,10 +72,7 @@ static int32_t apply_config(EmelinoSpiBus *bus, EmelaSpiConfig config) {
     spi_get_hw(spi0)->imsc = 0;
     spi_get_hw(spi0)->dmacr = 0;
     spi_get_hw(spi0)->cpsr = prescale;
-    spi_get_hw(spi0)->cr0 = ((postdiv - 1) << SPI_SSPCR0_SCR_LSB)
-        | (config.data_size == EMELA_SPI_DATA_SIZE_BITS16 ? 15u : 7u)
-        | (config.polarity == EMELA_SPI_CLOCK_POLARITY_IDLE_HIGH ? SPI_SSPCR0_SPO_BITS : 0)
-        | (config.phase == EMELA_SPI_CLOCK_PHASE_SECOND_EDGE ? SPI_SSPCR0_SPH_BITS : 0);
+    spi_get_hw(spi0)->cr0 = format;
     gpio_set_function(EMELA_SPI1_SCK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(EMELA_SPI1_MISO_PIN, GPIO_FUNC_SPI);
     gpio_disable_pulls(EMELA_SPI1_SCK_PIN);
@@ -73,6 +84,10 @@ static int32_t apply_config(EmelinoSpiBus *bus, EmelaSpiConfig config) {
     } else gpio_set_function(EMELA_SPI1_MOSI_PIN, GPIO_FUNC_SPI);
     spi_get_hw(spi0)->icr = SPI_SSPICR_RORIC_BITS | SPI_SSPICR_RTIC_BITS;
     spi_get_hw(spi0)->cr1 = SPI_SSPCR1_SSE_BITS;
+    configured_prescale = prescale;
+    configured_format = format;
+    configured_direction = config.direction;
+    hardware_configured = true;
     return SPI_OK;
 }
 
@@ -83,6 +98,7 @@ static int32_t validate_config(EmelinoSpiBus *bus, EmelaSpiConfig config) {
 }
 static int32_t failed_exchange(EmelinoSpiBus *bus, int32_t status) {
     spi_get_hw(spi0)->cr1 = 0;
+    hardware_configured = false;
     bus->recovery_required = true;
     return status;
 }
@@ -110,7 +126,11 @@ static int32_t exchange(EmelinoSpiBus *bus, int32_t operation, const uint16_t *d
     return emelino_pico_now_us() >= deadline ? failed_exchange(bus, SPI_TIMEOUT) : SPI_OK;
 }
 static int32_t recover(EmelinoSpiBus *bus, EmelaSpiConfig config) {
-    return pins_claimed ? apply_config(bus, config) : SPI_NOT_CONFIGURED;
+    if (!pins_claimed) return SPI_NOT_CONFIGURED;
+    /* Recovery must reset FIFOs and enable hardware even when the requested
+       configuration is identical to the last successful operation. */
+    hardware_configured = false;
+    return apply_config(bus, config);
 }
 static int32_t cs_configure(EmelinoSpiBus *bus, uint16_t slot, int32_t pin, int32_t level) {
     (void)bus;

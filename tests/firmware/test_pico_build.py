@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -161,6 +161,53 @@ class PicoBuildTests(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             record_artifacts(self.output, result)
         self.assertFalse((self.output / "firmware.json").exists())
+
+    def test_sdk_build_cleanup_cannot_remove_inputs_or_tools(self):
+        board, chip, board_dir = load_profiles("raspberry-pi-pico")
+        for kind in ("generated", "sdk", "source", "header", "compiler", "picotool"):
+            with self.subTest(input=kind):
+                root = self.output / kind
+                output = root / "out"
+                tree = output / "sdk-build"
+                tree.mkdir(parents=True)
+                generated = tree if kind == "generated" else root / "generated"
+                generated.mkdir(exist_ok=True)
+                source = generated / "main.c"
+                source.write_text("void main(void) {}\n")
+                sdk = tree / "sdk" if kind == "sdk" else root / "sdk"
+                sdk.mkdir()
+                sdk_input = sdk / "pico_sdk_init.cmake"
+                sdk_input.write_text("SDK source must survive\n")
+                picotool = tree / "picotool" if kind == "picotool" else root / "picotool"
+                picotool.mkdir()
+                package = picotool / "picotoolConfig.cmake"
+                package.write_text("tool package must survive\n")
+                compiler = Path("/usr/bin/cc").resolve()
+                if kind == "compiler":
+                    compiler = tree / "arm-none-eabi-gcc"
+                    compiler.write_text("#!/bin/sh\nexit 1\n")
+                    compiler.chmod(0o755)
+                args = cli.parser().parse_args(["--generated-dir", str(generated),
+                    "--output-dir", str(output), "--sdk-dir", str(sdk), "--cc", str(compiler)])
+                inputs = {"source": [source]}
+                if kind in ("source", "header"):
+                    extra = tree / ("extension.c" if kind == "source" else "included.h")
+                    extra.write_text("/* caller-owned input */\n")
+                    if kind == "source":
+                        args.source.append(extra)
+                    else:
+                        inputs["header"] = [extra]
+                (output / "firmware.elf").write_bytes(b"previous ELF")
+                (output / "board_config.h").write_text("previous configuration\n")
+                before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+                run = Mock(side_effect=AssertionError("invoked external tool"))
+                with patch.dict("os.environ", {"picotool_DIR": str(picotool)}), \
+                     patch.object(build, "sdk_paths", return_value=(sdk, picotool)) as sdk_paths, \
+                     self.assertRaisesRegex(ValueError, "overlaps SDK build directory"):
+                    build.build(args, board, chip, board_dir, inputs, {"services": []}, run)
+                sdk_paths.assert_not_called()
+                run.assert_not_called()
+                self.assertEqual(before, {path: path.read_bytes() for path in root.rglob("*") if path.is_file()})
 
     def test_wrong_or_truncated_elf_is_rejected(self):
         path = self.output / "firmware.elf"

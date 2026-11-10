@@ -47,6 +47,8 @@ class RunnerFailureTest(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             summary = json.loads((output / "report.json").read_text())
             self.assertEqual(summary["status"], "failed")
+            self.assertEqual(summary["build_status"], "failed")
+            self.assertEqual(summary["runtime_status"], "not_run")
             self.assertEqual([case["scenario"] for case in summary["scenarios"]], ["bmp180", "mt25q"])
             for name in ("bmp180", "mt25q"):
                 report = json.loads((output / name / "report.json").read_text())
@@ -114,6 +116,38 @@ pub fn main() -> Int {
             self.assertEqual(report["runtime_status"], "not_run")
             self.assertIn("missing-emelino", report["error"])
             self.assertNotIn("missing-renode", report["error"])
+
+    def test_pico_target_cannot_report_ignored_controller_or_wiring_overrides(self):
+        canonical = json.loads((ROOT / "tests/embedded/targets/raspberry-pi-pico.json").read_text())
+        for key, value in (("spi", 2), ("uart", 1), ("i2c", 2), ("spi", True),
+                           ("cs_pin", 20), ("pins", {"input": 7}), ("address", 81),
+                           ("bindings", False), ("wrap", ["emela_spi_transfer"])):
+            with self.subTest(key=key, value=value), tempfile.TemporaryDirectory() as directory:
+                target = json.loads(json.dumps(canonical))
+                target["scenarios"]["pico_spi"][key] = value
+                path = Path(directory) / "target.json"
+                path.write_text(json.dumps(target))
+                result = self.invoke("--board", "raspberry-pi-pico", "--target", path,
+                                     "--scenario", "pico_spi", "--emelino", Path(directory) / "missing-emelino")
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("Pico scenarios", result.stderr)
+                self.assertNotIn("firmware generation failed", result.stderr)
+
+    def test_pico_matrix_build_failure_does_not_claim_runtime_was_attempted(self):
+        for build_only in (False, True):
+            with self.subTest(build_only=build_only), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                flags = ["--build-only"] if build_only else []
+                result = self.invoke("--board", "raspberry-pi-pico", "--scenario", "all",
+                                     "--emelino", output / "missing-emelino", "--output-dir", output, *flags)
+                self.assertEqual(result.returncode, 1)
+                summary = json.loads((output / "report.json").read_text())
+                self.assertEqual(summary["status"], "failed")
+                self.assertEqual(summary["build_status"], "failed")
+                self.assertEqual(summary["runtime_status"], "not_run")
+                self.assertEqual(len(summary["scenarios"]), 5)
+                for case in summary["scenarios"]:
+                    self.assertEqual(case["runtime_status"], "not_run")
 
 
 if __name__ == "__main__":
