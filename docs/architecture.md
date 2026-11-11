@@ -46,7 +46,19 @@ trait bound付きgenericのroot除外やAnyへの具体化を、任意のgeneric
 user sourceにcore内部権限は与えない。設定のunknown field、重複公開名、不正なC名を拒否する。
 `entry`は明示したexportだけを起動入口に選び、引数なしを要求する。
 CLIで省略した場合にmainを自動選択しない。
-Pome/project discoveryと`@test`/`@internal`のdriver処理は提供していない。
+明示入力ではPome/project discoveryと`@test`/`@internal`のdriver処理は提供していない。
+
+### プロジェクト入口
+
+`emelino new <directory> --board <board>`はボード別のアプリを作成する。
+プロジェクトの`emelino build`は`Emelino.toml`を親方向に探索し、`src/`以下のソースと
+容量設定を同じfrontend・adapter・compilerへ渡す。起動関数`main`とC公開名`app_main`を
+補完し、生成後に既存Pythonビルダーを呼び出す。`--emit c`ではC生成までに留める。
+Pome依存の解決や言語の型検査・lowerの複製は行わない。
+
+この入口と同梱firmwareの展開はCLI binaryの`project.rs`、`scaffold.rs`、`firmware.rs`と
+`commands/`が担当する。compilerにfilesystemやprocess操作を追加しない。
+設定、出力先と失敗時の成功markerの扱いは[プロジェクト手順](projects.md)に記す。
 
 ### 保存・復元の契約
 

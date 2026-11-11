@@ -8,6 +8,28 @@ emela本体が持つEffectシステムや関数型言語としての機能を可
 
 [emela](https://github.com/emela-lang/emela)
 
+## プロジェクトを作る
+
+ビルドした`emelino`をPATHへ追加すると、リポジトリ外にアプリを作成できます。
+
+```sh
+cargo build --locked -p emelino-cli
+export PATH="$PWD/target/debug:$PATH"
+emelino boards
+emelino new my-device --board raspberry-pi-pico
+cd my-device
+emelino build
+```
+
+`Emelino.toml`、`src/main.emel`、READMEと`.gitignore`を生成します。
+サンプルは指定ボードのLEDを点灯します。`build`は設定を読み、`src/`以下のソースから
+Cを生成し、ボードのSDKでファームウェアを作ります。ツールやSDKが不足している場合は、
+同梱セットアップスクリプトの実行方法を表示します。導入後は`.local/env.sh`を読み込んでください。
+
+SDKを導入する前にC生成だけを試す場合は、`emelino build --emit c`を使用できます。
+ファームウェアビルダーとボード定義はCLIに同梱されるため、ビルド済みバイナリの移動後も
+元のリポジトリを参照しません。[設定と生成物の詳細](docs/projects.md)を参照してください。
+
 ## Setup
 
 ここではemelino本体を動かすために必要な共通ツールと各マイコンボードに対応したセットアップ手順を説明します。
