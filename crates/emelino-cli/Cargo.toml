@@ -18,3 +18,5 @@ emela-lir.workspace = true
 la-arena.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+toml = "1"
+tempfile = "3"
