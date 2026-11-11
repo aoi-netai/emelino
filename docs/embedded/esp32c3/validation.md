@@ -30,3 +30,11 @@ smokeの各観測値とこれらの警告は実行reportへ保存している。
 実機への書き込みと、SPI/I2Cの実デバイスとの通信は実施していない。
 外部Renodeモデルの汎用SPIとI2Cはスタブであり、これらの通信をRenodeで検証したとは扱わない。
 GPIOの外部入力・callbackとUART RX/IRQも、今回のRenode smokeの対象外。
+
+## main統合後の確認（2026-11-12）
+
+LSP対応を含む最新mainと統合し、テンプレートにESP32-C3の外付けLED・toolchainの説明と
+LSPのエディター設定を残した。`cargo test --locked --offline -p emelino-cli --test project --test lsp`
+でprojectの8件と実stdioのLSP統合試験1件が成功し、`cargo fmt --all -- --check`も成功した。
+MCU portの実装は変更していない。上記のSDK/Renode実行と`validation.json`は
+`2fcf3f3`で記録した2026-11-11の検証結果を示す。

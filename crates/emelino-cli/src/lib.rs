@@ -1,9 +1,15 @@
 //! Upstream orchestration and the owned backend boundary, usable without CLI I/O.
+pub mod analysis;
 mod bundled;
 pub mod config;
 pub mod frontend;
 mod peripheral_defaults;
 pub mod upstream_adapter;
+
+/// Ordinary, non-core library modules used by both the compiler and editor integration.
+pub fn embedded_sources() -> &'static [(&'static str, &'static str)] {
+    bundled::sources()
+}
 
 pub fn errors(errors: Vec<emelino_compiler::Error>) -> String {
     errors

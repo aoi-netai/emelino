@@ -20,3 +20,6 @@ serde.workspace = true
 serde_json.workspace = true
 toml = "1"
 tempfile = "3"
+rowan = "0.17"
+lsp-server = "0.10"
+lsp-types = "0.97"

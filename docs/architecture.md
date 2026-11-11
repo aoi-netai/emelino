@@ -60,6 +60,18 @@ Pome依存の解決や言語の型検査・lowerの複製は行わない。
 `commands/`が担当する。compilerにfilesystemやprocess操作を追加しない。
 設定、出力先と失敗時の成功markerの扱いは[プロジェクト手順](projects.md)に記す。
 
+### エディタ向けの共有解析
+
+CLIの`analysis::analyze_sources`は、構文木・モジュール・HIR・型情報・構造化診断を返す。
+既存のfrontendはこの結果を検査してからCore/Flowへlowerする。
+`emelino lsp`も同じ解析APIを使い、未保存のソースを重ねてエディタの要求へ応答する。
+エラーを含む編集中のソースは部分的な解析結果を保持するが、ビルドはエラーがある入力をlowerしない。
+
+組み込みAPIの省略引数補完とEmela公開APIの利用は共有し、独自の型検査は追加しない。
+エディタの補完・hover・定義ジャンプは公開HIR・型表・ソース位置から構成する。
+`emela-driver`や本体codegenの依存は追加せず、LSP通信とfilesystemはCLIに閉じ込める。
+対応する要求と設定は[言語サーバー手順](lsp.md)に記す。
+
 ### 保存・復元の契約
 
 | 成果物 | 保持する情報と用途 |

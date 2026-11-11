@@ -1,5 +1,6 @@
 mod commands;
 mod firmware;
+mod lsp;
 mod project;
 mod scaffold;
 
@@ -12,6 +13,7 @@ Usage:
   emelino new <directory> --board <board> [--name <name>]
   emelino build [directory] [--emit c|firmware] [--cc <executable>] [--sdk-dir <directory>]
   emelino boards
+  emelino lsp
 
 Project builds discover Emelino.toml and default to complete firmware generation.
 --emit c generates C without Python, a cross compiler or an SDK.
@@ -44,6 +46,7 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
     if args.len() == 2 && (args[1] == "--help" || args[1] == "-h") {
         match args[0].to_str() {
             Some("new") => println!("{}", commands::new::HELP),
+            Some("lsp") => println!("{}", lsp::HELP),
             Some("build") => println!("{}\n\n{HELP}", commands::project_build::HELP),
             Some("flow" | "boards") => print!("{HELP}"),
             _ => {
@@ -57,6 +60,7 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
     }
     match args[0].to_str() {
         Some("new") => commands::new::run(args.into_iter().skip(1)),
+        Some("lsp") if args.len() == 1 => lsp::run_stdio(),
         Some("boards") if args.len() == 1 => {
             for board in firmware::boards() {
                 println!("{}\t{}", board.board, board.physical_board);

@@ -30,6 +30,23 @@ SDKを導入する前にC生成だけを試す場合は、`emelino build --emit 
 ファームウェアビルダーとボード定義はCLIに同梱されるため、ビルド済みバイナリの移動後も
 元のリポジトリを参照しません。[設定と生成物の詳細](docs/projects.md)を参照してください。
 
+## エディタ連携
+
+`emelino lsp`は、`Emelino.toml`と組み込みAPIに対応した言語サーバーです。
+補完、型診断、hover、定義ジャンプを提供します。SDKやARMツールチェーンは不要です。
+
+VS CodeではEmela拡張をインストールし、`settings.json`の`emela.serverPath`を
+ビルドしたemelinoの絶対パスへ設定してください。
+
+```json
+{
+  "emela.serverPath": "/path/to/emelino/target/debug/emelino"
+}
+```
+
+Emela本体の変更や`Pome.toml`の追加は必要ありません。
+[対応機能と開発手順](docs/lsp.md)を参照してください。
+
 ## Setup
 
 ここではemelino本体を動かすために必要な共通ツールと各マイコンボードに対応したセットアップ手順を説明します。
