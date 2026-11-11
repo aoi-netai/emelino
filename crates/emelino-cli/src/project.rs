@@ -1,6 +1,7 @@
 //! Project discovery and filesystem inputs stay outside the compiler.
 use emelino_cli::config::{Config, Export};
 use serde::Deserialize;
+use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
 use std::{fs, io};
 
@@ -115,6 +116,13 @@ pub fn relative(path: &str) -> Result<&Path, String> {
 
 impl Project {
     pub fn discover(directory: &Path) -> Result<Self, String> {
+        Self::discover_with(directory, &BTreeMap::new())
+    }
+
+    pub fn discover_with(
+        directory: &Path,
+        overlay: &BTreeMap<PathBuf, String>,
+    ) -> Result<Self, String> {
         let directory = directory
             .canonicalize()
             .map_err(|e| format!("cannot open project directory {}: {e}", directory.display()))?;
@@ -124,10 +132,14 @@ impl Project {
                 directory.display()
             ));
         }
-        let root = directory.ancestors().find(|root| root.join(MANIFEST).exists())
+        let root = directory.ancestors().find(|root| root.join(MANIFEST).exists() || overlay.contains_key(&root.join(MANIFEST)))
             .ok_or_else(|| format!("no {MANIFEST} found; create a project with `emelino new <directory> --board <board>`"))?;
         let path = root.join(MANIFEST);
-        let text = fs::read_to_string(&path)
+        let text = overlay
+            .get(&path)
+            .cloned()
+            .map(Ok)
+            .unwrap_or_else(|| fs::read_to_string(&path))
             .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
         let manifest: Manifest =
             toml::from_str(&text).map_err(|e| format!("invalid {}: {e}", path.display()))?;
@@ -161,9 +173,30 @@ impl Project {
 
     /// Names are relative to src/, even when the selected entry is nested.
     pub fn sources(&self) -> Result<Vec<(String, String)>, String> {
+        self.sources_with(&BTreeMap::new())
+    }
+
+    pub fn sources_with(
+        &self,
+        overlay: &BTreeMap<PathBuf, String>,
+    ) -> Result<Vec<(String, String)>, String> {
         let root = self.root.join("src");
         let mut files = Vec::new();
-        collect_sources(&root, &root, &mut files)?;
+        collect_sources(&root, &root, &mut files, overlay)?;
+        for (path, text) in overlay {
+            if let Ok(name) = path.strip_prefix(&root)
+                && name.extension().is_some_and(|ext| ext == "emel")
+            {
+                let name = name
+                    .to_str()
+                    .ok_or("source paths must be UTF-8")?
+                    .replace('\\', "/");
+                relative(&name)?;
+                if !files.iter().any(|(existing, _)| existing == &name) {
+                    files.push((name, text.clone()));
+                }
+            }
+        }
         files.sort_by(|a, b| a.0.cmp(&b.0));
         let entry = self.entry_name()?;
         if !files.iter().any(|(name, _)| name == &entry) {
@@ -189,6 +222,7 @@ fn collect_sources(
     root: &Path,
     directory: &Path,
     files: &mut Vec<(String, String)>,
+    overlay: &BTreeMap<PathBuf, String>,
 ) -> Result<(), String> {
     let meta = fs::symlink_metadata(directory)
         .map_err(|e| format!("cannot read source directory {}: {e}", directory.display()))?;
@@ -209,7 +243,7 @@ fn collect_sources(
             ));
         }
         if kind.is_dir() {
-            collect_sources(root, &path, files)?;
+            collect_sources(root, &path, files, overlay)?;
         } else if kind.is_file() && path.extension().is_some_and(|e| e == "emel") {
             let name = path
                 .strip_prefix(root)
@@ -217,7 +251,11 @@ fn collect_sources(
                 .to_str()
                 .ok_or("source paths must be UTF-8")?
                 .replace('\\', "/");
-            let text = fs::read_to_string(&path)
+            let text = overlay
+                .get(&path)
+                .cloned()
+                .map(Ok)
+                .unwrap_or_else(|| fs::read_to_string(&path))
                 .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
             files.push((name, text));
         }
