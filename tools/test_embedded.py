@@ -23,7 +23,9 @@ def main():
     parser.add_argument("--renode")
     parser.add_argument("--rp2350js-dir", type=Path, help="fixed rp2350js checkout (or RP2350JS_DIR)")
     parser.add_argument("--node", default="node")
-    parser.add_argument("--build-only", action="store_true", help="Pico: build SDK artifacts without claiming a runtime result")
+    parser.add_argument("--build-only", action="store_true", help="Pico/ESP-IDF: build SDK artifacts without claiming a runtime result")
+    parser.add_argument("--esp32c3-models-dir", type=Path, help="pinned external ESP32-C3 Renode models")
+    parser.add_argument("--esp32c3-rom", type=Path, help="Espressif ESP32-C3 revision 3 ROM ELF")
     parser.add_argument("--max-instructions", type=int, default=10000000)
     parser.add_argument("--cc")
     parser.add_argument("--sdk-dir", type=Path)
@@ -47,8 +49,8 @@ def main():
         if args.timeout <= 0 or args.max_instructions <= 0:
             raise ValueError("timeout and instruction limit must be positive")
         simulator = args.target["simulator"]
-        if args.build_only and simulator != "rp2350js":
-            raise ValueError("--build-only is currently supported for Pico targets")
+        if args.build_only and simulator != "rp2350js" and args.target["port"] != "esp_idf":
+            raise ValueError("--build-only is supported for Pico and ESP-IDF targets")
         adapter = load_module(TESTS / "ports" / args.target["port"] / (simulator + ".py"), "embedded_simulator_port")
         args.platform = adapter.Platform(args.target)
         base = (args.output_dir or ROOT / "out/embedded" / args.board / args.optimization).resolve()
@@ -67,7 +69,7 @@ def main():
                       "optimization": args.optimization, "boot": "raw-flash-reset",
                       "sets_pc_sp": False, "sets_vtor": False}
             try:
-                if simulator == "rp2350js":
+                if simulator == "rp2350js" or args.target["port"] == "esp_idf":
                     adapter.test(current, report)
                 else:
                     location = TESTS / "scenarios" / name / "test.py"

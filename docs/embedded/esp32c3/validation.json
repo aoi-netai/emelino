@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-11",
+  "board": "esp32-c3-devkitm-1-n4x",
+  "branch": "feat/esp32c3-devkitm-1-n4x",
+  "base_revision": "8a602fc30a5f28affdce25acae849ff3dc7868b2",
+  "checks": [
+    {
+      "name": "firmware-build-boundaries",
+      "cases": 35,
+      "status": "passed"
+    },
+    {
+      "name": "embedded-runner",
+      "cases": 12,
+      "status": "passed"
+    },
+    {
+      "name": "setup",
+      "cases": 13,
+      "status": "passed"
+    },
+    {
+      "name": "esp-idf-host-contract",
+      "cases": 20,
+      "optimizations": [
+        "O0",
+        "Os"
+      ],
+      "sanitizer": "UBSan",
+      "status": "passed"
+    },
+    {
+      "name": "cli-project-workflows",
+      "cases": 8,
+      "status": "passed"
+    }
+  ],
+  "sdk_builds": [
+    {
+      "name": "peripherals-Os",
+      "status": "passed",
+      "manifest": "out/esp32c3-peripherals/firmware/firmware.json",
+      "firmware_sha256": "d88e50c7518a8953704724c8cddd8966a610187bb6d9870cd83f100b347f6db1",
+      "elf_sha256": "74c4f8cda1e9079d5f2b993ac4565f45b00b8336aeb6cf3180e7c68f6d30e474",
+      "flash_bytes": 240752,
+      "static_ram_bytes": 124720,
+      "compiler": "riscv32-esp-elf-gcc (crosstool-NG esp-14.2.0_20241119) 14.2.0",
+      "sdk_revision": "4c2820d377d1375e787bcef612f0c32c1427d183"
+    },
+    {
+      "name": "peripherals-O0",
+      "status": "passed",
+      "manifest": "out/esp32c3-peripherals/firmware-O0/firmware.json",
+      "firmware_sha256": "037ac3a28a06af3ac3cbba395a19b52b4b74db6688ee80ae50ac1c4971e7ffdc",
+      "elf_sha256": "d2590275be670a93a620943cf3bc2d615a34733571b5a69e087883864c7050e8",
+      "flash_bytes": 271888,
+      "static_ram_bytes": 124720,
+      "compiler": "riscv32-esp-elf-gcc (crosstool-NG esp-14.2.0_20241119) 14.2.0",
+      "sdk_revision": "4c2820d377d1375e787bcef612f0c32c1427d183"
+    },
+    {
+      "name": "new-project-Os",
+      "status": "passed",
+      "manifest": "out/esp32c3-project/target/emelino/esp32-c3-devkitm-1-n4x/firmware/firmware.json",
+      "firmware_sha256": "c59636df9145637a779a023b54a397dc56fa7ba817ed9e3acdf7226ee145ae75",
+      "elf_sha256": "ad188db35b7cdd7d89f9ef0fe749aa248d449d2179837163efcda54a305e6860",
+      "flash_bytes": 196480,
+      "static_ram_bytes": 100928,
+      "compiler": "riscv32-esp-elf-gcc (crosstool-NG esp-14.2.0_20241119) 14.2.0",
+      "sdk_revision": "4c2820d377d1375e787bcef612f0c32c1427d183"
+    }
+  ],
+  "renode_smoke": [
+    {
+      "optimization": "Os",
+      "status": "passed",
+      "report": "out/esp32c3-smoke/Os/report.json",
+      "report_sha256": "becd487d6e8d7d2a951d5ca9b418d995d77521d97176996fb2ac57a0b7d4665d",
+      "firmware_sha256": "1f2951a9ef5f7aa5f7d7f7b5a6c0c501e7f2451012041da676f4587c28617b79",
+      "renode_version": "1.16.1",
+      "model_revision": "9c9bdf6bb9c80d40efeaa8e4e398668e60c7007e",
+      "rom_sha256": "19ac22e08707df926fb0cf4c54795d4067b983fae8635f396ded173a6d78fc3c",
+      "boot": "rom-init-elf-bootstrap",
+      "flash_boot_validated": false,
+      "observations": {
+        "esp32c3_test_done": 1,
+        "esp32c3_test_checks": 3,
+        "esp32c3_test_failures": 0,
+        "esp32c3_test_last_failed": 0,
+        "emela_board_failures": 0,
+        "emela_board_completed": 1,
+        "emela_board_boot_initialized": 1,
+        "gpio_output": 128,
+        "gpio_enable": 128,
+        "panic_details_pointer": 0
+      },
+      "warnings": [
+        "20:41:53.1571 [WARNING] rtc: Unhandled read from offset 0x80 (BiasConf+0x4).",
+        "20:41:53.1579 [WARNING] rtc: Unhandled write to offset 0x80 (BiasConf+0x4), value 0x0.",
+        "20:41:53.1580 [WARNING] rtc: Unhandled read from offset 0x80 (BiasConf+0x4).",
+        "20:41:53.1581 [WARNING] rtc: Unhandled write to offset 0x80 (BiasConf+0x4), value 0x0.",
+        "20:41:53.1581 [WARNING] rtc: Unhandled read from offset 0x80 (BiasConf+0x4).",
+        "20:41:53.1581 [WARNING] rtc: Unhandled write to offset 0x80 (BiasConf+0x4), value 0x10000000."
+      ],
+      "untested": [
+        "raw-flash-boot",
+        "external-gpio-input-and-irq",
+        "uart-rx-and-irq",
+        "spi-peer",
+        "i2c-peer"
+      ]
+    },
+    {
+      "optimization": "O0",
+      "status": "passed",
+      "report": "out/esp32c3-smoke/O0/report.json",
+      "report_sha256": "2406d2618d56776eb5413f3999a1fd37327ed8dcf8d96aafb7964ebe00ed1b39",
+      "firmware_sha256": "a39ce1696bc9a2676eeba56570d30d11d4952704e6c11fc4fc996465eef4283c",
+      "renode_version": "1.16.1",
+      "model_revision": "9c9bdf6bb9c80d40efeaa8e4e398668e60c7007e",
+      "rom_sha256": "19ac22e08707df926fb0cf4c54795d4067b983fae8635f396ded173a6d78fc3c",
+      "boot": "rom-init-elf-bootstrap",
+      "flash_boot_validated": false,
+      "observations": {
+        "esp32c3_test_done": 1,
+        "esp32c3_test_checks": 3,
+        "esp32c3_test_failures": 0,
+        "esp32c3_test_last_failed": 0,
+        "emela_board_failures": 0,
+        "emela_board_completed": 1,
+        "emela_board_boot_initialized": 1,
+        "gpio_output": 128,
+        "gpio_enable": 128,
+        "panic_details_pointer": 0
+      },
+      "warnings": [
+        "20:42:53.8930 [WARNING] rtc: Unhandled read from offset 0x80 (BiasConf+0x4).",
+        "20:42:53.8934 [WARNING] rtc: Unhandled write to offset 0x80 (BiasConf+0x4), value 0x0.",
+        "20:42:53.8935 [WARNING] rtc: Unhandled read from offset 0x80 (BiasConf+0x4).",
+        "20:42:53.8935 [WARNING] rtc: Unhandled write to offset 0x80 (BiasConf+0x4), value 0x0.",
+        "20:42:53.8935 [WARNING] rtc: Unhandled read from offset 0x80 (BiasConf+0x4).",
+        "20:42:53.8935 [WARNING] rtc: Unhandled write to offset 0x80 (BiasConf+0x4), value 0x10000000."
+      ],
+      "untested": [
+        "raw-flash-boot",
+        "external-gpio-input-and-irq",
+        "uart-rx-and-irq",
+        "spi-peer",
+        "i2c-peer"
+      ]
+    }
+  ],
+  "sources_sha256": {
+    "firmware/ports/esp_idf/CMakeLists.txt": "ccea99e7355a2c346961f0c89841cc7219d915c4421b57218c264e59d245e246",
+    "firmware/ports/esp_idf/bsp.h": "b0f3f79d5ede00bcb84c9ed0eae3e06f0fd5933cb49b6e8042584b833dab6ac4",
+    "firmware/ports/esp_idf/build.py": "09ee00b57e647100f301bd237baeee8b5fc2e932e59cb7ae70e5c84adb0304a2",
+    "firmware/ports/esp_idf/gpio.c": "5b86022f5f501a7137c1571bbfb3b3bfa984e52f9c01b961226d454d1c8061e9",
+    "firmware/ports/esp_idf/gpio_support.h": "d93184801c361b00232a43a642e9723a92c24c96c915101c55eabde2f48d450f",
+    "firmware/ports/esp_idf/i2c.c": "151244215e58f1fd9b30b2bcec55f26de1f66a090cc45e50d66193fb703b5216",
+    "firmware/ports/esp_idf/main/CMakeLists.txt": "088f946ab5f3173e346e1c5b6a7e2b43527c68af35bdf362719ada950e33a04d",
+    "firmware/ports/esp_idf/pins.c": "888d131a3077b4d2a6efecfccfa4dd7bb7727fcc6a5524bf974e385bae37022b",
+    "firmware/ports/esp_idf/platform.c": "ff39d5700d6d273bc2c5f5a9b7eeccf0af9ffd522552c89ae3eeb5e5ff6453e1",
+    "firmware/ports/esp_idf/sdkconfig.defaults": "65a0f909528db3cc820a86df62b802138078604ad4b8ec27a98b6dbe1bf43c4e",
+    "firmware/ports/esp_idf/spi.c": "42dc8f347b3cdde6747a903dc7af2ddba955f2294f9480559860bbe1ffc39b0d",
+    "firmware/ports/esp_idf/time.c": "40b2356d0861b30105329aac071bb50a2d51c9db82280345aca8172871176d3a",
+    "firmware/ports/esp_idf/uart.c": "0035c8aa997871dbd231c540306f28d24f0469f5f2904958984cca65287a2907",
+    "firmware/chips/esp32c3.json": "433166e91454e9ab5f856f5d769e06d796906f55768963a2bbc7f79c630e7c18",
+    "firmware/boards/esp32-c3-devkitm-1-n4x/board.json": "b11739d62b50dfc1cc9c677ced2fd507be1de1a59599b9850b2186b7086dee14",
+    "crates/emelino-cli/src/firmware.rs": "8ee4df8a9ead105a6a3e80a2248c6e343d14e59d146d62317371c302c90156fd",
+    "crates/emelino-cli/src/scaffold.rs": "813c3f82c794cd39169ac5624889219a4cb2f2b773b835f2d0128ca354ff7fb5",
+    "crates/emelino-cli/src/commands/project_build.rs": "077cdfd78b74489196c962bb977a091459f338c5c355bf6d38f26193c54b6c25",
+    "tests/embedded/ports/esp_idf/renode.py": "aa5ac1daa0a99c2bc0e2b9c9498b469ca6c986192861af7914390472374e6801",
+    "tests/embedded/ports/esp_idf/dependency.json": "61f9967ae0c4b0b44cd012dd0e7327749b3bfdbadccfe6acbd64120d31a2c24f"
+  },
+  "hardware_tested": false,
+  "limitations": [
+    "No physical-board flashing or peer communication was performed.",
+    "Renode uses external ESP32-C3 models, ROM-main/CLIC hooks and ELF loading; raw flash boot is not validated.",
+    "Renode SPI2/I2C models remain stubs. Those driver contracts are tested with host SDK doubles.",
+    "GPIO external-input/IRQ and UART RX/IRQ are host-tested, not verified with this Renode model."
+  ],
+  "build_only": {
+    "status": "built",
+    "build_status": "passed",
+    "runtime_status": "not_run",
+    "report": "out/esp32c3-build-only/report.json",
+    "report_sha256": "6a223e1c4569064a782e9310750444ccf921f93026369a916d2787e0cb386440"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "id": "esp32c3",
+  "port": "esp_idf",
+  "mcu": "ESP32-C3",
+  "cpu": "rv32imc",
+  "idf_target": "esp32c3",
+  "ram_bytes": 409600,
+  "gpio_pin_mask": 4194303,
+  "analog_pin_mask": 63
+}

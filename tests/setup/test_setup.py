@@ -122,7 +122,7 @@ class SetupTests(unittest.TestCase):
         return result.stdout.splitlines()
 
     def test_dry_runs_do_not_install_or_write_files(self):
-        for script in ("common", "nucleo-f446re", "arduino-nano-33-ble", "pico-sdk", "rp2350js"):
+        for script in ("common", "nucleo-f446re", "arduino-nano-33-ble", "pico-sdk", "rp2350js", "esp32-c3-devkitm-1-n4x", "esp32c3-renode"):
             with self.subTest(script=script):
                 result = self.setup(script, "--dry-run")
                 self.assertIn("Dry run complete", result.stdout)

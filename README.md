@@ -59,6 +59,9 @@ bash tools/setup/arduino-nano-33-ble.sh
 
 # Raspberry Pi Pico / Pico 2: Pico SDK 2.3.1 + picotool
 bash tools/setup/pico-sdk.sh
+
+# ESP32-C3-DevKitM-1-N4X: ESP-IDF 5.4.1 + RISC-V toolchain
+bash tools/setup/esp32-c3-devkitm-1-n4x.sh
 ```
 
 共通・ボード別セットアップの完了後、環境設定を読み込んでCLIをビルドします。
@@ -74,6 +77,9 @@ cargo build --locked -p emelino-cli
 [Pico / Pico 2の手順](docs/embedded/pico/README.md)では、同じEmelaアプリから
 RP2040・RP2350向けのELF/BIN/UF2を作れます。任意の実行検証には無料のローカルOSSである
 rp2350jsを使用します。GPIO・4driver同時使用サンプルと、ビルドのみの検証入口も用意しています。
+
+[ESP32-C3の手順](docs/embedded/esp32c3/README.md)では、ESP-IDF向けELFとフラッシュ用BIN、
+GPIO・UART・SPI・I2Cのサンプル、外部Renodeモデルによる起動・GPIO・UARTのsmoke試験を用意しています。
 
 センサーライブラリのサンプルとして、[LSM9DS1の6軸IMU読み出し](examples/lsm9ds1/README.md)を用意しています。
 NUCLEO-F446REでI²CまたはSPIを使い、加速度3軸と角速度3軸をUARTへ出力します。

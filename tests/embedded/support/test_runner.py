@@ -94,6 +94,33 @@ pub fn main() -> Int {
         self.assertEqual(load_target("raspberry-pi-pico")["cpu_model"], "rp2040")
         self.assertEqual(load_target("raspberry-pi-pico-2")["cpu_model"], "rp2350-arm")
 
+    def test_esp32c3_target_rejects_wrong_cpu_and_ignored_fixture_settings(self):
+        board = "esp32-c3-devkitm-1-n4x"
+        self.assertEqual(load_target(board)["cpu_model"], "esp32c3")
+        canonical = json.loads((ROOT / "tests/embedded/targets" / (board + ".json")).read_text())
+        for key, wrong in (("cpu_model", "esp32"), ("uart", 1), ("checks", 99), ("pins", {"output": 8})):
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as temporary:
+                target = json.loads(json.dumps(canonical))
+                if key == "cpu_model":
+                    target[key] = wrong
+                else:
+                    target["scenarios"]["esp32c3_smoke"][key] = wrong
+                path = Path(temporary) / "target.json"
+                path.write_text(json.dumps(target))
+                with self.assertRaises(ValueError):
+                    load_target(board, path)
+
+    def test_esp32c3_failed_build_only_keeps_runtime_not_run(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            result = self.invoke("--board", "esp32-c3-devkitm-1-n4x", "--build-only",
+                "--emelino", output / "missing-emelino", "--renode", output / "missing-renode", "--output-dir", output)
+            self.assertEqual(result.returncode, 1)
+            report = json.loads((output / "report.json").read_text())
+            self.assertEqual(report["build_status"], "failed")
+            self.assertEqual(report["runtime_status"], "not_run")
+            self.assertIn("missing-emelino", report["error"])
+
     def test_pico_target_rejects_wrong_cpu_and_simulator(self):
         target = json.loads((ROOT / "tests/embedded/targets/raspberry-pi-pico-2.json").read_text())
         for key, value in (("cpu_model", "rp2040"), ("simulator", "renode")):

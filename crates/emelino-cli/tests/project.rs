@@ -42,6 +42,7 @@ fn every_board_template_builds_c_without_python_or_an_sdk() {
         "arduino-nano-33-ble",
         "raspberry-pi-pico",
         "raspberry-pi-pico-2",
+        "esp32-c3-devkitm-1-n4x",
     ] {
         let temp = tempfile::Builder::new()
             .prefix("emelino project with spaces '")
@@ -68,7 +69,17 @@ fn every_board_template_builds_c_without_python_or_an_sdk() {
         )
         .unwrap();
         assert_eq!(artifact["metadata"]["entry"], "emela_embedded_start");
-        assert_eq!(artifact["metadata"]["exports"][0]["c_symbol"], "app_main");
+        let expected_export = if board == "esp32-c3-devkitm-1-n4x" {
+            let readme = fs::read_to_string(project.join("README.md")).unwrap();
+            assert!(readme.contains("external LED") && readme.contains("RISCV32_ESP_GCC"));
+            "emelino_app_main"
+        } else {
+            "app_main"
+        };
+        assert_eq!(
+            artifact["metadata"]["exports"][0]["c_symbol"],
+            expected_export
+        );
         assert!(generated.join("emela_embedded.c").is_file());
         // Saved inputs remain consumable through the explicit compiler CLI.
         success(cli(
@@ -425,6 +436,7 @@ fn bundled_real_python_builder_loads_each_port_and_reports_missing_dependencies(
         ("arduino-nano-33-ble", "Nordic nrfx MDK required"),
         ("raspberry-pi-pico", "ARM GCC not found"),
         ("raspberry-pi-pico-2", "ARM GCC not found"),
+        ("esp32-c3-devkitm-1-n4x", "riscv32-esp-elf-gcc required"),
     ] {
         let temp = tempfile::tempdir().unwrap();
         let project = create(temp.path(), board);
