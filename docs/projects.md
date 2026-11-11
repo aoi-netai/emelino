@@ -28,6 +28,9 @@ my-device/
 Emelinoの論理pin IDを使用する。Nano 33 BLEはNordic bare-metal portを使用する。
 実機への書き込みは別の手順で行う。
 
+エディタの補完・型診断・hover・定義ジャンプには`emelino lsp`を使用できる。
+VS CodeのEmela拡張からの接続設定は[言語サーバー手順](lsp.md)を参照する。
+
 ## プロジェクト設定
 
 ```toml
