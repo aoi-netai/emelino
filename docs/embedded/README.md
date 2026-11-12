@@ -2,7 +2,8 @@
 
 [STM32F4 / NUCLEO-F446RE](stm32f4/README.md)、
 [nRF52840 / Arduino Nano 33 BLE](nrf52/README.md)、
-[RP2040・RP2350 / Pico・Pico 2](pico/README.md) のGPIO・UART・SPI・I2Cに対応する。
+[RP2040・RP2350 / Pico・Pico 2](pico/README.md)、
+[ESP32-C3 / ESP32-C3-DevKitM-1-N4X](esp32c3/README.md) のGPIO・UART・SPI・I2Cに対応する。
 Emelaソースから生成したCを、SDKのデバイス定義・driver、BSP、startup、linker設定と
 組み合わせてELF/BINにする。
 
@@ -37,6 +38,7 @@ firmware/
   ports/stm32f4/                  # HAL/CMSIS接続、時刻・SDK別ビルド
   ports/nrf52/                    # Nordic MDK/CMSIS接続
   ports/pico_sdk/                 # Pico SDKのCMake/startupと4driver接続
+  ports/esp_idf/                  # ESP-IDF / RISC-Vの起動・4driver接続
   common/                        # SDKに依存しないSPIの状態・複合操作
   common/cortex_m4f/              # 共通reset、linker、runtime入口
   build/                         # manifest検証、profile、ARM GCC・成果物管理
@@ -71,7 +73,8 @@ portの時刻初期化後、生成アプリの起動前に呼ばれる。定義�
 共通ビルドはportを選んで実行し、SDKの選択はportへ委ねる。
 STM32F4とnRF52はCortex-M4F起動処理とARM GCCのcompile/link・成果物検証も共有する。
 PicoはSDKのCMake・startup・linkerを使用し、core 0から同じ生成C ABIへ接続する。
-ESP-IDF・Arduino core向けのportは未実装。Nano 33 BLEはNordicのbare-metal接続を使う。
+ESP32-C3はESP-IDFのstartup・linkerと専用FreeRTOS taskを使う。Arduino core向けportは未実装。
+Nano 33 BLEはNordicのbare-metal接続を使う。
 Pico SDKとrp2350jsを使う2ボードの配線・ビルド・検証は[Pico / Pico 2の手順](pico/README.md)を参照する。
 共通C層のSPIはdevice管理、操作列、CSのsetup/hold・解除、複合エラーを扱い、
 実際の転送、時刻取得、排他、GPIO操作はportのhookを使う。GPIO callbackの登録表と寿命管理は

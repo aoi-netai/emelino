@@ -62,6 +62,8 @@ def load_target(board, path=None):
     expected_cpu = {"raspberry-pi-pico": "rp2040", "raspberry-pi-pico-2": "rp2350-arm"}
     if simulator == "rp2350js" and target.get("cpu_model") != expected_cpu.get(board):
         raise ValueError("test CPU model does not match the selected board")
+    if port == "esp_idf" and target.get("cpu_model") != "esp32c3":
+        raise ValueError("ESP-IDF test CPU model must be esp32c3")
     target.update(profile=profile, chip=chip, port=port, simulator=simulator)
     if not isinstance(target.get("scenarios"), dict) or not target["scenarios"]:
         raise ValueError("test target must select at least one scenario")
@@ -71,6 +73,15 @@ def load_target(board, path=None):
             raise ValueError("invalid scenario settings: " + name)
         if settings.get("port", port) != port:
             raise ValueError("scenario does not support this firmware port: " + name)
+        if port == "esp_idf":
+            if (name != "esp32c3_smoke" or settings.keys() - {"port", "bindings", "checks", "uart", "spi", "i2c"}
+                    or settings.get("bindings") is not True or type(settings.get("checks")) is not int
+                    or settings["checks"] != 3):
+                raise ValueError("ESP32-C3 smoke scenario requires its fixed fixture settings")
+            for bus, fixed in (("uart", 0), ("spi", 1), ("i2c", 1)):
+                value_ = settings.get(bus, fixed)
+                if type(value_) is not int or value_ != fixed:
+                    raise ValueError("ESP32-C3 smoke scenario requires fixed bus bindings")
         if simulator == "rp2350js":
             # These fixtures and their Node peers use the initial fixed Pico
             # wiring. Do not label a run with bindings the firmware ignores.
@@ -159,7 +170,7 @@ def build_artifacts(args, report, scenario):
         if value_:
             commands[1] += [flag, value_]
     for index, command in enumerate(commands):
-        status, log = run(command, cwd=ROOT, timeout=120)
+        status, log = run(command, cwd=ROOT, timeout=900 if args.target["port"] == "esp_idf" else 120)
         (output / f"build-{index}.log").write_text(log)
         if status:
             raise ValueError("firmware generation failed:\n" + log)

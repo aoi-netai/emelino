@@ -1,0 +1,33 @@
+import Embedded.Board.{BoardGpio, BoardUart}
+import Embedded.Gpio
+import Embedded.Uart
+@external(c, "esp32c3_test_check")
+fn check(number: Int, success: Int) -> () uses {}
+@external(c, "esp32c3_test_finish")
+fn finish() -> () uses {}
+pub fn main() -> () {
+  with BoardGpio { with BoardUart {
+    gpio = use Gpio.Gpio
+    gpio.configure(Gpio.GpioPin(7), Gpio.OutputPushPull())
+    gpio.write(Gpio.GpioPin(7), Gpio.High)
+    check(1, gpio.read(Gpio.GpioPin(7)) match {
+      Gpio.High -> 1
+      Gpio.Low -> 0
+    })
+    check(2, {
+      gpio.configure(Gpio.GpioPin(12), Gpio.Input())
+      0
+    } escape {
+      Gpio.GpioError(Gpio.InvalidArgument) -> 1
+      Gpio.GpioError(_) -> 0
+    })
+    uart = use Uart.Uart
+    uart.configure(Uart.Uart0, Uart.UartConfig(115200))
+    uart.transmit(Uart.Uart0, [69, 77, 69, 76, 73, 78, 79, 10], 100)
+    check(3, 1)
+  } } escape {
+    Gpio.GpioError(_) -> check(90, 0)
+    Uart.UartError(_) -> check(91, 0)
+  }
+  finish()
+}

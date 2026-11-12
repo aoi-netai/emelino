@@ -66,7 +66,12 @@ pub fn run(args: impl Iterator<Item = OsString>) -> Result<(), String> {
         .iter()
         .map(|(name, text)| frontend::Source { name, text })
         .collect();
-    let config = project.manifest.resources.config();
+    let mut config = project.manifest.resources.config();
+    if crate::firmware::board(&project.manifest.project.board)?.port == "esp_idf" {
+        // ESP-IDF owns void app_main(void); the Emela entry's C export must
+        // have a different name and may return an Int or another Emela type.
+        config.exports[0].symbol = "emelino_app_main".into();
+    }
     let entry = project.root.join(&project.manifest.project.entry);
     let flow = frontend::generate_sources(&supplied, &project.entry_name()?, &entry)?;
     let program = upstream_adapter::adapt(&flow.module, &config.export_pairs()?)?;

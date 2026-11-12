@@ -1,0 +1,19 @@
+import Embedded.Board.{BoardGpio}
+import Embedded.Gpio
+
+# Connect an external LED (with a resistor) to GPIO7. GPIO8's on-board RGB
+# LED needs an addressable-LED protocol and is not a plain GPIO indicator.
+fn on_button(event: Gpio.GpioEvent) -> () {
+  with BoardGpio {
+    (use Gpio.Gpio).toggle(Gpio.GpioPin(7))
+  } escape { Gpio.GpioError(_) -> () }
+}
+pub fn main() -> Int {
+  with BoardGpio {
+    gpio = use Gpio.Gpio
+    gpio.configure(Gpio.GpioPin(7), Gpio.OutputPushPull())
+    gpio.configure(Gpio.GpioPin(9), Gpio.Input(Gpio.Up))
+    gpio.enable_interrupt(Gpio.GpioPin(9), Gpio.Falling, on_event: on_button)
+    0
+  } escape { Gpio.GpioError(_) -> 1 }
+}

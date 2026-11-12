@@ -1,0 +1,23 @@
+import Embedded.Board.{BoardGpio, BoardUart, BoardSpi, BoardI2c}
+import Embedded.Gpio
+import Embedded.Uart
+import Embedded.Spi
+import Embedded.I2c
+
+pub fn main() -> Int {
+  with BoardGpio { with BoardUart { with BoardSpi { with BoardI2c {
+    (use Gpio.Gpio).configure(Gpio.GpioPin(7), Gpio.OutputPushPull())
+    uart = use Uart.Uart
+    uart.configure(Uart.Uart0, Uart.UartConfig(115200))
+    (use Spi.Spi).create_device(Spi.SpiDeviceConfig(Spi.Spi1,
+      Spi.SpiConfig(max_frequency_hz: 1000000), cs: Gpio.GpioPin(10)))
+    (use I2c.I2c).configure(I2c.I2c1)
+    uart.transmit(Uart.Uart0, [82, 69, 65, 68, 89, 10], 20)
+    0
+  } } } } escape {
+    Gpio.GpioError(_) -> 1
+    Uart.UartError(_) -> 2
+    Spi.SpiTransactionError(_, _) -> 3
+    I2c.I2cError(_) -> 4
+  }
+}

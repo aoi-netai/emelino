@@ -6,6 +6,8 @@ python3 tools/test_embedded.py --board nucleo-f446re --scenario all --optimizati
 python3 tools/test_embedded.py --scenario bmp180 --scenario mt25q
 python3 tools/test_embedded.py --board arduino-nano-33-ble --scenario all
 python3 tools/test_embedded.py --board arduino-nano-33-ble --scenario all --optimization O0
+python3 tools/test_embedded.py --board esp32-c3-devkitm-1-n4x
+python3 tools/test_embedded.py --board esp32-c3-devkitm-1-n4x --build-only
 python3 tests/embedded/support/test_runner.py
 python3 tests/embedded/ports/stm32f4/test_time.py
 python3 tests/embedded/ports/stm32f4/test_events.py
@@ -13,6 +15,11 @@ python3 tests/embedded/ports/stm32f4/test_mapping.py
 python3 tests/embedded/ports/nrf52/test_uart.py
 python3 tests/embedded/ports/nrf52/test_recovery.py
 ```
+
+ESP32-C3のSDK環境と外部Renodeモデルの導入は
+[専用手順](../../docs/embedded/esp32c3/README.md)を参照する。
+ESP32-C3のRenode試験はROM初期化後のELF bootstrapを使い、GPIOとUARTを観測する。
+I2C・汎用SPIの相手モデルと実機フラッシュ起動はこの試験の対象外。
 
 `ARM_GCC`、`STM32CUBE_F4`、`NRFX_ROOT`、`CMSIS_ROOT`、`RENODE`の指定は
 [firmwareの手順](../../docs/embedded/README.md)を参照する。

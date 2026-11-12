@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "board": "esp32-c3-devkitm-1-n4x",
+  "chip": "esp32c3",
+  "physical_board": "Espressif ESP32-C3-DevKitM-1-N4X",
+  "port": "esp_idf",
+  "flash_bytes": 4194304,
+  "clock": {"source": "sdk", "frequency_hz": 160000000},
+  "gpio_pin_mask": 3934207,
+  "pins": {"external_led": 7, "boot_button": 9, "rgb_led": 8, "spi_cs": 10},
+  "peripherals": {
+    "uart0": {"tx_pin": 21, "rx_pin": 20},
+    "spi1": {"sck_pin": 4, "miso_pin": 5, "mosi_pin": 6},
+    "i2c1": {"scl_pin": 1, "sda_pin": 0}
+  }
+}

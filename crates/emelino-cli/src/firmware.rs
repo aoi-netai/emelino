@@ -80,6 +80,7 @@ pub fn setup_hint(project: &Project, support: &Path) -> String {
         "stm32f4" => "nucleo-f446re",
         "nrf52" => "arduino-nano-33-ble",
         "pico_sdk" => "pico-sdk",
+        "esp_idf" => "esp32-c3-devkitm-1-n4x",
         _ => unreachable!(),
     };
     let prefix = project.root.join(".local");

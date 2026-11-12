@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+include("${EMELINO_CONFIG}")
+set(COMPONENTS main)
+set(EXTRA_COMPONENT_DIRS "${CMAKE_CURRENT_LIST_DIR}/main")
+include("$ENV{IDF_PATH}/tools/cmake/project.cmake")
+project(firmware)
+file(WRITE "${EMELINO_OUTPUT}/compiler-path.txt" "${CMAKE_C_COMPILER}\n")
+target_link_options(${project_elf} PRIVATE ${EMELINO_LINK_ARGS})

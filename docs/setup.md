@@ -65,6 +65,9 @@ cargo build --locked -p emelino-cli
 
 `env.sh`は`ARM_GCC`、`RUSTUP_TOOLCHAIN=stable`、Cargoの`PATH`と、導入したボードの
 `STM32CUBE_F4` / `NRFX_ROOT` / `CMSIS_ROOT` / `PICO_SDK_PATH` / `picotool_DIR`を設定する。
+ESP32-C3-DevKitM-1-N4Xは `bash tools/setup/esp32-c3-devkitm-1-n4x.sh` でESP-IDFと
+RISC-V toolchainを導入する。読み込む環境とRenodeの条件は
+[ESP32-C3の手順](embedded/esp32c3/README.md)を参照する。
 Rustの依存関係と固定したEmela本体のライブラリは、初回のCargoビルド時に取得する。
 続きは[ファームウェアのビルド](embedded/README.md#ビルド)と
 [Nano 33 BLEのビルド](embedded/nrf52/README.md#ビルド)、

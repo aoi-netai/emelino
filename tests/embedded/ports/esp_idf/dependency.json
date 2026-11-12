@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/mithro/renode-espemu.git",
+  "revision": "9c9bdf6bb9c80d40efeaa8e4e398668e60c7007e",
+  "directory": ".local/renode-espemu",
+  "rom_release": "20241011",
+  "rom_filename": "esp32c3_rev3_rom.elf",
+  "rom_sha256": "19ac22e08707df926fb0cf4c54795d4067b983fae8635f396ded173a6d78fc3c"
+}
