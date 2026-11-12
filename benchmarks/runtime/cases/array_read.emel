@@ -1,0 +1,10 @@
+import Std.Array.{Array}
+fn scan(a: Array[Int], left: Int, acc: Int) -> Int {
+  if left <= 0 { acc } else {
+    scan(a, left - 1, Array.fold(a, acc, |s, x| s * 33 + x))
+  }
+}
+pub fn bench(n: Int, seed: Int) -> Int {
+  a = Array.from_list(List.range(0, n))
+  scan(a, 32, seed)
+}

@@ -1,0 +1,10 @@
+import Std.Array.{Array}
+fn update(a: Array[Int], left: Int) -> Array[Int] {
+  if left <= 0 { a } else {
+    update(Array.set(a, left % 64, left), left - 1)
+  }
+}
+pub fn bench(n: Int, seed: Int) -> Int {
+  a = update(Array.repeat(seed, 64), n)
+  Array.fold(a, 0, |s, x| s + x)
+}

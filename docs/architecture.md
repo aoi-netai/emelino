@@ -203,6 +203,14 @@ String、List、関数値、入れ子Array、再帰型も同じ所有権規則�
 <a id="functions-effects-failure"></a>
 ## 関数値・effect・State・failure（PR4）
 
+同期・infallibleで、同じ関数内から呼ぶ用途に限定されたscalar captureのclosureは、
+生成時のcapture値をsnapshotし、通常の関数引数として渡す。環境のheap確保と間接callを省く。
+引数をcaptureしたclosureだけを返す小さな純粋factoryは、対象の局所使用箇所へ展開する。
+Int・Int64・Float・Boolを対象とし、別名への代入、外部への保存・返却、管理対象のcapture、
+failure・suspendを持つclosureには既存の所有する関数値ABIを適用する。
+`local_closures`はheap容量0での反復・混在scalar・入れ子の実行、保存IRでのcapture元再定義、
+escapeとfailureの所有権回収をCのO0/O2で確認する。
+
 closureは関数とcapture環境を組み合わせ、高階callの引数・戻り値・失敗経路へ同じABIを適用する。
 captureしたString、tuple、enum、Listはfactoryのstackが消えた後も必要な所有を保つ。
 handler/layerはoperationとevidenceの対応を保持し、labelの異なるhandlerを混同しない。

@@ -1,0 +1,6 @@
+fn run(left: Int, value: Int) -> Int {
+  if left <= 0 { value } else {
+    run(left - 1, value * 1664525 + 1013904223)
+  }
+}
+pub fn bench(n: Int, seed: Int) -> Int { run(n, seed) }

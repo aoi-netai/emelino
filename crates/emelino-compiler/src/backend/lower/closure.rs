@@ -14,6 +14,8 @@ use crate::contract::ir::{
 
 use crate::{Error, ErrorKind};
 
+mod local;
+
 #[derive(Default)]
 struct BodySlice {
     sequences: HashSet<SeqId>,
@@ -27,6 +29,7 @@ pub(super) fn lower(
     options: &crate::Options,
 ) -> Result<(Module, ClosureMetadata), Vec<Error>> {
     let mut lowered = flow.clone();
+    local::inline_scalar_factories(&mut lowered, options)?;
     let mut result = ClosureMetadata::default();
     let mut next_name = 0usize;
     let mut parent_ordinals: HashMap<FnId, usize> = HashMap::new();
@@ -84,6 +87,32 @@ pub(super) fn lower(
         lifted.ret = function_type.ret;
         lifted.fails = function_type.fails;
         lifted.suspends = closure.suspends;
+        // Locally invoked scalar closures need no function value or environment.
+        // Snapshot captures where the closure is created, then pass them directly.
+        if !function_type.fails
+            && !function_type.suspends
+            && !closure.suspends
+            && !super::has_function_recur(&lifted)
+            && let Some(calls) = local::direct_calls(&parent_function, dst)
+            && closure
+                .captures
+                .iter()
+                .all(|&capture| local::is_scalar(lowered.core.ty(parent_function.vars[capture].ty)))
+        {
+            local::lift_direct(
+                &mut lowered,
+                parent,
+                statement,
+                &closure,
+                lifted,
+                &capture_locals,
+                &calls,
+            );
+            // Keep the ordinal of later closure families stable across const
+            // specializations where a capture may have a managed type.
+            *parent_ordinals.entry(parent).or_default() += 1;
+            continue;
+        }
         let target = lowered.functions.alloc(lifted);
         let ordinal = parent_ordinals.entry(parent).or_default();
         result.families.insert(target, (parent, *ordinal));
