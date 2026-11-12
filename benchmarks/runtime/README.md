@@ -57,5 +57,6 @@ python3 benchmarks/runtime/compare.py --before out/runtime-before/results.json \
 
 初回の結果・提案は[2026-11-12の報告](../../docs/reports/runtime-performance-2026-11-12.md)、
 生データは[results](results/)を参照。
+局所クロージャの確保除去の実装結果は[実装後の報告](../../docs/reports/local-closure-optimization-2026-11-12.md)に記録する。
 保存済みJSONの`executable_size`は両実装とharnessを含む実行ファイル全体の参考値であり、
 生成物同士のサイズ比較ではない。マイコン上の実行速度はこのホスト計測とは別に測る。

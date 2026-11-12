@@ -1,0 +1,954 @@
+{
+  "timestamp_utc": "2026-11-12T02:30:28.408234+00:00",
+  "git_revision": "08716b03159aca6cfcb6be5365c09a14cf2c6cbe",
+  "compiler_version": "emelino 0.1.0 (emela e2f46917939ea5a3479807e04f89a16d04457868)",
+  "cc_command": [
+    "cc"
+  ],
+  "cc_version": "cc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0",
+  "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "cpu_affinity": 0,
+  "cpu_model": "AMD Ryzen 9 3900X 12-Core Processor",
+  "samples": 7,
+  "minimum_sample_ms": 150,
+  "common_c_flags": [
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-Wno-type-limits",
+    "-pedantic"
+  ],
+  "lto": false,
+  "heap_bytes": 65536,
+  "cases": [
+    {
+      "name": "scalar",
+      "optimization": "Os",
+      "n": 10000,
+      "source_sha256": "9fbb73bcb339976ce1164016724bdf8aa12502cc18f6a95571cb96deb76225de",
+      "generated_c_sha256": "d81ea29aef4faea53d76f288751e27ea3aad195cc575d53af2faa6beb136f779",
+      "iterations": {
+        "generated": 16384,
+        "c": 16384
+      },
+      "checksums": {
+        "c": 35210863321088,
+        "generated": 35210863321088
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          9602.682495117188,
+          9478.916259765625,
+          9556.146850585938,
+          9469.944458007812,
+          9401.89892578125,
+          9360.139892578125,
+          9608.538757324219
+        ],
+        "c": [
+          9605.622741699219,
+          9677.977233886719,
+          9394.888977050781,
+          9594.066101074219,
+          9646.089965820312,
+          9354.89306640625,
+          9621.440307617188
+        ]
+      },
+      "audit": {
+        "allocations": 0,
+        "requested_bytes": 0,
+        "retains": 0,
+        "releases": 0,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 9478.916259765625,
+        "min_ns": 9360.139892578125,
+        "max_ns": 9608.538757324219,
+        "mad_ns": 77.2305908203125
+      },
+      "c": {
+        "median_ns": 9605.622741699219,
+        "min_ns": 9354.89306640625,
+        "max_ns": 9677.977233886719,
+        "mad_ns": 40.46722412109375
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   3097\t    664\t     16\t   3777\t    ec1\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/scalar/Os",
+      "checks": "passed",
+      "ratio": 0.9868091340519188
+    },
+    {
+      "name": "scalar",
+      "optimization": "O2",
+      "n": 10000,
+      "source_sha256": "9fbb73bcb339976ce1164016724bdf8aa12502cc18f6a95571cb96deb76225de",
+      "generated_c_sha256": "d81ea29aef4faea53d76f288751e27ea3aad195cc575d53af2faa6beb136f779",
+      "iterations": {
+        "generated": 16384,
+        "c": 16384
+      },
+      "checksums": {
+        "c": 35210863321088,
+        "generated": 35210863321088
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          9659.454895019531,
+          9438.604187011719,
+          9371.840209960938,
+          9216.151123046875,
+          9253.898315429688,
+          9377.626953125,
+          9260.179016113281
+        ],
+        "c": [
+          9620.565856933594,
+          9455.516723632812,
+          9301.899230957031,
+          9321.252136230469,
+          9264.730285644531,
+          9271.268493652344,
+          9318.291870117188
+        ]
+      },
+      "audit": {
+        "allocations": 0,
+        "requested_bytes": 0,
+        "retains": 0,
+        "releases": 0,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 9371.840209960938,
+        "min_ns": 9216.151123046875,
+        "max_ns": 9659.454895019531,
+        "mad_ns": 111.66119384765625
+      },
+      "c": {
+        "median_ns": 9318.291870117188,
+        "min_ns": 9264.730285644531,
+        "max_ns": 9620.565856933594,
+        "mad_ns": 47.02337646484375
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   3238\t    664\t     16\t   3918\t    f4e\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/scalar/O2",
+      "checks": "passed",
+      "ratio": 1.0057465832354398
+    },
+    {
+      "name": "fibonacci",
+      "optimization": "Os",
+      "n": 20,
+      "source_sha256": "fd123c86d3c93c235cf200c2b4c122ddc99899bb69c8e9bd4065f70b8b2b5b47",
+      "generated_c_sha256": "65f8d2cc5cc395b1785a9c3f1c790634383a4fb989ccef447911792d20bdcd27",
+      "iterations": {
+        "generated": 8192,
+        "c": 8192
+      },
+      "checksums": {
+        "c": 56602624,
+        "generated": 56602624
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          19923.933837890625,
+          20009.59130859375,
+          20839.871337890625,
+          19988.454467773438,
+          20732.064086914062,
+          20976.883056640625,
+          21157.584228515625
+        ],
+        "c": [
+          19831.43701171875,
+          19794.591552734375,
+          22541.986206054688,
+          19575.827392578125,
+          23440.249877929688,
+          23909.994262695312,
+          23607.4677734375
+        ]
+      },
+      "audit": {
+        "allocations": 0,
+        "requested_bytes": 0,
+        "retains": 0,
+        "releases": 0,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 20732.064086914062,
+        "min_ns": 19923.933837890625,
+        "max_ns": 21157.584228515625,
+        "mad_ns": 425.5201416015625
+      },
+      "c": {
+        "median_ns": 22541.986206054688,
+        "min_ns": 19575.827392578125,
+        "max_ns": 23909.994262695312,
+        "mad_ns": 1368.008056640625
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   3240\t    664\t     16\t   3920\t    f50\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/fibonacci/Os",
+      "checks": "passed",
+      "ratio": 0.9197088445269971
+    },
+    {
+      "name": "fibonacci",
+      "optimization": "O2",
+      "n": 20,
+      "source_sha256": "fd123c86d3c93c235cf200c2b4c122ddc99899bb69c8e9bd4065f70b8b2b5b47",
+      "generated_c_sha256": "65f8d2cc5cc395b1785a9c3f1c790634383a4fb989ccef447911792d20bdcd27",
+      "iterations": {
+        "generated": 16384,
+        "c": 24576
+      },
+      "checksums": {
+        "c": 169807872,
+        "generated": 113205248
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          14977.425598144531,
+          14990.684875488281,
+          14991.429382324219,
+          14989.065307617188,
+          14661.540405273438,
+          14681.799987792969,
+          14816.376220703125
+        ],
+        "c": [
+          11707.451497395834,
+          11614.190022786459,
+          12036.625895182291,
+          11372.95361328125,
+          11443.935709635416,
+          11401.330078125,
+          11458.008870442709
+        ]
+      },
+      "audit": {
+        "allocations": 0,
+        "requested_bytes": 0,
+        "retains": 0,
+        "releases": 0,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 14977.425598144531,
+        "min_ns": 14661.540405273438,
+        "max_ns": 14991.429382324219,
+        "mad_ns": 14.0037841796875
+      },
+      "c": {
+        "median_ns": 11458.008870442709,
+        "min_ns": 11372.95361328125,
+        "max_ns": 12036.625895182291,
+        "mad_ns": 85.05525716145894
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   5001\t    664\t     16\t   5681\t   1631\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/fibonacci/O2",
+      "checks": "passed",
+      "ratio": 1.3071577939497476
+    },
+    {
+      "name": "list_pipeline",
+      "optimization": "Os",
+      "n": 256,
+      "source_sha256": "c8bcd6d9ff70c7bce01f0a484061ac419d13567e25f521cf35709701ac8db1d1",
+      "generated_c_sha256": "5c33a8151dafdf314572af6663f1fd4c5e55a9842736f05eb81f4ecd3e229c89",
+      "iterations": {
+        "generated": 3072,
+        "c": 131072
+      },
+      "checksums": {
+        "c": 17683185664,
+        "generated": 414449664
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          52808.97265625,
+          52802.743489583336,
+          55505.224283854164,
+          53689.919270833336,
+          54031.691731770836,
+          54408.072265625,
+          53990.8935546875
+        ],
+        "c": [
+          1431.1922912597656,
+          1430.1531295776367,
+          1364.0801239013672,
+          1389.2589721679688,
+          1347.5274200439453,
+          1392.4714126586914,
+          1462.9695129394531
+        ]
+      },
+      "audit": {
+        "allocations": 770,
+        "requested_bytes": 12308,
+        "retains": 3586,
+        "releases": 4356,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 53990.8935546875,
+        "min_ns": 52802.743489583336,
+        "max_ns": 55505.224283854164,
+        "mad_ns": 417.1787109375
+      },
+      "c": {
+        "median_ns": 1392.4714126586914,
+        "min_ns": 1347.5274200439453,
+        "max_ns": 1462.9695129394531,
+        "mad_ns": 37.68171691894531
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   6403\t    664\t  65856\t  72923\t  11cdb\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/list_pipeline/Os",
+      "checks": "passed",
+      "ratio": 38.773430509141235
+    },
+    {
+      "name": "list_pipeline",
+      "optimization": "O2",
+      "n": 256,
+      "source_sha256": "c8bcd6d9ff70c7bce01f0a484061ac419d13567e25f521cf35709701ac8db1d1",
+      "generated_c_sha256": "5c33a8151dafdf314572af6663f1fd4c5e55a9842736f05eb81f4ecd3e229c89",
+      "iterations": {
+        "generated": 3584,
+        "c": 131072
+      },
+      "checksums": {
+        "c": 17683185664,
+        "generated": 483524608
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          43108.79017857143,
+          42290.17633928572,
+          42548.55943080357,
+          42998.080357142855,
+          41499.31389508928,
+          42031.54380580357,
+          42277.69838169643
+        ],
+        "c": [
+          1445.7186660766602,
+          1426.3917770385742,
+          1318.8207397460938,
+          1347.8935852050781,
+          1410.1949310302734,
+          1298.1481170654297,
+          1382.9058990478516
+        ]
+      },
+      "audit": {
+        "allocations": 770,
+        "requested_bytes": 12308,
+        "retains": 3586,
+        "releases": 4356,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 42290.17633928572,
+        "min_ns": 41499.31389508928,
+        "max_ns": 43108.79017857143,
+        "mad_ns": 258.63253348214494
+      },
+      "c": {
+        "median_ns": 1382.9058990478516,
+        "min_ns": 1298.1481170654297,
+        "max_ns": 1445.7186660766602,
+        "mad_ns": 43.485877990722656
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   8432\t    664\t  65856\t  74952\t  124c8\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/list_pipeline/O2",
+      "checks": "passed",
+      "ratio": 30.580660888353318
+    },
+    {
+      "name": "array_pipeline",
+      "optimization": "Os",
+      "n": 256,
+      "source_sha256": "3a4fec678263d3d78cd28c07b51a2c472caec716c5e3ea077c9bb527ad5b97cc",
+      "generated_c_sha256": "ef3d2d167f7df94dc2ed5b8c8d99d13d7411e065d626200416aafb8713dbf636",
+      "iterations": {
+        "generated": 6144,
+        "c": 524288
+      },
+      "checksums": {
+        "c": 70732742656,
+        "generated": 828899328
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          48959.558430989586,
+          48491.65185546875,
+          48103.89404296875,
+          48877.111653645836,
+          48869.5654296875,
+          48885.860514322914,
+          49860.9228515625
+        ],
+        "c": [
+          300.46472930908203,
+          301.0416030883789,
+          304.83742904663086,
+          297.78649139404297,
+          299.0795497894287,
+          304.8923110961914,
+          305.1644229888916
+        ]
+      },
+      "audit": {
+        "allocations": 771,
+        "requested_bytes": 14348,
+        "retains": 2821,
+        "releases": 3592,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 48877.111653645836,
+        "min_ns": 48103.89404296875,
+        "max_ns": 49860.9228515625,
+        "mad_ns": 82.44677734375
+      },
+      "c": {
+        "median_ns": 301.0416030883789,
+        "min_ns": 297.78649139404297,
+        "max_ns": 305.1644229888916,
+        "mad_ns": 3.2551116943359375
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   6223\t    664\t  65856\t  72743\t  11c27\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/array_pipeline/Os",
+      "checks": "passed",
+      "ratio": 162.3599899555964
+    },
+    {
+      "name": "array_pipeline",
+      "optimization": "O2",
+      "n": 256,
+      "source_sha256": "3a4fec678263d3d78cd28c07b51a2c472caec716c5e3ea077c9bb527ad5b97cc",
+      "generated_c_sha256": "ef3d2d167f7df94dc2ed5b8c8d99d13d7411e065d626200416aafb8713dbf636",
+      "iterations": {
+        "generated": 4096,
+        "c": 524288
+      },
+      "checksums": {
+        "c": 70732742656,
+        "generated": 552599552
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          36059.763427734375,
+          37479.94482421875,
+          35791.366943359375,
+          36533.2509765625,
+          36013.790771484375,
+          35213.19384765625,
+          35875.8505859375
+        ],
+        "c": [
+          281.2130947113037,
+          289.09450912475586,
+          283.3524570465088,
+          276.34872245788574,
+          285.18022537231445,
+          276.5102062225342,
+          283.5211944580078
+        ]
+      },
+      "audit": {
+        "allocations": 771,
+        "requested_bytes": 14348,
+        "retains": 2821,
+        "releases": 3592,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 36013.790771484375,
+        "min_ns": 35213.19384765625,
+        "max_ns": 37479.94482421875,
+        "mad_ns": 222.423828125
+      },
+      "c": {
+        "median_ns": 283.3524570465088,
+        "min_ns": 276.34872245788574,
+        "max_ns": 289.09450912475586,
+        "mad_ns": 2.139362335205078
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   7984\t    664\t  65856\t  74504\t  12308\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/array_pipeline/O2",
+      "checks": "passed",
+      "ratio": 127.09891824080127
+    },
+    {
+      "name": "array_read",
+      "optimization": "Os",
+      "n": 256,
+      "source_sha256": "17e336cc35a26511535958ab02d84f4ed94b267781bd13d7c469c9426337b893",
+      "generated_c_sha256": "eaa08c5e17abc3d8fce61b20a66cb2eb7d3d0c488cebe00aa043ad711f7a042c",
+      "iterations": {
+        "generated": 1792,
+        "c": 20480
+      },
+      "checksums": {
+        "c": 44235397867520,
+        "generated": 3870597313408
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          89325.00948660714,
+          89197.40290178571,
+          85587.82310267857,
+          85463.08091517857,
+          89428.90178571429,
+          88453.06584821429,
+          85366.37220982143
+        ],
+        "c": [
+          7734.318701171875,
+          7708.027001953125,
+          7741.11279296875,
+          7729.41650390625,
+          7768.78876953125,
+          7733.156103515625,
+          7731.39736328125
+        ]
+      },
+      "audit": {
+        "allocations": 257,
+        "requested_bytes": 5124,
+        "retains": 8802,
+        "releases": 9059,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 88453.06584821429,
+        "min_ns": 85366.37220982143,
+        "max_ns": 89428.90178571429,
+        "mad_ns": 975.8359375
+      },
+      "c": {
+        "median_ns": 7733.156103515625,
+        "min_ns": 7708.027001953125,
+        "max_ns": 7768.78876953125,
+        "mad_ns": 3.739599609374636
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   5368\t    664\t  65856\t  71888\t  118d0\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/array_read/Os",
+      "checks": "passed",
+      "ratio": 11.438158581591546
+    },
+    {
+      "name": "array_read",
+      "optimization": "O2",
+      "n": 256,
+      "source_sha256": "17e336cc35a26511535958ab02d84f4ed94b267781bd13d7c469c9426337b893",
+      "generated_c_sha256": "eaa08c5e17abc3d8fce61b20a66cb2eb7d3d0c488cebe00aa043ad711f7a042c",
+      "iterations": {
+        "generated": 3840,
+        "c": 49152
+      },
+      "checksums": {
+        "c": 106164954882048,
+        "generated": 8294137100160
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          42308.191145833334,
+          42624.24921875,
+          43289.494791666664,
+          42908.63619791667,
+          42872.53828125,
+          41727.06692708333,
+          42303.71770833333
+        ],
+        "c": [
+          5983.157816569011,
+          6001.774881998698,
+          5992.5633544921875,
+          5985.066345214844,
+          5956.775980631511,
+          5945.172831217448,
+          5921.598307291667
+        ]
+      },
+      "audit": {
+        "allocations": 257,
+        "requested_bytes": 5124,
+        "retains": 8802,
+        "releases": 9059,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 42624.24921875,
+        "min_ns": 41727.06692708333,
+        "max_ns": 43289.494791666664,
+        "mad_ns": 316.0580729166686
+      },
+      "c": {
+        "median_ns": 5983.157816569011,
+        "min_ns": 5921.598307291667,
+        "max_ns": 6001.774881998698,
+        "mad_ns": 18.6170654296875
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   6304\t    664\t  65856\t  72824\t  11c78\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/array_read/O2",
+      "checks": "passed",
+      "ratio": 7.124038931534068
+    },
+    {
+      "name": "array_update",
+      "optimization": "Os",
+      "n": 10000,
+      "source_sha256": "5273770bb5d8a9b94431478f88364d30c5e8fac83f7b100d4a55240c3602cad7",
+      "generated_c_sha256": "059a763032d62f3099660c4857e5e6d8b19b99351adf4fd38400a431a69c462c",
+      "iterations": {
+        "generated": 2048,
+        "c": 49152
+      },
+      "checksums": {
+        "c": 102236160,
+        "generated": 4259840
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          126081.865234375,
+          126894.31640625,
+          127234.2109375,
+          129962.9375,
+          127039.271484375,
+          127548.24365234375,
+          127561.01416015625
+        ],
+        "c": [
+          5981.7118733723955,
+          5742.706888834636,
+          5848.455505371094,
+          5811.884440104167,
+          6059.8634847005205,
+          5810.4539794921875,
+          6047.7767333984375
+        ]
+      },
+      "audit": {
+        "allocations": 65,
+        "requested_bytes": 1284,
+        "retains": 20197,
+        "releases": 20262,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 127234.2109375,
+        "min_ns": 126081.865234375,
+        "max_ns": 129962.9375,
+        "mad_ns": 326.80322265625
+      },
+      "c": {
+        "median_ns": 5848.455505371094,
+        "min_ns": 5742.706888834636,
+        "max_ns": 6059.8634847005205,
+        "mad_ns": 105.74861653645803
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   6058\t    672\t  65856\t  72586\t  11b8a\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/array_update/Os",
+      "checks": "passed",
+      "ratio": 21.7551814869158
+    },
+    {
+      "name": "array_update",
+      "optimization": "O2",
+      "n": 10000,
+      "source_sha256": "5273770bb5d8a9b94431478f88364d30c5e8fac83f7b100d4a55240c3602cad7",
+      "generated_c_sha256": "059a763032d62f3099660c4857e5e6d8b19b99351adf4fd38400a431a69c462c",
+      "iterations": {
+        "generated": 2048,
+        "c": 65536
+      },
+      "checksums": {
+        "c": 136314880,
+        "generated": 4259840
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          79882.388671875,
+          79293.72607421875,
+          78190.80029296875,
+          79947.8818359375,
+          80040.12060546875,
+          88082.77734375,
+          82194.58154296875
+        ],
+        "c": [
+          2480.1802368164062,
+          2530.717819213867,
+          2433.4991607666016,
+          2406.79736328125,
+          2590.585159301758,
+          2862.581802368164,
+          2786.517868041992
+        ]
+      },
+      "audit": {
+        "allocations": 65,
+        "requested_bytes": 1284,
+        "retains": 20197,
+        "releases": 20262,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 79947.8818359375,
+        "min_ns": 78190.80029296875,
+        "max_ns": 88082.77734375,
+        "mad_ns": 654.15576171875
+      },
+      "c": {
+        "median_ns": 2530.717819213867,
+        "min_ns": 2406.79736328125,
+        "max_ns": 2862.581802368164,
+        "mad_ns": 97.21865844726562
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   6980\t    672\t  65856\t  73508\t  11f24\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/array_update/O2",
+      "checks": "passed",
+      "ratio": 31.59099020402528
+    },
+    {
+      "name": "closure",
+      "optimization": "Os",
+      "n": 10000,
+      "source_sha256": "5ec29f95e0251bc34215b65cf70fff5d5860cc084072cacc7fa5c0675bbe1fab",
+      "generated_c_sha256": "4f833ad2825f5c569d2962cd6145a8eff982735c1df0c5593e3b4c78a5d5ade5",
+      "iterations": {
+        "generated": 65536,
+        "c": 65536
+      },
+      "checksums": {
+        "c": 3277137149952,
+        "generated": 3277137149952
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          2505.1074829101562,
+          2573.3014526367188,
+          2540.828079223633,
+          2445.4923553466797,
+          2449.970260620117,
+          2460.5630798339844,
+          2474.989974975586
+        ],
+        "c": [
+          2430.195831298828,
+          2514.4561462402344,
+          2500.5601654052734,
+          2409.0265502929688,
+          2475.3605041503906,
+          2442.0313415527344,
+          2480.3992767333984
+        ]
+      },
+      "audit": {
+        "allocations": 0,
+        "requested_bytes": 0,
+        "retains": 0,
+        "releases": 0,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 2474.989974975586,
+        "min_ns": 2445.4923553466797,
+        "max_ns": 2573.3014526367188,
+        "mad_ns": 29.49761962890625
+      },
+      "c": {
+        "median_ns": 2475.3605041503906,
+        "min_ns": 2409.0265502929688,
+        "max_ns": 2514.4561462402344,
+        "mad_ns": 33.32916259765625
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   3079\t    664\t     16\t   3759\t    eaf\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/closure/Os",
+      "checks": "passed",
+      "ratio": 0.9998503130456419
+    },
+    {
+      "name": "closure",
+      "optimization": "O2",
+      "n": 10000,
+      "source_sha256": "5ec29f95e0251bc34215b65cf70fff5d5860cc084072cacc7fa5c0675bbe1fab",
+      "generated_c_sha256": "4f833ad2825f5c569d2962cd6145a8eff982735c1df0c5593e3b4c78a5d5ade5",
+      "iterations": {
+        "generated": 65536,
+        "c": 65536
+      },
+      "checksums": {
+        "c": 3277137149952,
+        "generated": 3277137149952
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          2735.13671875,
+          2633.806137084961,
+          3010.369354248047,
+          2546.9834747314453,
+          2794.131866455078,
+          2428.243896484375,
+          2429.052444458008
+        ],
+        "c": [
+          2672.1507873535156,
+          2530.841262817383,
+          2805.632858276367,
+          2936.914337158203,
+          2746.898391723633,
+          2442.5540771484375,
+          2433.355926513672
+        ]
+      },
+      "audit": {
+        "allocations": 0,
+        "requested_bytes": 0,
+        "retains": 0,
+        "releases": 0,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 2633.806137084961,
+        "min_ns": 2428.243896484375,
+        "max_ns": 3010.369354248047,
+        "mad_ns": 160.3257293701172
+      },
+      "c": {
+        "median_ns": 2672.1507873535156,
+        "min_ns": 2433.355926513672,
+        "max_ns": 2936.914337158203,
+        "mad_ns": 141.3095245361328
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   3211\t    664\t     16\t   3891\t    f33\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/closure/O2",
+      "checks": "passed",
+      "ratio": 0.9856502670245899
+    },
+    {
+      "name": "state",
+      "optimization": "Os",
+      "n": 10000,
+      "source_sha256": "96a21b58d0c1e79f098b7ca598b9472be37baa1491edced237a526e27e1495c7",
+      "generated_c_sha256": "f5a9d3afb48251537999c4729ee00ca474f7a7093f15a53a7a7ab4e74c8e2636",
+      "iterations": {
+        "generated": 1024,
+        "c": 16384
+      },
+      "checksums": {
+        "c": 35210863321088,
+        "generated": 2200678957568
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          244004.06640625,
+          243231.875,
+          247022.220703125,
+          244713.615234375,
+          248020.283203125,
+          248125.5673828125,
+          253836.2802734375
+        ],
+        "c": [
+          9319.324645996094,
+          9217.8291015625,
+          9254.004455566406,
+          9270.744323730469,
+          9297.653137207031,
+          9380.266845703125,
+          9347.823181152344
+        ]
+      },
+      "audit": {
+        "allocations": 6,
+        "requested_bytes": 124,
+        "retains": 40008,
+        "releases": 40014,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 247022.220703125,
+        "min_ns": 243231.875,
+        "max_ns": 253836.2802734375,
+        "mad_ns": 2308.60546875
+      },
+      "c": {
+        "median_ns": 9297.653137207031,
+        "min_ns": 9217.8291015625,
+        "max_ns": 9380.266845703125,
+        "mad_ns": 43.648681640625
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   6274\t    664\t  65856\t  72794\t  11c5a\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/state/Os",
+      "checks": "passed",
+      "ratio": 26.568233623880836
+    },
+    {
+      "name": "state",
+      "optimization": "O2",
+      "n": 10000,
+      "source_sha256": "96a21b58d0c1e79f098b7ca598b9472be37baa1491edced237a526e27e1495c7",
+      "generated_c_sha256": "f5a9d3afb48251537999c4729ee00ca474f7a7093f15a53a7a7ab4e74c8e2636",
+      "iterations": {
+        "generated": 1024,
+        "c": 16384
+      },
+      "checksums": {
+        "c": 35210863321088,
+        "generated": 2200678957568
+      },
+      "samples_ns_per_call": {
+        "generated": [
+          143848.5380859375,
+          141201.6220703125,
+          139469.0693359375,
+          144849.626953125,
+          144749.1455078125,
+          139618.65625,
+          144146.0234375
+        ],
+        "c": [
+          9545.4970703125,
+          9678.341369628906,
+          9437.970520019531,
+          9477.425476074219,
+          9699.322998046875,
+          9614.043151855469,
+          9515.784606933594
+        ]
+      },
+      "audit": {
+        "allocations": 6,
+        "requested_bytes": 124,
+        "retains": 40008,
+        "releases": 40014,
+        "array_copies": 0,
+        "live_blocks_after": 0
+      },
+      "generated": {
+        "median_ns": 143848.5380859375,
+        "min_ns": 139469.0693359375,
+        "max_ns": 144849.626953125,
+        "mad_ns": 1001.0888671875
+      },
+      "c": {
+        "median_ns": 9545.4970703125,
+        "min_ns": 9437.970520019531,
+        "max_ns": 9699.322998046875,
+        "mad_ns": 68.54608154296875
+      },
+      "executable_size": "text\t   data\t    bss\t    dec\t    hex\tfilename\n   8102\t    664\t  65856\t  74622\t  1237e\t/home/aoi_nemui/emela/emelino/out/non-escaping-closures/build/state/O2",
+      "checks": "passed",
+      "ratio": 15.069779711453853
+    }
+  ]
+}

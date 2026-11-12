@@ -1,0 +1,150 @@
+{
+  "cc_version": "arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1 20210621 (release)",
+  "object_files_only": true,
+  "results": [
+    {
+      "cpu": "cortex-m0plus",
+      "optimization": "Os",
+      "mode": "before",
+      "text": 813,
+      "data": 0,
+      "bss": 65668,
+      "flags": [
+        "-mcpu=cortex-m0plus",
+        "-mthumb",
+        "-Os",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/runtime-benchmark/build/closure/generated"
+      ]
+    },
+    {
+      "cpu": "cortex-m0plus",
+      "optimization": "Os",
+      "mode": "after",
+      "text": 16,
+      "data": 0,
+      "bss": 0,
+      "flags": [
+        "-mcpu=cortex-m0plus",
+        "-mthumb",
+        "-Os",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/non-escaping-closures/build/closure/generated"
+      ]
+    },
+    {
+      "cpu": "cortex-m0plus",
+      "optimization": "O2",
+      "mode": "before",
+      "text": 964,
+      "data": 0,
+      "bss": 65668,
+      "flags": [
+        "-mcpu=cortex-m0plus",
+        "-mthumb",
+        "-O2",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/runtime-benchmark/build/closure/generated"
+      ]
+    },
+    {
+      "cpu": "cortex-m0plus",
+      "optimization": "O2",
+      "mode": "after",
+      "text": 24,
+      "data": 0,
+      "bss": 0,
+      "flags": [
+        "-mcpu=cortex-m0plus",
+        "-mthumb",
+        "-O2",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/non-escaping-closures/build/closure/generated"
+      ]
+    },
+    {
+      "cpu": "cortex-m4",
+      "optimization": "Os",
+      "mode": "before",
+      "text": 799,
+      "data": 0,
+      "bss": 65668,
+      "flags": [
+        "-mcpu=cortex-m4",
+        "-mthumb",
+        "-Os",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/runtime-benchmark/build/closure/generated"
+      ]
+    },
+    {
+      "cpu": "cortex-m4",
+      "optimization": "Os",
+      "mode": "after",
+      "text": 16,
+      "data": 0,
+      "bss": 0,
+      "flags": [
+        "-mcpu=cortex-m4",
+        "-mthumb",
+        "-Os",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/non-escaping-closures/build/closure/generated"
+      ]
+    },
+    {
+      "cpu": "cortex-m4",
+      "optimization": "O2",
+      "mode": "before",
+      "text": 928,
+      "data": 0,
+      "bss": 65668,
+      "flags": [
+        "-mcpu=cortex-m4",
+        "-mthumb",
+        "-O2",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/runtime-benchmark/build/closure/generated"
+      ]
+    },
+    {
+      "cpu": "cortex-m4",
+      "optimization": "O2",
+      "mode": "after",
+      "text": 20,
+      "data": 0,
+      "bss": 0,
+      "flags": [
+        "-mcpu=cortex-m4",
+        "-mthumb",
+        "-O2",
+        "-std=c11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-I",
+        "out/non-escaping-closures/build/closure/generated"
+      ]
+    }
+  ]
+}

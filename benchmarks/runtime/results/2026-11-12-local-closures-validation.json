@@ -1,0 +1,52 @@
+{
+  "implementation_revision": "08716b03159aca6cfcb6be5365c09a14cf2c6cbe",
+  "tests": [
+    {
+      "command": "cargo test --locked --offline --workspace",
+      "status": "passed",
+      "note": "Initial implementation; final synchronous guards and family ordinal handling were subsequently checked by the targeted reruns below."
+    },
+    {
+      "command": "cargo test --locked --offline -p emelino-cli --test local_closures --test reused_source_seams --test reused_consts",
+      "status": "passed",
+      "tests": 40
+    },
+    {
+      "command": "cargo test --locked --offline -p emelino-compiler --lib",
+      "status": "passed",
+      "tests": 129
+    },
+    {
+      "command": "cargo clippy --locked --offline --workspace --all-targets -- -D warnings",
+      "status": "passed"
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "runtime_configurations": 16,
+  "result_checks": 2560,
+  "unreleased_heap_blocks": 0,
+  "unchanged_generated_c_cases": [
+    "scalar",
+    "fibonacci",
+    "list_pipeline",
+    "array_pipeline",
+    "array_read",
+    "array_update"
+  ],
+  "input_sha256": {
+    "benchmarks/runtime/run.py": "d082c396a2806f0b09bdc67a481c9e219194add9c8c68466d4eaf75698c49b29",
+    "benchmarks/runtime/compare.py": "3d8761a71698833ca6b51be57e695c6e35075e805f5daefdf34e4eec698f7277",
+    "benchmarks/runtime/reference.c": "0f61241337ce33c20019c7dc112fa96a3c8b1cd909bf6b94b758a1519fd34740",
+    "benchmarks/runtime/harness.c": "0e62e8773c98e3f8a6f6835ff200cde37da7a7694b3e94324aaa8422927fe0dc",
+    "crates/emelino-compiler/src/backend/lower/closure.rs": "b7c2ee5f950e2ec5b989173567250f23edae92740e4cb0847ee1cd4706bd2ba3",
+    "crates/emelino-compiler/src/backend/lower/closure/local.rs": "66fdeec4550d35454b9dfb0c9c22d51599fe27298124aaabdad209ac6b713b2b",
+    "crates/emelino-cli/tests/local_closures.rs": "1ed1c2a0d832be30adf487199d09c6803034afa05fbba0eb3f880b5d4aa36b96"
+  }
+}

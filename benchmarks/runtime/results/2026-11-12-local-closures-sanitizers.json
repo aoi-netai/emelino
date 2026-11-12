@@ -1,0 +1,132 @@
+{
+  "flags": [
+    "-std=c11",
+    "-O1",
+    "-g",
+    "-fsanitize=address,undefined",
+    "-fno-omit-frame-pointer"
+  ],
+  "ASAN_OPTIONS": "detect_leaks=0",
+  "checks": [
+    {
+      "case": "scalar",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        10000
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    },
+    {
+      "case": "fibonacci",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        20
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    },
+    {
+      "case": "list_pipeline",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        256
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    },
+    {
+      "case": "array_pipeline",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        256
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    },
+    {
+      "case": "array_read",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        256
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    },
+    {
+      "case": "array_update",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        10000
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    },
+    {
+      "case": "closure",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        10000
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    },
+    {
+      "case": "state",
+      "variant": "baseline",
+      "sizes": [
+        0,
+        17,
+        10000
+      ],
+      "seeds": [
+        -2147483648,
+        2147483640
+      ],
+      "repetitions": 8,
+      "status": "passed"
+    }
+  ]
+}
