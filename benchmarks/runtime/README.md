@@ -6,7 +6,6 @@
 ```sh
 cargo build --locked --offline -p emelino-cli
 python3 benchmarks/runtime/run.py
-python3 benchmarks/runtime/experiments.py --baseline out/runtime-benchmark/results.json
 ASAN_OPTIONS=detect_leaks=0 python3 benchmarks/runtime/validate.py \
   --baseline out/runtime-benchmark/results.json
 ```
@@ -36,10 +35,21 @@ Listは固定poolの連結リストを3段階作り、Arrayは連続領域を作
 C側のList/Array入力上限は4096要素、現在の計測サイズは256要素。
 所有権管理と表現の費用も比較対象であり、C側に汎用の参照カウントを追加してはいない。
 
-`experiments.py`は生成済みCにケース限定の変更を加え、変更前後を再計測する。
+前後それぞれのコンパイラで別ディレクトリへ計測した場合は、保存した生成Cを再コンパイルして交互に比較できる。
+
+```sh
+python3 benchmarks/runtime/compare.py --before out/runtime-before/results.json \
+  --after out/runtime-after/results.json --case closure
+```
+
+`compare.py`は入力・生成Cのhash、Cコンパイラ、最適化設定、heap容量などを照合する。
+同じベンチマーク入力に対するコンパイラ変更の比較に使用する。
+
+`experiments.py`は初回調査時の生成Cにケース限定の変更を加え、変更前後を再計測する。
 コンパイラの最適化パスではなく、汎用化したときの正しさを証明するものでもない。
 元Cのhashと置換箇所を検査し、生成形式が変わった場合は停止する。
 元の生成Cは保存し、変更したCは`out/.../build/`内に別名で置く。
+最適化実装後の生成Cには一致しないため、その場合は`compare.py`で実装前後を比較する。
 
 `validate.py`は生成Cと存在する実験CにASan/UBSanを適用する。
 この実行環境ではptraceの影響でLeakSanitizerが起動できないため、上のコマンドで無効にする。
