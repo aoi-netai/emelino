@@ -1,0 +1,8 @@
+fn adder(x: Int) -> fn(Int) -> Int { |v| v + x }
+fn run(left: Int, acc: Int) -> Int {
+  if left <= 0 { acc } else {
+    f = adder(left)
+    run(left - 1, f(acc))
+  }
+}
+pub fn bench(n: Int, seed: Int) -> Int { run(n, seed) }

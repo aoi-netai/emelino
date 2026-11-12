@@ -1,0 +1,5 @@
+pub fn bench(n: Int, seed: Int) -> Int {
+  xs = List.range(0, n)
+  ys = List.map(xs, |x| x * 3 + seed)
+  List.fold(ys, 0, |acc, x| acc + x)
+}

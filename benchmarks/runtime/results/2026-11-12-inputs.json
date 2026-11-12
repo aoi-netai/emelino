@@ -1,0 +1,17 @@
+{
+  "sha256": {
+    "benchmarks/runtime/cases/array_pipeline.emel": "3a4fec678263d3d78cd28c07b51a2c472caec716c5e3ea077c9bb527ad5b97cc",
+    "benchmarks/runtime/cases/array_read.emel": "17e336cc35a26511535958ab02d84f4ed94b267781bd13d7c469c9426337b893",
+    "benchmarks/runtime/cases/array_update.emel": "5273770bb5d8a9b94431478f88364d30c5e8fac83f7b100d4a55240c3602cad7",
+    "benchmarks/runtime/cases/closure.emel": "5ec29f95e0251bc34215b65cf70fff5d5860cc084072cacc7fa5c0675bbe1fab",
+    "benchmarks/runtime/cases/fibonacci.emel": "fd123c86d3c93c235cf200c2b4c122ddc99899bb69c8e9bd4065f70b8b2b5b47",
+    "benchmarks/runtime/cases/list_pipeline.emel": "c8bcd6d9ff70c7bce01f0a484061ac419d13567e25f521cf35709701ac8db1d1",
+    "benchmarks/runtime/cases/scalar.emel": "9fbb73bcb339976ce1164016724bdf8aa12502cc18f6a95571cb96deb76225de",
+    "benchmarks/runtime/cases/state.emel": "96a21b58d0c1e79f098b7ca598b9472be37baa1491edced237a526e27e1495c7",
+    "benchmarks/runtime/harness.c": "0e62e8773c98e3f8a6f6835ff200cde37da7a7694b3e94324aaa8422927fe0dc",
+    "benchmarks/runtime/reference.c": "0f61241337ce33c20019c7dc112fa96a3c8b1cd909bf6b94b758a1519fd34740",
+    "benchmarks/runtime/run.py": "d082c396a2806f0b09bdc67a481c9e219194add9c8c68466d4eaf75698c49b29",
+    "benchmarks/runtime/experiments.py": "948cfb85fb6999b39d7513eee02ee6536fe3ddd8a4f0ccf401cf417b37f89888",
+    "benchmarks/runtime/validate.py": "2faa6bd87297b7ef185ca84a7cb78d50a81414bc995a1a4d547e1b15d7195b54"
+  }
+}

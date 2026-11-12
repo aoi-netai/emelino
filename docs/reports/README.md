@@ -7,6 +7,7 @@
 
 | 資料 | 用途 |
 | --- | --- |
+| [runtime-performance-2026-11-12](runtime-performance-2026-11-12.md) | 生成Cと手書きCの実行性能、確保・参照操作の観測、最適化候補の限定実験 |
 | [compiler-s1](compiler-s1.md)〜[compiler-s6](compiler-s6.md) | 旧pinで段階的に接続した内容と当時の実行結果 |
 | [compiler-s6-validation.json](compiler-s6-validation.json) | 旧pinのworkspace・独立archive実行。新revisionの成功には読み替えない |
 | [compiler-v0.26.1](compiler-v0.26.1.md) | 本体release固定と標準Bytes移行時の結果 |

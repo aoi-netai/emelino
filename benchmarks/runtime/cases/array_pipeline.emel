@@ -1,0 +1,6 @@
+import Std.Array.{Array}
+pub fn bench(n: Int, seed: Int) -> Int {
+  a = Array.from_list(List.range(0, n))
+  b = Array.map(a, |x| x * 3 + seed)
+  Array.fold(b, 0, |acc, x| acc + x)
+}

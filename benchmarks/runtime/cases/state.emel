@@ -1,0 +1,11 @@
+import Std.State.{State}
+fn run(left: Int) -> () uses State[Int] {
+  if left > 0 {
+    s = use State[Int]
+    s.set(s.get() * 1664525 + 1013904223)
+    run(left - 1)
+  }
+}
+pub fn bench(n: Int, seed: Int) -> Int {
+  State.run(seed, || run(n)) match { (_, result) -> result }
+}
